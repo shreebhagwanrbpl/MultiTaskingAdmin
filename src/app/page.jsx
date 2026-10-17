@@ -412,22 +412,22 @@ export default function AdminDashboardPage() {
     : leads.filter(l => l.siteDomain === leadFilterDomain);
 
   return (
-    <div className="flex min-h-screen bg-slate-950 text-slate-100">
+    <div className="flex min-h-screen bg-slate-50 text-slate-800 font-sans">
       
       {/* Left Sidebar */}
-      <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 hidden md:flex">
+      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex">
         <div>
           {/* Admin Header */}
-          <div className="p-5 border-b border-slate-800 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-red-600 text-white flex items-center justify-center font-bold shadow-md shadow-red-600/20">
+          <div className="p-5 border-b border-slate-100 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-red-600 text-white flex items-center justify-center font-bold shadow-sm shadow-red-600/20">
               <Layers size={18} />
             </div>
             <div>
-              <div className="text-sm font-black tracking-tight text-white flex items-center gap-1.5">
+              <div className="text-sm font-black tracking-tight text-slate-900 flex items-center gap-1.5">
                 <span>Multi-Site Hub</span>
-                <span className="text-[9px] bg-red-500/20 text-red-400 font-mono px-1.5 py-0.2 rounded border border-red-500/30">70X</span>
+                <span className="text-[9px] bg-red-50 text-red-600 font-mono px-1.5 py-0.5 rounded border border-red-200">70X</span>
               </div>
-              <span className="text-[10px] text-slate-400 font-medium">VPS & MongoDB Master</span>
+              <span className="text-[10px] text-slate-500 font-medium">VPS & MongoDB Master</span>
             </div>
           </div>
 
@@ -437,15 +437,17 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab('sites')}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition ${
                 activeTab === 'sites' 
-                  ? 'bg-red-600 text-white font-bold shadow-sm' 
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                  ? 'bg-red-600 text-white font-bold shadow-sm shadow-red-600/20' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
               <span className="flex items-center gap-2.5">
                 <Globe size={16} />
                 <span>70 Websites Manager</span>
               </span>
-              <span className="text-[10px] bg-slate-800 text-slate-300 font-mono px-1.5 py-0.5 rounded-md">
+              <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md ${
+                activeTab === 'sites' ? 'bg-red-700/50 text-white' : 'bg-slate-100 text-slate-600 border border-slate-200'
+              }`}>
                 {sites.length}
               </span>
             </button>
@@ -454,15 +456,15 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab('leads')}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition ${
                 activeTab === 'leads' 
-                  ? 'bg-red-600 text-white font-bold shadow-sm' 
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                  ? 'bg-red-600 text-white font-bold shadow-sm shadow-red-600/20' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
               <span className="flex items-center gap-2.5">
                 <Inbox size={16} />
                 <span>Central Leads & RFQ</span>
               </span>
-              <span className="text-[10px] bg-red-500 text-white font-bold px-1.5 py-0.5 rounded-full animate-pulse">
+              <span className="text-[10px] bg-red-600 text-white font-bold px-1.5 py-0.5 rounded-full animate-pulse">
                 {leads.length}
               </span>
             </button>
@@ -471,8 +473,8 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab('products')}
               className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition ${
                 activeTab === 'products' 
-                  ? 'bg-red-600 text-white font-bold shadow-sm' 
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                  ? 'bg-red-600 text-white font-bold shadow-sm shadow-red-600/20' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
               <Package size={16} />
@@ -483,8 +485,8 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab('vps')}
               className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition ${
                 activeTab === 'vps' 
-                  ? 'bg-red-600 text-white font-bold shadow-sm' 
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                  ? 'bg-red-600 text-white font-bold shadow-sm shadow-red-600/20' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
               <Server size={16} />
@@ -494,11 +496,11 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Bottom User / Return */}
-        <div className="p-4 border-t border-slate-800 space-y-3">
+        <div className="p-4 border-t border-slate-100 space-y-3">
           <Link
             href="/"
             target="_blank"
-            className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition border border-slate-700"
+            className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl transition border border-slate-200"
           >
             <span>View Public Storefront</span>
             <ExternalLink size={13} />
@@ -506,8 +508,8 @@ export default function AdminDashboardPage() {
 
           <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono">
             <span>Node / Next.js 14</span>
-            <span className="text-emerald-400 flex items-center gap-1 font-bold">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> MongoDB Active
+            <span className="text-emerald-700 flex items-center gap-1 font-bold">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> MongoDB Active
             </span>
           </div>
         </div>
@@ -517,9 +519,9 @@ export default function AdminDashboardPage() {
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         
         {/* Top Navbar */}
-        <header className="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between sticky top-0 z-30">
+        <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-3">
-            <h1 className="text-base font-black text-white">
+            <h1 className="text-base font-black text-slate-900">
               {activeTab === 'sites' && '70 Websites Network Registry'}
               {activeTab === 'leads' && 'Central Hospital Inquiries & Quotation Desk'}
               {activeTab === 'products' && 'Global Biomedical Inventory & Distribution'}
@@ -531,15 +533,15 @@ export default function AdminDashboardPage() {
             {activeTab === 'sites' && (
               <button
                 onClick={openCreateSite}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl transition shadow-md shadow-red-600/20 cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition shadow-xs shadow-red-600/20 cursor-pointer"
               >
                 <Plus size={15} />
                 <span>Launch New Website</span>
               </button>
             )}
 
-            <div className="text-xs text-slate-400 font-mono bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
-              Host: <span className="text-slate-200 font-bold">rajbiosis.com</span>
+            <div className="text-xs text-slate-600 font-mono bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+              Host: <span className="text-slate-900 font-bold">rajbiosis.com</span>
             </div>
           </div>
         </header>
@@ -549,42 +551,42 @@ export default function AdminDashboardPage() {
 
           {/* Quick Metrics Bar */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 flex items-center justify-between">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-sm transition flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Active Domains</span>
-                <span className="text-2xl font-black text-white">{sites.length} <span className="text-xs font-normal text-slate-500">/ 70 Cap</span></span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Active Domains</span>
+                <span className="text-2xl font-black text-slate-900">{sites.length} <span className="text-xs font-normal text-slate-400">/ 70 Cap</span></span>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
                 <Globe size={20} />
               </div>
             </div>
 
-            <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 flex items-center justify-between">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-sm transition flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Total Hospital Leads</span>
-                <span className="text-2xl font-black text-white">184 <span className="text-xs font-normal text-emerald-400">+12 Today</span></span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Total Hospital Leads</span>
+                <span className="text-2xl font-black text-slate-900">184 <span className="text-xs font-bold text-emerald-600">+12 Today</span></span>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
                 <Inbox size={20} />
               </div>
             </div>
 
-            <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 flex items-center justify-between">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-sm transition flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Quotation Pipeline</span>
-                <span className="text-2xl font-black text-white">₹6.45 Cr</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Quotation Pipeline</span>
+                <span className="text-2xl font-black text-slate-900">₹6.45 Cr</span>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
                 <FileText size={20} />
               </div>
             </div>
 
-            <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 flex items-center justify-between">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-sm transition flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Certified Hardware</span>
-                <span className="text-2xl font-black text-white">{PRODUCTS.length} Models</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Certified Hardware</span>
+                <span className="text-2xl font-black text-slate-900">{PRODUCTS.length} Models</span>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
                 <Package size={20} />
               </div>
             </div>
@@ -594,22 +596,22 @@ export default function AdminDashboardPage() {
               TAB 1: 70 WEBSITES MANAGER TABLE
               ========================================================================= */}
           {activeTab === 'sites' && (
-            <div className="bg-slate-900 rounded-3xl border border-slate-800 overflow-hidden">
+            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
               {/* Search & Actions Bar */}
-              <div className="p-5 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="relative max-w-sm w-full">
-                  <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
                     value={siteSearch}
                     onChange={(e) => setSiteSearch(e.target.value)}
                     placeholder="Search by domain, brand or layout..."
-                    className="w-full pl-9 pr-4 py-2 bg-slate-950 text-xs rounded-xl border border-slate-800 text-white outline-none focus:border-red-500"
+                    className="w-full pl-9 pr-4 py-2 bg-slate-50 text-xs rounded-xl border border-slate-200 text-slate-900 outline-none focus:bg-white focus:border-red-500 transition"
                   />
                 </div>
 
-                <div className="text-xs text-slate-400 font-medium">
-                  Showing <span className="text-white font-bold">{filteredSites.length}</span> configured biomedical platforms
+                <div className="text-xs text-slate-500 font-medium">
+                  Showing <span className="text-slate-900 font-bold">{filteredSites.length}</span> configured biomedical platforms
                 </div>
               </div>
 
@@ -617,7 +619,7 @@ export default function AdminDashboardPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider text-[10px] bg-slate-950/60">
+                    <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px] bg-slate-50/80">
                       <th className="py-3 px-4">Domain & Brand</th>
                       <th className="py-3 px-4">Color & Font Theme</th>
                       <th className="py-3 px-4">Homepage Layout Style</th>
@@ -627,14 +629,14 @@ export default function AdminDashboardPage() {
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/80 font-medium">
+                  <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                     {filteredSites.map((site) => (
-                      <tr key={site.id} className="hover:bg-slate-800/40 transition">
+                      <tr key={site.id} className="hover:bg-slate-50/70 transition">
                         {/* Domain & Brand */}
                         <td className="py-3.5 px-4">
-                          <div className="font-bold text-white text-sm flex items-center gap-1.5">
+                          <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
                             <span>{site.brandName}</span>
-                            <span className="text-[10px] font-mono text-slate-400 font-normal">({site.domain})</span>
+                            <span className="text-[10px] font-mono text-slate-500 font-normal">({site.domain})</span>
                           </div>
                           <span className="text-[11px] text-slate-500 truncate block max-w-[180px]">
                             {site.tagline}
@@ -645,40 +647,40 @@ export default function AdminDashboardPage() {
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-2">
                             <span
-                              className="w-4 h-4 rounded-full border border-white/20 shrink-0 shadow-xs"
+                              className="w-4 h-4 rounded-full border border-slate-300 shrink-0 shadow-xs"
                               style={{ backgroundColor: site.primaryColor }}
                               title={site.primaryColor}
                             />
                             <div>
-                              <span className="text-xs font-mono font-bold text-slate-200 block">{site.primaryColor}</span>
-                              <span className="text-[10px] text-slate-400">{site.font}</span>
+                              <span className="text-xs font-mono font-bold text-slate-800 block">{site.primaryColor}</span>
+                              <span className="text-[10px] text-slate-500">{site.font}</span>
                             </div>
                           </div>
                         </td>
 
                         {/* Layout */}
                         <td className="py-3.5 px-4">
-                          <span className="inline-block px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 text-[11px] font-semibold">
+                          <span className="inline-block px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 text-[11px] font-semibold">
                             {site.homepageLayout}
                           </span>
-                          <span className="text-[10px] text-slate-500 block mt-0.5 font-mono">{site.headerStyle}</span>
+                          <span className="text-[10px] text-slate-400 block mt-0.5 font-mono">{site.headerStyle}</span>
                         </td>
 
                         {/* Card Style */}
                         <td className="py-3.5 px-4">
-                          <span className="text-xs text-slate-300 font-mono">{site.cardStyle}</span>
+                          <span className="text-xs text-slate-700 font-mono">{site.cardStyle}</span>
                           <span className="text-[10px] text-slate-500 block">{site.categoryFocus}</span>
                         </td>
 
                         {/* Contact */}
                         <td className="py-3.5 px-4">
-                          <div className="text-xs text-slate-300 font-mono font-bold">{site.phone}</div>
+                          <div className="text-xs text-slate-800 font-mono font-bold">{site.phone}</div>
                           <span className="text-[10px] text-slate-500 truncate block">{site.city}</span>
                         </td>
 
                         {/* Leads Generated */}
                         <td className="py-3.5 px-4">
-                          <span className="font-black text-white bg-slate-800 px-2 py-0.5 rounded-md text-xs font-mono">
+                          <span className="font-black text-slate-900 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md text-xs font-mono">
                             {site.leadsCount} RFQs
                           </span>
                         </td>
@@ -688,14 +690,14 @@ export default function AdminDashboardPage() {
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => openEditSite(site)}
-                              className="p-1.5 hover:bg-slate-700 text-slate-300 rounded-lg transition cursor-pointer"
+                              className="p-1.5 hover:bg-slate-100 text-slate-600 hover:text-slate-900 rounded-lg transition cursor-pointer"
                               title="Edit Website Config (Dual Mode Custom)"
                             >
                               <Edit3 size={14} />
                             </button>
                             <button
                               onClick={() => handleDeleteSite(site.id, site.domain)}
-                              className="p-1.5 hover:bg-red-950/60 text-slate-400 hover:text-red-400 rounded-lg transition cursor-pointer"
+                              className="p-1.5 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-lg transition cursor-pointer"
                               title="Delete Website"
                             >
                               <Trash2 size={14} />
@@ -703,7 +705,7 @@ export default function AdminDashboardPage() {
                             <Link
                               href="/"
                               target="_blank"
-                              className="p-1.5 hover:bg-slate-700 text-slate-300 rounded-lg transition"
+                              className="p-1.5 hover:bg-slate-100 text-slate-600 hover:text-slate-900 rounded-lg transition"
                               title="Preview Live Site"
                             >
                               <Eye size={14} />
@@ -722,15 +724,15 @@ export default function AdminDashboardPage() {
               TAB 2: CENTRAL LEADS & RFQ INQUIRIES DESK
               ========================================================================= */}
           {activeTab === 'leads' && (
-            <div className="bg-slate-900 rounded-3xl border border-slate-800 overflow-hidden space-y-4">
+            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden space-y-4">
               {/* Filter Bar */}
-              <div className="p-5 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <label className="text-xs font-bold text-slate-400">Filter by Website:</label>
+                  <label className="text-xs font-bold text-slate-600">Filter by Website:</label>
                   <select
                     value={leadFilterDomain}
                     onChange={(e) => setLeadFilterDomain(e.target.value)}
-                    className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white font-mono outline-none"
+                    className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-mono outline-none focus:bg-white focus:border-red-500"
                   >
                     <option value="all">All 70 Websites ({leads.length})</option>
                     {sites.map(s => (
@@ -741,7 +743,7 @@ export default function AdminDashboardPage() {
 
                 <button
                   onClick={() => alert("Exporting all hospital leads to CSV / Excel...")}
-                  className="btn-outline-neutral text-xs py-1.5 px-3 bg-slate-800 border-slate-700 text-white hover:bg-slate-700 flex items-center gap-1.5"
+                  className="text-xs py-1.5 px-3 bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 rounded-xl font-bold flex items-center gap-1.5 transition"
                 >
                   <Download size={13} />
                   <span>Export to Excel / CSV</span>
@@ -752,7 +754,7 @@ export default function AdminDashboardPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider text-[10px] bg-slate-950/60">
+                    <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px] bg-slate-50/80">
                       <th className="py-3 px-4">Ref & Date</th>
                       <th className="py-3 px-4">Source Website</th>
                       <th className="py-3 px-4">Hospital & Doctor</th>
@@ -762,38 +764,38 @@ export default function AdminDashboardPage() {
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/80 font-medium">
+                  <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                     {filteredLeads.map((lead) => (
-                      <tr key={lead.id} className="hover:bg-slate-800/40 transition">
+                      <tr key={lead.id} className="hover:bg-slate-50/70 transition">
                         <td className="py-3 px-4">
-                          <span className="font-mono font-bold text-white block">{lead.id}</span>
+                          <span className="font-mono font-bold text-slate-900 block">{lead.id}</span>
                           <span className="text-[10px] text-slate-500">{lead.date}</span>
                         </td>
                         <td className="py-3 px-4">
-                          <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono text-[11px] font-bold">
+                          <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 font-mono text-[11px] font-bold">
                             {lead.siteDomain}
                           </span>
                         </td>
                         <td className="py-3 px-4">
-                          <div className="font-bold text-white text-xs">{lead.hospital}</div>
-                          <span className="text-[11px] text-slate-400 block">{lead.contact}</span>
-                          <span className="text-[10px] text-slate-500 font-mono">{lead.phone}</span>
+                          <div className="font-bold text-slate-900 text-xs">{lead.hospital}</div>
+                          <span className="text-[11px] text-slate-600 block">{lead.contact}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">{lead.phone}</span>
                         </td>
                         <td className="py-3 px-4">
-                          <span className="text-slate-200 font-semibold">{lead.equipment}</span>
+                          <span className="text-slate-800 font-semibold">{lead.equipment}</span>
                         </td>
                         <td className="py-3 px-4">
-                          <span className="text-emerald-400 font-black text-sm font-mono">{lead.amount}</span>
+                          <span className="text-emerald-600 font-black text-sm font-mono">{lead.amount}</span>
                         </td>
                         <td className="py-3 px-4">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                             {lead.status}
                           </span>
                         </td>
                         <td className="py-3 px-4 text-right">
                           <a
                             href={`tel:${lead.phone}`}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs"
                           >
                             <PhoneCall size={12} />
                             <span>Call</span>
@@ -811,25 +813,25 @@ export default function AdminDashboardPage() {
               TAB 3: GLOBAL CATALOG MANAGER
               ========================================================================= */}
           {activeTab === 'products' && (
-            <div className="bg-slate-900 rounded-3xl border border-slate-800 p-6 space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-6">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                 <div>
-                  <h3 className="text-base font-bold text-white">Central Medical Inventory Pool</h3>
-                  <p className="text-xs text-slate-400">All 18 certified devices available for distribution across all 70 websites.</p>
+                  <h3 className="text-base font-bold text-slate-900">Central Medical Inventory Pool</h3>
+                  <p className="text-xs text-slate-500">All 18 certified devices available for distribution across all 70 websites.</p>
                 </div>
-                <span className="px-3 py-1 rounded-xl bg-slate-800 text-xs font-mono text-emerald-400 font-bold border border-slate-700">
+                <span className="px-3 py-1 rounded-xl bg-emerald-50 text-xs font-mono text-emerald-700 font-bold border border-emerald-200">
                   {PRODUCTS.length} Devices Synced
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {PRODUCTS.map(p => (
-                  <div key={p.id} className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
-                    <img src={p.image} alt={p.name} className="w-14 h-14 object-contain rounded-xl bg-slate-900 p-1.5 border border-slate-800 shrink-0" />
+                  <div key={p.id} className="bg-slate-50 hover:bg-white p-4 rounded-2xl border border-slate-200/80 hover:border-slate-300 hover:shadow-xs transition flex items-center gap-3">
+                    <img src={p.image} alt={p.name} className="w-14 h-14 object-contain rounded-xl bg-white p-1.5 border border-slate-200 shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-bold text-white truncate">{p.name}</div>
-                      <div className="text-[10px] text-slate-400 font-mono">SKU: {p.sku}</div>
-                      <div className="text-xs font-black text-red-400 mt-1">₹{(p.price).toLocaleString('en-IN')}</div>
+                      <div className="text-xs font-bold text-slate-900 truncate">{p.name}</div>
+                      <div className="text-[10px] text-slate-500 font-mono">SKU: {p.sku}</div>
+                      <div className="text-xs font-black text-red-600 mt-1">₹{(p.price).toLocaleString('en-IN')}</div>
                     </div>
                   </div>
                 ))}
@@ -841,33 +843,33 @@ export default function AdminDashboardPage() {
               TAB 4: VPS & MONGODB PIPELINE GUIDE
               ========================================================================= */}
           {activeTab === 'vps' && (
-            <div className="bg-slate-900 rounded-3xl border border-slate-800 p-6 sm:p-8 space-y-6">
+            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 sm:p-8 space-y-6">
               <div>
-                <h3 className="text-lg font-black text-white">VPS Server & MongoDB Connection Status</h3>
-                <p className="text-xs text-slate-400 mt-1">Production deployment environment for your 70 domain multi-tenant network.</p>
+                <h3 className="text-lg font-black text-slate-900">VPS Server & MongoDB Connection Status</h3>
+                <p className="text-xs text-slate-500 mt-1">Production deployment environment for your 70 domain multi-tenant network.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
+                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2.5">
+                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-700">
                     <Database size={16} />
                     <span>MongoDB Database Configuration</span>
                   </div>
-                  <div className="bg-slate-900 p-2.5 rounded-xl font-mono text-[11px] text-slate-300 overflow-x-auto">
+                  <div className="bg-slate-900 p-3 rounded-xl font-mono text-[11px] text-emerald-300 overflow-x-auto shadow-inner border border-slate-800">
                     mongodb+srv://admin:pass@vps-cluster.mongodb.net/biomedical_network
                   </div>
-                  <p className="text-[11px] text-slate-400">Stores all 70 site configurations, products inventory, and quotation inquiries.</p>
+                  <p className="text-[11px] text-slate-500">Stores all 70 site configurations, products inventory, and quotation inquiries.</p>
                 </div>
 
-                <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-bold text-blue-400">
+                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2.5">
+                  <div className="flex items-center gap-2 text-xs font-bold text-blue-700">
                     <Server size={16} />
                     <span>Nginx Wildcard Multi-Domain Reverse Proxy</span>
                   </div>
-                  <div className="bg-slate-900 p-2.5 rounded-xl font-mono text-[11px] text-slate-300 overflow-x-auto">
+                  <div className="bg-slate-900 p-3 rounded-xl font-mono text-[11px] text-sky-300 overflow-x-auto shadow-inner border border-slate-800">
                     server_name *.rajbiosis.com pulmocare.in surgitech.in; proxy_pass http://127.0.0.1:3000;
                   </div>
-                  <p className="text-[11px] text-slate-400">Routes all 70 incoming domain requests to Next.js without needing code redeployment.</p>
+                  <p className="text-[11px] text-slate-500">Routes all 70 incoming domain requests to Next.js without needing code redeployment.</p>
                 </div>
               </div>
             </div>
@@ -880,20 +882,20 @@ export default function AdminDashboardPage() {
           CREATE NEW WEBSITE MODAL (Form for adding Site #2, #3 ... #70)
           ========================================================================= */}
       {isAddSiteOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto shadow-2xl">
             
             {/* Modal Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-red-600 text-white flex items-center justify-center font-bold shadow-md shadow-red-600/30">
+                <div className="w-9 h-9 rounded-xl bg-red-600 text-white flex items-center justify-center font-bold shadow-sm shadow-red-600/20">
                   {editingSiteId ? <Edit3 size={17} /> : <Plus size={18} />}
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-white">
+                  <h3 className="text-base font-black text-slate-900">
                     {editingSiteId ? `Edit Website: ${newDomain || 'Site Config'}` : 'Launch New Biomedical Website'}
                   </h3>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-500">
                     {editingSiteId 
                       ? 'Update domain identity, custom fonts, layouts, and colors in MongoDB.'
                       : 'Configure domain, custom font, layout architecture, and colors in MongoDB.'}
@@ -902,7 +904,7 @@ export default function AdminDashboardPage() {
               </div>
               <button 
                 onClick={() => { setIsAddSiteOpen(false); resetForm(); }} 
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
+                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -914,45 +916,45 @@ export default function AdminDashboardPage() {
                 
                 {/* Domain Name */}
                 <div>
-                  <label className="text-slate-300 font-bold block mb-1">Domain Name *</label>
+                  <label className="text-slate-700 font-bold block mb-1">Domain Name *</label>
                   <input
                     type="text"
                     required
                     value={newDomain}
                     onChange={(e) => setNewDomain(e.target.value)}
                     placeholder="e.g. aerorespi.in / medsurge.com"
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white outline-none focus:border-red-500 font-mono"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 outline-none focus:bg-white focus:border-red-500 font-mono transition"
                   />
                 </div>
 
                 {/* Brand Name */}
                 <div>
-                  <label className="text-slate-300 font-bold block mb-1">Brand Name *</label>
+                  <label className="text-slate-700 font-bold block mb-1">Brand Name *</label>
                   <input
                     type="text"
                     required
                     value={newBrandName}
                     onChange={(e) => setNewBrandName(e.target.value)}
                     placeholder="e.g. AeroRespi Medical Systems"
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white outline-none focus:border-red-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 outline-none focus:bg-white focus:border-red-500 transition"
                   />
                 </div>
 
                 {/* Tagline / Subtitle */}
                 <div className="sm:col-span-2">
-                  <label className="text-slate-300 font-bold block mb-1">Brand Tagline / Mission</label>
+                  <label className="text-slate-700 font-bold block mb-1">Brand Tagline / Mission</label>
                   <input
                     type="text"
                     value={newTagline}
                     onChange={(e) => setNewTagline(e.target.value)}
                     placeholder="e.g. Precision ICU Ventilators & Critical Life Support Systems"
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white outline-none focus:border-red-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 outline-none focus:bg-white focus:border-red-500 transition"
                   />
                 </div>
 
                 {/* Primary Theme Color */}
                 <div>
-                  <label className="text-slate-300 font-bold block mb-1">Primary Theme Color</label>
+                  <label className="text-slate-700 font-bold block mb-1">Primary Theme Color</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -964,7 +966,7 @@ export default function AdminDashboardPage() {
                       type="text"
                       value={newColor}
                       onChange={(e) => setNewColor(e.target.value)}
-                      className="flex-1 px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono"
+                      className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono focus:bg-white focus:border-red-500 outline-none"
                       placeholder="#dc2626"
                     />
                   </div>
@@ -973,11 +975,11 @@ export default function AdminDashboardPage() {
                 {/* 1. Typography Font Family (Dual Mode: Preset Dropdown OR Custom Type) */}
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="text-slate-300 font-bold">Typography Font Family</label>
+                    <label className="text-slate-700 font-bold">Typography Font Family</label>
                     <button
                       type="button"
                       onClick={() => setCustomFontMode(!customFontMode)}
-                      className="text-[10px] font-semibold text-red-400 hover:text-red-300 transition flex items-center gap-1 cursor-pointer bg-red-950/40 px-2 py-0.5 rounded-md border border-red-800/50"
+                      className="text-[10px] font-semibold text-red-600 hover:text-red-700 transition flex items-center gap-1 cursor-pointer bg-red-50 px-2 py-0.5 rounded-md border border-red-200"
                     >
                       {customFontMode ? '📋 Select Preset' : '✍️ Type Custom Font'}
                     </button>
@@ -989,9 +991,9 @@ export default function AdminDashboardPage() {
                         value={newFont}
                         onChange={(e) => setNewFont(e.target.value)}
                         placeholder="Type any font: e.g. Poppins, Outfit, Google Sans..."
-                        className="w-full px-3.5 py-2.5 bg-slate-950 border border-red-500 rounded-xl text-white outline-none focus:border-red-400 font-medium"
+                        className="w-full px-3.5 py-2.5 bg-white border border-red-500 rounded-xl text-slate-900 outline-none focus:border-red-600 font-medium"
                       />
-                      <span className="text-[10px] text-slate-400 mt-1 block">
+                      <span className="text-[10px] text-slate-500 mt-1 block">
                         💡 Custom font mode active: Type any Google font or CSS font family.
                       </span>
                     </div>
@@ -1005,7 +1007,7 @@ export default function AdminDashboardPage() {
                           setNewFont(e.target.value);
                         }
                       }}
-                      className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white outline-none focus:border-red-500"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 outline-none focus:bg-white focus:border-red-500"
                     >
                       {PRESET_FONTS.map(f => (
                         <option key={f.value} value={f.value}>{f.label}</option>
@@ -1018,11 +1020,11 @@ export default function AdminDashboardPage() {
                 {/* 2. Homepage Layout Style (Dual Mode: Preset Dropdown OR Custom Type) */}
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="text-slate-300 font-bold">Homepage Layout Style *</label>
+                    <label className="text-slate-700 font-bold">Homepage Layout Style *</label>
                     <button
                       type="button"
                       onClick={() => setCustomLayoutMode(!customLayoutMode)}
-                      className="text-[10px] font-semibold text-red-400 hover:text-red-300 transition flex items-center gap-1 cursor-pointer bg-red-950/40 px-2 py-0.5 rounded-md border border-red-800/50"
+                      className="text-[10px] font-semibold text-red-600 hover:text-red-700 transition flex items-center gap-1 cursor-pointer bg-red-50 px-2 py-0.5 rounded-md border border-red-200"
                     >
                       {customLayoutMode ? '📋 Select Preset' : '✍️ Type Custom Layout'}
                     </button>
@@ -1034,9 +1036,9 @@ export default function AdminDashboardPage() {
                         value={newHomepageLayout}
                         onChange={(e) => setNewHomepageLayout(e.target.value)}
                         placeholder="e.g. Minimalist Hero Banner, Split Showcase, 3D Grid..."
-                        className="w-full px-3.5 py-2.5 bg-slate-950 border border-red-500 rounded-xl text-white outline-none focus:border-red-400 font-medium"
+                        className="w-full px-3.5 py-2.5 bg-white border border-red-500 rounded-xl text-slate-900 outline-none focus:border-red-600 font-medium"
                       />
-                      <span className="text-[10px] text-slate-400 mt-1 block">
+                      <span className="text-[10px] text-slate-500 mt-1 block">
                         💡 Custom layout mode active: Type custom layout name or structure.
                       </span>
                     </div>
@@ -1050,7 +1052,7 @@ export default function AdminDashboardPage() {
                           setNewHomepageLayout(e.target.value);
                         }
                       }}
-                      className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white outline-none focus:border-red-500"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 outline-none focus:bg-white focus:border-red-500"
                     >
                       {PRESET_HOMEPAGE_LAYOUTS.map(l => (
                         <option key={l.value} value={l.value}>{l.label}</option>
@@ -1063,11 +1065,11 @@ export default function AdminDashboardPage() {
                 {/* 3. Product Card Design (Dual Mode: Preset Dropdown OR Custom Type) */}
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="text-slate-300 font-bold">Product Card Design *</label>
+                    <label className="text-slate-700 font-bold">Product Card Design *</label>
                     <button
                       type="button"
                       onClick={() => setCustomCardMode(!customCardMode)}
-                      className="text-[10px] font-semibold text-red-400 hover:text-red-300 transition flex items-center gap-1 cursor-pointer bg-red-950/40 px-2 py-0.5 rounded-md border border-red-800/50"
+                      className="text-[10px] font-semibold text-red-600 hover:text-red-700 transition flex items-center gap-1 cursor-pointer bg-red-50 px-2 py-0.5 rounded-md border border-red-200"
                     >
                       {customCardMode ? '📋 Select Preset' : '✍️ Type Custom Design'}
                     </button>
@@ -1079,9 +1081,9 @@ export default function AdminDashboardPage() {
                         value={newCardStyle}
                         onChange={(e) => setNewCardStyle(e.target.value)}
                         placeholder="e.g. Glassmorphic Modern, Compact Spec Row, High Contrast..."
-                        className="w-full px-3.5 py-2.5 bg-slate-950 border border-red-500 rounded-xl text-white outline-none focus:border-red-400 font-medium"
+                        className="w-full px-3.5 py-2.5 bg-white border border-red-500 rounded-xl text-slate-900 outline-none focus:border-red-600 font-medium"
                       />
-                      <span className="text-[10px] text-slate-400 mt-1 block">
+                      <span className="text-[10px] text-slate-500 mt-1 block">
                         💡 Custom card mode active: Type custom card style.
                       </span>
                     </div>
@@ -1095,7 +1097,7 @@ export default function AdminDashboardPage() {
                           setNewCardStyle(e.target.value);
                         }
                       }}
-                      className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white outline-none focus:border-red-500"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 outline-none focus:bg-white focus:border-red-500"
                     >
                       {PRESET_CARD_STYLES.map(c => (
                         <option key={c.value} value={c.value}>{c.label}</option>
@@ -1108,11 +1110,11 @@ export default function AdminDashboardPage() {
                 {/* 4. Header Style (Dual Mode: Preset Dropdown OR Custom Type) */}
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="text-slate-300 font-bold">Header Style</label>
+                    <label className="text-slate-700 font-bold">Header Style</label>
                     <button
                       type="button"
                       onClick={() => setCustomHeaderMode(!customHeaderMode)}
-                      className="text-[10px] font-semibold text-red-400 hover:text-red-300 transition flex items-center gap-1 cursor-pointer bg-red-950/40 px-2 py-0.5 rounded-md border border-red-800/50"
+                      className="text-[10px] font-semibold text-red-600 hover:text-red-700 transition flex items-center gap-1 cursor-pointer bg-red-50 px-2 py-0.5 rounded-md border border-red-200"
                     >
                       {customHeaderMode ? '📋 Select Preset' : '✍️ Type Custom Header'}
                     </button>
@@ -1124,9 +1126,9 @@ export default function AdminDashboardPage() {
                         value={newHeaderStyle}
                         onChange={(e) => setNewHeaderStyle(e.target.value)}
                         placeholder="e.g. Sticky Floating Pill, Mega Navbar, Split Logo Bar..."
-                        className="w-full px-3.5 py-2.5 bg-slate-950 border border-red-500 rounded-xl text-white outline-none focus:border-red-400 font-medium"
+                        className="w-full px-3.5 py-2.5 bg-white border border-red-500 rounded-xl text-slate-900 outline-none focus:border-red-600 font-medium"
                       />
-                      <span className="text-[10px] text-slate-400 mt-1 block">
+                      <span className="text-[10px] text-slate-500 mt-1 block">
                         💡 Custom header mode active: Type custom navbar style.
                       </span>
                     </div>
@@ -1140,7 +1142,7 @@ export default function AdminDashboardPage() {
                           setNewHeaderStyle(e.target.value);
                         }
                       }}
-                      className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white outline-none focus:border-red-500"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 outline-none focus:bg-white focus:border-red-500"
                     >
                       {PRESET_HEADER_STYLES.map(h => (
                         <option key={h.value} value={h.value}>{h.label}</option>
@@ -1153,11 +1155,11 @@ export default function AdminDashboardPage() {
                 {/* 5. Primary Category Focus (Dual Mode: Preset Dropdown OR Custom Type) */}
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="text-slate-300 font-bold">Primary Category Focus</label>
+                    <label className="text-slate-700 font-bold">Primary Category Focus</label>
                     <button
                       type="button"
                       onClick={() => setCustomCategoryMode(!customCategoryMode)}
-                      className="text-[10px] font-semibold text-red-400 hover:text-red-300 transition flex items-center gap-1 cursor-pointer bg-red-950/40 px-2 py-0.5 rounded-md border border-red-800/50"
+                      className="text-[10px] font-semibold text-red-600 hover:text-red-700 transition flex items-center gap-1 cursor-pointer bg-red-50 px-2 py-0.5 rounded-md border border-red-200"
                     >
                       {customCategoryMode ? '📋 Select Preset' : '✍️ Type Custom Category'}
                     </button>
@@ -1169,9 +1171,9 @@ export default function AdminDashboardPage() {
                         value={newCategoryFocus}
                         onChange={(e) => setNewCategoryFocus(e.target.value)}
                         placeholder="e.g. Dialysis & Nephrology Units, Dental Lasers, Pediatric ICU..."
-                        className="w-full px-3.5 py-2.5 bg-slate-950 border border-red-500 rounded-xl text-white outline-none focus:border-red-400 font-medium"
+                        className="w-full px-3.5 py-2.5 bg-white border border-red-500 rounded-xl text-slate-900 outline-none focus:border-red-600 font-medium"
                       />
-                      <span className="text-[10px] text-slate-400 mt-1 block">
+                      <span className="text-[10px] text-slate-500 mt-1 block">
                         💡 Custom category mode active: Type any medical speciality or department.
                       </span>
                     </div>
@@ -1185,7 +1187,7 @@ export default function AdminDashboardPage() {
                           setNewCategoryFocus(e.target.value);
                         }
                       }}
-                      className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white outline-none focus:border-red-500"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 outline-none focus:bg-white focus:border-red-500"
                     >
                       {PRESET_CATEGORIES.map(c => (
                         <option key={c.value} value={c.value}>{c.label}</option>
@@ -1197,53 +1199,53 @@ export default function AdminDashboardPage() {
 
                 {/* Toll-Free Phone */}
                 <div>
-                  <label className="text-slate-300 font-bold block mb-1">Toll-Free Phone</label>
+                  <label className="text-slate-700 font-bold block mb-1">Toll-Free Phone</label>
                   <input
                     type="text"
                     value={newPhone}
                     onChange={(e) => setNewPhone(e.target.value)}
                     placeholder="1800-419-BIOSIS"
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white outline-none focus:border-red-500 font-mono"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 outline-none focus:bg-white focus:border-red-500 font-mono transition"
                   />
                 </div>
 
                 {/* Official Support Email */}
                 <div>
-                  <label className="text-slate-300 font-bold block mb-1">Official Support Email</label>
+                  <label className="text-slate-700 font-bold block mb-1">Official Support Email</label>
                   <input
                     type="email"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
                     placeholder="procurement@hospital.in"
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white outline-none focus:border-red-500 font-mono"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 outline-none focus:bg-white focus:border-red-500 font-mono transition"
                   />
                 </div>
 
                 {/* Warehouse / City */}
                 <div className="sm:col-span-2">
-                  <label className="text-slate-300 font-bold block mb-1">Warehouse / City Hub</label>
+                  <label className="text-slate-700 font-bold block mb-1">Warehouse / City Hub</label>
                   <input
                     type="text"
                     value={newCity}
                     onChange={(e) => setNewCity(e.target.value)}
                     placeholder="e.g. Mumbai / New Delhi / Bangalore / Hyderabad"
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white outline-none focus:border-red-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 outline-none focus:bg-white focus:border-red-500 transition"
                   />
                 </div>
               </div>
 
               {/* Form Action Buttons */}
-              <div className="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => { setIsAddSiteOpen(false); resetForm(); }}
-                  className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition shadow-md shadow-red-600/20 flex items-center gap-2 cursor-pointer"
+                  className="px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition shadow-xs shadow-red-600/20 flex items-center gap-2 cursor-pointer"
                 >
                   {editingSiteId ? <Edit3 size={15} /> : <Plus size={15} />}
                   <span>{editingSiteId ? 'Save Changes to MongoDB' : 'Save & Launch to MongoDB'}</span>
