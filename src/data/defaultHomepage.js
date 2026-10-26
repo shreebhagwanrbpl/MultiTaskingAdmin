@@ -1,0 +1,268 @@
+export const DEFAULT_HOMEPAGE_CONFIG = {
+  domain: 'rajbiosis.com',
+  updatedAt: new Date().toISOString(),
+  
+  // 1. TOP OFFERS BAR
+  offers: [
+    {
+      id: 'off-1',
+      tag: 'Flash Sale',
+      title: 'FLAT 20% OFF',
+      desc: 'On ICU & Operation Theatre Turnkey Orders',
+      color: 'rose', // rose, amber, emerald, sky, purple, red-outline
+      icon: 'Flame',
+      link: '#categories',
+      active: true
+    },
+    {
+      id: 'off-2',
+      tag: 'Special Offer',
+      title: 'Buy 2 ICU Monitors Get 1 Medical Trolley Free',
+      desc: 'Valid for all hospital procurement desks',
+      color: 'amber',
+      icon: 'Sparkles',
+      link: '#products',
+      active: true
+    },
+    {
+      id: 'off-3',
+      tag: 'Free Shipping',
+      title: 'Pan-India Free Express Delivery',
+      desc: 'Dispatched from central hubs in Delhi, Mumbai, Bengaluru',
+      color: 'emerald',
+      icon: 'Truck',
+      link: '#',
+      active: true
+    },
+    {
+      id: 'off-4',
+      tag: 'Warranty',
+      title: 'Calibration & 2-Yr OEM Warranty Included',
+      desc: 'NABL batch calibration and complimentary installation',
+      color: 'sky',
+      icon: 'ShieldCheck',
+      link: '#',
+      active: true
+    },
+    {
+      id: 'off-5',
+      tag: 'Authorized',
+      title: 'Authorized CDSCO & GeM Supplier',
+      desc: '100% genuine medical equipment direct from OEM',
+      color: 'red-outline',
+      icon: 'Award',
+      link: '#',
+      active: true
+    }
+  ],
+  offersConfig: {
+    hotline: '+91 9999-BIOSIS',
+    hotlineLabel: '24x7 Hotline',
+    quoteBtnText: 'Request A Quote',
+    quoteBtnLink: '#rfq',
+    marqueeActive: false
+  },
+
+  // 2. HERO CAROUSEL (UP TO 5 SLIDES)
+  carousel: [
+    {
+      id: 'slide-1',
+      title: 'Advanced Diagnostics for Better Healthcare',
+      subtitle: 'Automated 3-Part Hematology Analyzers, CBC-500, H-360 & EC-90 Electrolyte Systems with Factory Calibration',
+      badge: 'Direct OEM Procurement',
+      image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=1600&auto=format&fit=crop&q=80',
+      primaryBtnText: 'Explore Diagnostics',
+      primaryBtnLink: '#categories',
+      secondaryBtnText: 'Request Institutional RFQ',
+      secondaryBtnLink: '#rfq',
+      active: true
+    },
+    {
+      id: 'slide-2',
+      title: 'ICU & Critical Care Life-Support Systems',
+      subtitle: 'Turbine-Driven Ventilators, 12.1" Multi-Parameter Patient Monitors & Precision Syringe Infusion Pumps',
+      badge: 'CDSCO & ISO 13485:2016 Certified',
+      image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1600&auto=format&fit=crop&q=80',
+      primaryBtnText: 'View ICU Catalog',
+      primaryBtnLink: '#categories',
+      secondaryBtnText: 'Download Spec Sheet',
+      secondaryBtnLink: '#rfq',
+      active: true
+    },
+    {
+      id: 'slide-3',
+      title: 'Surgical & Modular Operating Theatre Suites',
+      subtitle: '4K Laparoscopy Towers, Dual Dome LED Surgical Lights & Heavy-Duty Hydraulic OT Tables',
+      badge: 'NABH Compliant Hospital Setup',
+      image: 'https://images.unsplash.com/photo-1551076805-e1869033e561?w=1600&auto=format&fit=crop&q=80',
+      primaryBtnText: 'Explore Surgical OT',
+      primaryBtnLink: '#categories',
+      secondaryBtnText: 'Instant Quotation Call',
+      secondaryBtnLink: '#rfq',
+      active: true
+    },
+    {
+      id: 'slide-4',
+      title: 'Radiology & High-Frequency Digital Imaging',
+      subtitle: '500mA Fixed Digital X-Ray Systems, 9" Mobile C-Arm Fluoroscopy & 4D Color Doppler Ultrasound',
+      badge: 'AERB Approved Calibration',
+      image: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?w=1600&auto=format&fit=crop&q=80',
+      primaryBtnText: 'View Imaging Equipment',
+      primaryBtnLink: '#categories',
+      secondaryBtnText: 'Request Live Demo',
+      secondaryBtnLink: '#rfq',
+      active: true
+    },
+    {
+      id: 'slide-5',
+      title: 'Hospital Infrastructure & Centralized Life Systems',
+      subtitle: '5-Function Motorized ICU Beds, Emergency Crash Carts & Turnkey Medical Gas Pipeline (MGPS)',
+      badge: 'Turnkey Hospital Commissioning',
+      image: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=1600&auto=format&fit=crop&q=80',
+      primaryBtnText: 'Explore Infrastructure',
+      primaryBtnLink: '#categories',
+      secondaryBtnText: 'Consult Bio-Engineers',
+      secondaryBtnLink: '#rfq',
+      active: true
+    }
+  ],
+  carouselConfig: {
+    autoplay: true,
+    interval: 5000,
+    showArrows: true,
+    showDots: true,
+    showCounter: true // e.g. "1/5"
+  },
+
+  // 3. BIOMEDICAL EQUIPMENT CATEGORIES
+  categories: [
+    {
+      id: 'cat-1',
+      name: 'ICU & Critical Care',
+      slug: 'icu-critical-care',
+      itemCount: 14,
+      image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=600&q=80',
+      badge: '14 Items',
+      description: 'Ventilators, Multi-para Monitors, Defibrillators, Syringe Pumps',
+      active: true
+    },
+    {
+      id: 'cat-2',
+      name: 'Radiology & Imaging',
+      slug: 'radiology-imaging',
+      itemCount: 9,
+      image: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=600&q=80',
+      badge: '9 Items',
+      description: 'Digital X-Ray DR Panels, Color Doppler Ultrasound, C-Arm',
+      active: true
+    },
+    {
+      id: 'cat-3',
+      name: 'Surgical & OT Equipment',
+      slug: 'surgical-ot',
+      itemCount: 18,
+      image: 'https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=600&q=80',
+      badge: '18 Items',
+      description: 'Electrosurgical Cautery, LED OT Lights, Hydraulic OT Tables',
+      active: true
+    },
+    {
+      id: 'cat-4',
+      name: 'Diagnostic & Lab Analyzers',
+      slug: 'diagnostic-lab',
+      itemCount: 22,
+      image: 'https://images.unsplash.com/photo-1582719471384-894fbb16e074?auto=format&fit=crop&w=600&q=80',
+      badge: '22 Items',
+      description: 'Automated Hematology, Clinical Biochemistry, Centrifuges',
+      active: true
+    },
+    {
+      id: 'cat-5',
+      name: 'Hospital Infrastructure & Furniture',
+      slug: 'hospital-furniture',
+      itemCount: 12,
+      image: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=600&q=80',
+      badge: '12 Items',
+      description: 'Motorized ICU Electric Beds, Crash Carts, Examination Couches',
+      active: true
+    },
+    {
+      id: 'cat-6',
+      name: 'Post-Sales & Bio-Calibration',
+      slug: 'bio-calibration',
+      itemCount: 8,
+      image: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=600&q=80',
+      badge: '8 Services',
+      description: 'NABL Certified Calibration, Preventive Maintenance & Spares',
+      active: true
+    }
+  ],
+  categoriesConfig: {
+    heading: 'Biomedical Equipment Categories',
+    subheading: 'Certified institutional medical equipment engineered for Indian hospitals, specialty clinics, and diagnostic labs.',
+    viewAllLink: '#categories'
+  },
+
+  // 4. BRANDS WE DEAL IN & SUPPORT
+  brands: [
+    {
+      id: 'brand-1',
+      name: 'Mindray Biomedical',
+      tagline: 'Ultrasound, Hematology & Patient Monitoring',
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Mindray_logo.svg/1200px-Mindray_logo.svg.png',
+      tier: 'Authorised Direct Partner',
+      website: 'https://www.mindray.com',
+      active: true
+    },
+    {
+      id: 'brand-2',
+      name: 'OSCAR Medical Systems',
+      tagline: 'Critical Care & Anesthesia Workstations',
+      logo: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=240&q=80',
+      tier: 'Authorized Distributor',
+      website: 'https://oscarmedical.in',
+      active: true
+    },
+    {
+      id: 'brand-3',
+      name: 'Philips Healthcare',
+      tagline: 'Defibrillators & Patient Monitoring',
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Philips_logo.svg/1200px-Philips_logo.svg.png',
+      tier: 'Direct OEM Partner',
+      website: 'https://www.philips.co.in',
+      active: true
+    },
+    {
+      id: 'brand-4',
+      name: 'GE Healthcare',
+      tagline: 'Radiology, CT & Ultrasound Imaging',
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/General_Electric_logo.svg/1200px-General_Electric_logo.svg.png',
+      tier: 'Authorized Imaging Partner',
+      website: 'https://www.gehealthcare.in',
+      active: true
+    },
+    {
+      id: 'brand-5',
+      name: 'B. Braun Medical',
+      tagline: 'Infusion Technology & Dialysis Systems',
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/B._Braun_Melsungen_AG-Logo.svg/1200px-B._Braun_Melsungen_AG-Logo.svg.png',
+      tier: 'Certified Distributor',
+      website: 'https://www.bbraun.co.in',
+      active: true
+    },
+    {
+      id: 'brand-6',
+      name: 'Siemens Healthineers',
+      tagline: 'Clinical Laboratory & Radiology',
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Siemens_Healthineers_Logo.svg/1200px-Siemens_Healthineers_Logo.svg.png',
+      tier: 'Global OEM Network',
+      website: 'https://www.siemens-healthineers.com',
+      active: true
+    }
+  ],
+  brandsConfig: {
+    heading: 'Brands We Deal In & Support',
+    subheading: 'Authorised distributors & global OEM partners for critical ICU, surgery and diagnostic imaging equipment.',
+    showAddLogoInFrontend: false
+  }
+};

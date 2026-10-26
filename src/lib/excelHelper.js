@@ -211,7 +211,14 @@ export function exportProductsToExcelFile(products, sheetName = 'Products') {
   const rows = products.map(p => {
     return {
       title: p.title || p.name || '',
+      sku: p.sku || p.model || '',
       price: p.price || 0,
+      mrp: p.mrp || (p.price ? Math.round(p.price * 1.25) : 0),
+      offer: p.offer !== undefined ? p.offer : 15,
+      gstRate: p.gstRate !== undefined ? p.gstRate : 18,
+      hsnCode: p.hsnCode || '9018',
+      quantity: p.quantity !== undefined ? p.quantity : 25,
+      expiryDate: p.expiryDate || '2028-06-30',
       desc: p.desc || p.shortDesc || p.description || '',
       capacity: p.capacity || '',
       throughput: p.throughput || '',
@@ -231,13 +238,13 @@ export function exportProductsToExcelFile(products, sheetName = 'Products') {
     };
   });
 
-  const ws = XLSX.utils.json_to_sheet(rows, { header: EXCEL_COLUMNS });
+  const ws = XLSX.utils.json_to_sheet(rows);
   ws['!cols'] = [
-    { wch: 35 }, { wch: 12 }, { wch: 40 }, { wch: 22 },
-    { wch: 22 }, { wch: 22 }, { wch: 18 }, { wch: 25 },
-    { wch: 20 }, { wch: 30 }, { wch: 20 }, { wch: 15 },
-    { wch: 20 }, { wch: 30 }, { wch: 20 }, { wch: 20 },
-    { wch: 22 }, { wch: 22 }
+    { wch: 35 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 10 },
+    { wch: 10 }, { wch: 12 }, { wch: 10 }, { wch: 14 }, { wch: 40 },
+    { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 18 }, { wch: 25 },
+    { wch: 20 }, { wch: 30 }, { wch: 20 }, { wch: 15 }, { wch: 20 },
+    { wch: 30 }, { wch: 20 }, { wch: 20 }, { wch: 22 }, { wch: 22 }
   ];
 
   const wb = XLSX.utils.book_new();
@@ -302,10 +309,32 @@ export async function parseExcelFilesList(files) {
         const subCategory = getVal(['sub category', 'subcategory', 'sub_category', 'sub-cat']);
         const category = getVal(['category', 'cat', 'department']);
 
+        const skuRaw = getVal(['sku', 'code', 'model', 'itemcode']);
+        const mrpRaw = getVal(['mrp', 'listprice', 'maxretailprice']);
+        const offerRaw = getVal(['offer', 'discount', 'discountpercentage', 'offer%']);
+        const gstRaw = getVal(['gstrate', 'gst', 'tax', 'taxrate', 'gst%']);
+        const hsnRaw = getVal(['hsncode', 'hsn', 'sac', 'hs_code']);
+        const qtyRaw = getVal(['quantity', 'qty', 'stock', 'stockcount', 'units']);
+        const expRaw = getVal(['expirydate', 'expiry', 'exp', 'shelflife', 'validuntil']);
+
+        const mrpNumeric = parseFloat(mrpRaw.replace(/[^0-9.]/g, '')) || (numericPrice ? Math.round(numericPrice * 1.25) : 0);
+        const offerNumeric = offerRaw ? parseFloat(offerRaw.replace(/[^0-9.]/g, '')) : (mrpNumeric > numericPrice ? Math.round(((mrpNumeric - numericPrice) / mrpNumeric) * 100) : 15);
+        const gstNumeric = gstRaw ? parseFloat(gstRaw.replace(/[^0-9.]/g, '')) : 18;
+        const qtyNumeric = qtyRaw ? parseInt(qtyRaw.replace(/[^0-9]/g, ''), 10) : 25;
+
         allParsedProducts.push({
           sourceFile: file.name,
           title,
+          sku: skuRaw || ('SKU-' + Math.floor(1000 + Math.random() * 9000)),
           price: numericPrice,
+          mrp: mrpNumeric,
+          offer: offerNumeric,
+          discount: offerNumeric,
+          gstRate: gstNumeric,
+          hsnCode: hsnRaw || '9018',
+          quantity: qtyNumeric,
+          stockCount: qtyNumeric,
+          expiryDate: expRaw || '2028-06-30',
           desc: getVal(['desc', 'description', 'shortdesc', 'details']),
           capacity: getVal(['capacity', 'volume']),
           throughput: getVal(['throughput', 'speed', 'performance']),
@@ -315,7 +344,7 @@ export async function parseExcelFilesList(files) {
           brand: getVal(['brand', 'manufacturer', 'company']),
           parameters: getVal(['parameters', 'tests', 'measurements']),
           automation: getVal(['automation', 'automationtype', 'type']),
-          availability: getVal(['availability', 'stock', 'stockstatus']) || 'In Stock',
+          availability: getVal(['availability', 'stock', 'stockstatus']) || (qtyNumeric > 0 ? 'In Stock' : 'Out of Stock'),
           size: getVal(['size', 'dimensions', 'weight']),
           images: getVal(['images', 'image', 'img', 'photo', 'picture']),
           video: getVal(['video', 'videourl', 'youtube']),

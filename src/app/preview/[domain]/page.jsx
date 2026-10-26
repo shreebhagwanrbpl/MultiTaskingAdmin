@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { PRODUCTS } from '../../../data/products';
 import { CATEGORIES } from '../../../data/categories';
+import { DEFAULT_HOMEPAGE_CONFIG } from '../../../data/defaultHomepage';
 
 const FALLBACK_SITES = [
   {
@@ -272,6 +273,7 @@ export default function WebsiteDomainPreviewPage(props) {
 
   const [site, setSite] = useState(initialSite);
   const [loading, setLoading] = useState(false);
+  const [homepageConfig, setHomepageConfig] = useState(DEFAULT_HOMEPAGE_CONFIG);
   const [activePage, setActivePage] = useState(initialPageParam);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -344,6 +346,19 @@ export default function WebsiteDomainPreviewPage(props) {
     }
 
     fetchSiteData();
+
+    async function fetchHomepage() {
+      try {
+        const res = await fetch(`/api/website/homepage?domain=${encodeURIComponent(rawDomain)}`);
+        const json = await res.json();
+        if (json.success && json.data) {
+          setHomepageConfig(json.data);
+        }
+      } catch (e) {
+        console.warn('Failed to fetch dynamic homepage config:', e);
+      }
+    }
+    fetchHomepage();
 
     try {
       const overrideStr = localStorage.getItem(`preview_override_${rawDomain}`);
@@ -443,20 +458,31 @@ export default function WebsiteDomainPreviewPage(props) {
     e.preventDefault();
     setRfqSubmitting(true);
 
+    const leadPrice = rfqProduct?.price || 150000;
     const leadPayload = {
+      id: `lead-${Date.now()}`,
       doctorName: rfqDoctorName || 'Dr. Procurement Lead',
       hospital: rfqHospital || 'Apollo Super Speciality Hospital',
       city: rfqCity || site.city || 'Bengaluru',
       email: rfqEmail || 'doctor@hospital.org',
       phone: rfqPhone || '+91 98000 00000',
+      equipment: rfqProduct?.name || 'Institutional Medical Devices & Equipment Batch',
       productName: rfqProduct?.name || 'Institutional Medical Devices & Equipment Batch',
       productSku: rfqProduct?.sku || 'BATCH-INSTITUTIONAL',
-      estimatedValue: rfqProduct?.price ? rfqProduct.price * 2 : 125000,
+      productId: rfqProduct?.id || null,
+      productImage: rfqProduct?.image || null,
+      specs: rfqProduct?.specs || null,
+      features: rfqProduct?.features || null,
+      price: leadPrice,
+      quoteAmount: `₹${leadPrice.toLocaleString('en-IN')}`,
+      estimatedValue: leadPrice,
       sourceDomain: site.domain,
+      siteDomain: site.domain,
       brandName: site.brandName,
-      status: 'new',
-      quantity: rfqQuantity,
-      createdAt: new Date().toISOString()
+      status: 'Pending RFQ',
+      quantity: rfqQuantity || '1 Unit',
+      createdAt: new Date().toISOString(),
+      date: 'Just now'
     };
 
     try {
@@ -465,6 +491,19 @@ export default function WebsiteDomainPreviewPage(props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(leadPayload)
       });
+
+      // Instant live sync to Web Quotation Manager via BroadcastChannel & LocalStorage
+      try {
+        if (typeof window !== 'undefined') {
+          const channel = new BroadcastChannel('biomedical_leads_channel');
+          channel.postMessage({ type: 'NEW_WEB_LEAD', lead: leadPayload });
+          channel.close();
+          localStorage.setItem('latest_web_lead', JSON.stringify({ ...leadPayload, ts: Date.now() }));
+        }
+      } catch (bcErr) {
+        console.warn('Broadcast channel sync:', bcErr);
+      }
+
       setRfqSuccess(true);
     } catch (err) {
       setRfqSuccess(true);
@@ -573,7 +612,9 @@ export default function WebsiteDomainPreviewPage(props) {
 
       // ARCHETYPE: IMAGE CAROUSEL / SLIDER (SUPPORTS PURE BANNERS WITH NO TEXT)
       if (isCarousel) {
-        const slides = (block.data?.slides && block.data.slides.length > 0)
+        const slides = (homepageConfig?.carousel && homepageConfig.carousel.length > 0)
+          ? homepageConfig.carousel.filter(s => s.active !== false)
+          : (block.data?.slides && block.data.slides.length > 0)
           ? block.data.slides
           : (block.data?.bannerImage || site.bannerImage)
           ? [{ id: 1, image: block.data?.bannerImage || site.bannerImage, title: site.heroTitle, subtitle: site.tagline }, ...DEFAULT_HERO_SLIDES.slice(1)]
@@ -665,6 +706,11 @@ export default function WebsiteDomainPreviewPage(props) {
               >
                 <ChevronRight size={18} />
               </button>
+
+              {/* Slide Counter Badge (e.g. 1/5) */}
+              <div className="absolute top-4 right-4 z-30 px-3 py-1 rounded-full bg-black/60 text-white backdrop-blur-md border border-white/20 text-xs font-mono font-bold">
+                {activeIndex + 1} / {slides.length}
+              </div>
 
               {/* Bottom Pagination Dots / Indicators */}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/20">
@@ -910,33 +956,41 @@ export default function WebsiteDomainPreviewPage(props) {
 
     // 3. CLINICAL CATEGORIES
     if (block.type === 'categories') {
-      const items = block.data?.items || site.categories || [];
+      const items = (homepageConfig?.categories && homepageConfig.categories.length > 0)
+        ? homepageConfig.categories.filter(c => c.active !== false)
+        : (block.data?.items || site.categories || []);
+
       return wrapBlock(
         <section id="categories" className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-6 pb-3 border-b border-slate-200">
             <div>
               <span className="text-[11px] font-bold text-sky-600 uppercase tracking-wider block">Departments & Verticals</span>
-              <h2 className="text-xl md:text-2xl font-extrabold text-slate-900">{block.data?.heading || 'Shop by Clinical Category'}</h2>
+              <h2 className="text-xl md:text-2xl font-extrabold text-slate-900">{homepageConfig?.categoriesConfig?.heading || block.data?.heading || 'Biomedical Equipment Categories'}</h2>
             </div>
-            <p className="text-xs text-slate-500 max-w-md">{block.data?.subheading || `Browse certified equipment and supplies tailored for ${site.brandName}.`}</p>
+            <button onClick={() => handleNavigatePage('shop')} className="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1 cursor-pointer">
+              <span>View All Categories &gt;</span>
+            </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5">
             {items.map((cat, idx) => (
               <div
                 key={cat.id || idx}
                 onClick={(e) => { e.stopPropagation(); handleNavigatePage('shop'); }}
                 className="p-3.5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-sky-300 transition-all text-center flex flex-col items-center justify-between gap-2 cursor-pointer group hover:-translate-y-0.5"
               >
-                <div className="w-16 h-16 rounded-xl bg-slate-50 p-1.5 flex items-center justify-center overflow-hidden border border-slate-100 group-hover:border-sky-200 transition">
+                <div className="w-full h-24 rounded-xl bg-slate-50 p-1 flex items-center justify-center overflow-hidden border border-slate-100 group-hover:border-sky-200 transition relative">
                   {cat.image ? (
-                    <img src={cat.image} alt={cat.name} className="max-h-full max-w-full object-contain group-hover:scale-110 transition duration-300" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                    <img src={cat.image} alt={cat.name} className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition duration-300" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                   ) : (
                     <span className="text-2xl">{cat.icon || '🏥'}</span>
                   )}
+                  <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.2 rounded text-[9px] font-bold bg-black/70 text-white backdrop-blur-2xs">
+                    {cat.badge || `${cat.itemCount || 10} Items`}
+                  </span>
                 </div>
                 <div className="w-full">
-                  <span className="font-bold text-xs text-slate-800 line-clamp-1 group-hover:text-sky-600 transition block">{cat.name}</span>
-                  {cat.desc && <span className="text-[10px] text-slate-400 line-clamp-1 block mt-0.5">{cat.desc}</span>}
+                  <span className="font-bold text-xs text-slate-900 line-clamp-1 group-hover:text-sky-600 transition block">{cat.name}</span>
+                  {(cat.desc || cat.description) && <span className="text-[10px] text-slate-400 line-clamp-1 block mt-0.5">{cat.desc || cat.description}</span>}
                 </div>
               </div>
             ))}
@@ -948,29 +1002,40 @@ export default function WebsiteDomainPreviewPage(props) {
 
     // 4. TOP HEALTHCARE BRANDS
     if (block.type === 'topBrands') {
-      const brandList = block.data?.brands || DEFAULT_TOP_BRANDS;
+      const brandList = (homepageConfig?.brands && homepageConfig.brands.length > 0)
+        ? homepageConfig.brands.filter(b => b.active !== false)
+        : (block.data?.brands || DEFAULT_TOP_BRANDS);
+
       return wrapBlock(
         <section id="brands" className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">{block.data?.heading || 'Top Healthcare Brands'}</h3>
-              <p className="text-xs text-slate-500">{block.data?.subheading || 'Direct manufacturer distribution with genuine OEM warranty.'}</p>
+              <h3 className="text-lg font-bold text-slate-900">{homepageConfig?.brandsConfig?.heading || block.data?.heading || 'Brands We Deal In & Support'}</h3>
+              <p className="text-xs text-slate-500">{homepageConfig?.brandsConfig?.subheading || block.data?.subheading || 'Authorised distributors & global OEM partners for critical ICU, surgery and diagnostic imaging equipment.'}</p>
             </div>
-            <button onClick={() => handleNavigatePage('shop')} className="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1">
+            <button onClick={() => handleNavigatePage('shop')} className="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1 cursor-pointer">
               <span>View All Brands</span>
               <ChevronRight size={14} />
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5">
             {brandList.map((brand, idx) => (
-              <div key={idx} onClick={() => handleNavigatePage('shop')} className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-sky-300 transition flex flex-col justify-between cursor-pointer group">
-                <div>
-                  <div className="font-bold text-xs text-slate-900 group-hover:text-sky-600 transition truncate">{brand.name}</div>
-                  <div className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">{brand.category}</div>
+              <div key={idx} onClick={() => handleNavigatePage('shop')} className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-sky-300 transition flex flex-col justify-between items-center text-center cursor-pointer group">
+                <div className="w-full flex justify-end">
+                  <span className="text-[8px] font-bold text-sky-700 bg-sky-50 px-1.5 py-0.2 rounded-full border border-sky-100">
+                    {brand.tier || 'OEM Partner'}
+                  </span>
                 </div>
-                <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">{brand.discount}</span>
-                  <ArrowRight size={12} className="text-slate-300 group-hover:text-sky-500 transition" />
+                <div className="w-full h-12 my-1.5 p-1 flex items-center justify-center bg-slate-50 rounded-lg group-hover:bg-white transition">
+                  {brand.logo ? (
+                    <img src={brand.logo} alt={brand.name} className="max-h-full max-w-full object-contain filter group-hover:scale-105 transition" />
+                  ) : (
+                    <span className="font-bold text-xs text-slate-900">{brand.name}</span>
+                  )}
+                </div>
+                <div className="w-full mt-1">
+                  <div className="font-bold text-xs text-slate-900 group-hover:text-sky-600 transition truncate">{brand.name}</div>
+                  <div className="text-[10px] text-slate-400 truncate mt-0.5">{brand.tagline || brand.category}</div>
                 </div>
               </div>
             ))}
@@ -1665,6 +1730,61 @@ export default function WebsiteDomainPreviewPage(props) {
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* DYNAMIC TOP OFFERS BAR (MATCHING USER SCREENSHOT) */}
+      {(homepageConfig?.offers?.filter(o => o.active).length > 0) && (
+        <div className="bg-slate-950 text-white text-xs py-2 px-4 md:px-6 sticky top-0 z-40 shadow-xs border-b border-slate-800">
+          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              {homepageConfig.offers.filter(o => o.active).map((offer) => {
+                const isRose = offer.color === 'rose';
+                const isAmber = offer.color === 'amber';
+                const isEmerald = offer.color === 'emerald';
+                const isSky = offer.color === 'sky';
+                const isRedOutline = offer.color === 'red-outline';
+                const pillClass = isRose
+                  ? 'bg-rose-600 text-white'
+                  : isAmber
+                  ? 'bg-amber-400 text-slate-950 font-bold'
+                  : isEmerald
+                  ? 'bg-emerald-600 text-white'
+                  : isSky
+                  ? 'bg-sky-500 text-white'
+                  : isRedOutline
+                  ? 'bg-white text-rose-600 border border-rose-400'
+                  : 'bg-indigo-600 text-white';
+
+                return (
+                  <a
+                    key={offer.id}
+                    href={offer.link || '#'}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shadow-xs transition hover:scale-105 ${pillClass}`}
+                  >
+                    <span className="font-bold">{offer.tag}:</span>
+                    <span>{offer.title}</span>
+                  </a>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0 ml-auto">
+              <a
+                href={`tel:${homepageConfig.offersConfig?.hotline || site.phone}`}
+                className="text-slate-300 hover:text-white font-mono text-[11px] flex items-center gap-1"
+              >
+                <Phone size={12} className="text-sky-400" />
+                <span>{homepageConfig.offersConfig?.hotline || site.phone || '+91 9999-BIOSIS'}</span>
+              </a>
+              <button
+                onClick={() => openRfqModal(null)}
+                className="px-3.5 py-1 rounded-full bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+              >
+                {homepageConfig.offersConfig?.quoteBtnText || 'Request A Quote'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

@@ -2,26 +2,26 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { 
-  LayoutDashboard, 
-  Globe, 
-  Inbox, 
-  Package, 
-  Settings, 
-  Plus, 
-  Search, 
-  Filter, 
-  Download, 
-  PhoneCall, 
-  Mail, 
-  ExternalLink, 
-  CheckCircle2, 
-  Edit3, 
-  Trash2, 
-  Database, 
-  Server, 
-  ShieldCheck, 
-  Eye, 
+import {
+  LayoutDashboard,
+  Globe,
+  Inbox,
+  Package,
+  Settings,
+  Plus,
+  Search,
+  Filter,
+  Download,
+  PhoneCall,
+  Mail,
+  ExternalLink,
+  CheckCircle2,
+  Edit3,
+  Trash2,
+  Database,
+  Server,
+  ShieldCheck,
+  Eye,
   ArrowRight,
   X,
   Layers,
@@ -41,6 +41,9 @@ import {
   Check,
   History,
   ChevronRight,
+  ChevronLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
   RefreshCw,
   AlertCircle,
   Wifi,
@@ -51,8 +54,9 @@ import {
   Dices
 } from 'lucide-react';
 import { PRODUCTS } from '../data/products';
-import { CATEGORIES } from '../data/categories';
 import ProductCatalogManager from './components/ProductCatalogManager';
+import WebsiteHomepageManager from './components/WebsiteHomepageManager';
+import WebQuotationManager from './components/WebQuotationManager';
 
 // ============================================================================
 // 3 SENDER BIOMEDICAL COMPANIES (Raj Biosis, Human Biomedicals, Global Biomedical)
@@ -208,6 +212,7 @@ const MARKETING_CUSTOMERS = [
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState('leads'); // 'leads', 'products', 'vps'
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [leadFilterDomain, setLeadFilterDomain] = useState('all');
 
   // Live MongoDB Database State
@@ -272,9 +277,9 @@ export default function AdminDashboardPage() {
   };
 
   const handleToggleCustomer = (customerId) => {
-    setSelectedCustomerIds(prev => 
-      prev.includes(customerId) 
-        ? prev.filter(id => id !== customerId) 
+    setSelectedCustomerIds(prev =>
+      prev.includes(customerId)
+        ? prev.filter(id => id !== customerId)
         : [...prev, customerId]
     );
   };
@@ -288,9 +293,9 @@ export default function AdminDashboardPage() {
   };
 
   const handleToggleDoc = (docKey) => {
-    setAttachedDocs(prev => 
-      prev.includes(docKey) 
-        ? prev.filter(k => k !== docKey) 
+    setAttachedDocs(prev =>
+      prev.includes(docKey)
+        ? prev.filter(k => k !== docKey)
         : [...prev, docKey]
     );
   };
@@ -515,108 +520,192 @@ export default function AdminDashboardPage() {
     const num = parseInt((l.amount || l.quoteAmount || '0').replace(/[^0-9]/g, '')) || 0;
     return acc + num;
   }, 0);
-  const formattedPipeline = totalPipelineVal > 0 
-    ? `₹${(totalPipelineVal >= 10000000 ? (totalPipelineVal / 10000000).toFixed(2) + ' Cr' : (totalPipelineVal / 100000).toFixed(2) + ' L')}` 
+  const formattedPipeline = totalPipelineVal > 0
+    ? `₹${(totalPipelineVal >= 10000000 ? (totalPipelineVal / 10000000).toFixed(2) + ' Cr' : (totalPipelineVal / 100000).toFixed(2) + ' L')}`
     : '₹0.00';
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50/60 text-slate-700 font-sans">
-      
-      {/* Left Sidebar (Sticky & Fixed) */}
-      <aside className="w-64 bg-white border-r border-slate-100 flex flex-col justify-between shrink-0 hidden md:flex shadow-xs h-screen sticky top-0 overflow-y-auto">
+
+      {/* Left Sidebar (Sticky & Fixed, Collapsible) */}
+      <aside className={`${isSidebarCollapsed ? 'w-20' : 'w-64'
+        } bg-white border-r border-slate-100 flex flex-col justify-between shrink-0 hidden md:flex shadow-xs h-screen sticky top-0 overflow-y-auto transition-all duration-300 ease-in-out`}>
         <div>
           {/* Admin Header with Multi-Brand Overview */}
-          <div className="p-4 border-b border-slate-100 flex items-center gap-3 bg-white">
-            <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200/90 p-1 flex items-center justify-center shadow-xs shrink-0 overflow-hidden hover:border-sky-300 transition">
-              <img src="/rajbiosis-logo.png" alt="Raj Biosis Private Limited" className="w-full h-full object-contain" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-xs font-bold tracking-tight text-slate-800 truncate flex items-center gap-1">
-                <span className="truncate">Multi-Brand Hub</span>
-                <span className="text-[9px] bg-sky-50 text-sky-700 font-mono px-1.5 py-0.2 rounded border border-sky-200/80 font-bold shrink-0">B2B</span>
+          {!isSidebarCollapsed ? (
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-white">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200/90 p-1 flex items-center justify-center shadow-xs shrink-0 overflow-hidden hover:border-sky-300 transition">
+                  <img src="/rajbiosis-logo.png" alt="Raj Biosis Private Limited" className="w-full h-full object-contain" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-bold tracking-tight text-slate-800 truncate flex items-center gap-1">
+                    <span className="truncate">Multi-Brand Hub</span>
+                    <span className="text-[9px] bg-sky-50 text-sky-700 font-mono px-1.5 py-0.2 rounded border border-sky-200/80 font-bold shrink-0">B2B</span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 truncate">Raj Biosis • Human • Global</div>
+                </div>
               </div>
-              <div className="text-[10px] text-slate-400 truncate">Raj Biosis • Human • Global</div>
-            </div>
-          </div>
 
+              {/* Collapse Button (Sidebar Header) */}
+              <button
+                type="button"
+                onClick={() => setIsSidebarCollapsed(true)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition cursor-pointer shrink-0 ml-1"
+                title="Collapse Sidebar (Icon Only)"
+              >
+                <ChevronLeft size={16} />
+              </button>
+            </div>
+          ) : (
+            <div className="p-3 border-b border-slate-100 flex flex-col items-center gap-2 bg-white">
+              <div className="w-10 h-10 rounded-2xl bg-white border border-slate-200/90 p-1 flex items-center justify-center shadow-xs shrink-0 overflow-hidden hover:border-sky-300 transition" title="Raj Biosis Multi-Brand Hub">
+                <img src="/rajbiosis-logo.png" alt="Raj Biosis" className="w-full h-full object-contain" />
+              </div>
+
+              {/* Expand Button (Sidebar Header) */}
+              <button
+                type="button"
+                onClick={() => setIsSidebarCollapsed(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                title="Expand Sidebar (Full Width)"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
 
           {/* Nav Items */}
-          <nav className="p-3 space-y-1 text-xs font-semibold">
+          <nav className="p-2 space-y-1 text-xs font-semibold">
 
             <button
               onClick={() => setActiveTab('leads')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition cursor-pointer ${
-                activeTab === 'leads' 
-                  ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs' 
+              title={`Central Leads & RFQ (${leads.length} Inquiries)`}
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer relative group ${activeTab === 'leads'
+                  ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
                   : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
-              }`}
+                }`}
             >
-              <span className="flex items-center gap-2.5">
-                <Inbox size={16} />
-                <span>Central Leads & RFQ</span>
+              <span className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+                <Inbox size={isSidebarCollapsed ? 19 : 16} />
+                {!isSidebarCollapsed && <span>Central Leads & RFQ</span>}
               </span>
-              <span className="text-[10px] bg-sky-500 text-white font-bold px-1.5 py-0.5 rounded-full">
-                {leads.length}
-              </span>
+              {isSidebarCollapsed ? (
+                leads.length > 0 && (
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-sky-500 rounded-full border border-white"></span>
+                )
+              ) : (
+                <span className="text-[10px] bg-sky-500 text-white font-bold px-1.5 py-0.5 rounded-full">
+                  {leads.length}
+                </span>
+              )}
             </button>
 
+            <button
+              onClick={() => setActiveTab('website')}
+              title="Website & Home Page (CMS Builder)"
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer relative group ${activeTab === 'website'
+                  ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
+                }`}
+            >
+              <span className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+                <Globe size={isSidebarCollapsed ? 19 : 16} />
+                {!isSidebarCollapsed && <span>Website & Home Page</span>}
+              </span>
+              {isSidebarCollapsed ? (
+                <span className="absolute top-2 right-2 w-2 h-2 bg-emerald-500 rounded-full border border-white"></span>
+              ) : (
+                <span className="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-1.5 py-0.2 rounded border border-emerald-200">
+                  CMS
+                </span>
+              )}
+            </button>
 
             <button
               onClick={() => setActiveTab('products')}
-              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition cursor-pointer ${
-                activeTab === 'products' 
-                  ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs' 
+              title="Products & Catalog (MongoDB Atlas Synced)"
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'gap-2.5 px-3.5 py-2.5'} rounded-xl transition cursor-pointer ${activeTab === 'products'
+                  ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
                   : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
-              }`}
+                }`}
             >
-              <Package size={16} />
-              <span>Products & Catalog</span>
+              <Package size={isSidebarCollapsed ? 19 : 16} />
+              {!isSidebarCollapsed && <span>Products & Catalog</span>}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('quotation')}
+              title="Web Quotation (4-Page Official PDF Generator)"
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer relative group ${activeTab === 'quotation'
+                  ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
+                }`}
+            >
+              <span className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+                <FileText size={isSidebarCollapsed ? 19 : 16} />
+                {!isSidebarCollapsed && <span>Web Quotation</span>}
+              </span>
+              {isSidebarCollapsed ? (
+                <span className="absolute top-2 right-2 w-2 h-2 bg-sky-600 rounded-full border border-white"></span>
+              ) : (
+                <span className="text-[10px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.2 rounded border border-sky-200">
+                  PDF
+                </span>
+              )}
             </button>
 
             <button
               onClick={() => setActiveTab('vps')}
-              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition cursor-pointer ${
-                activeTab === 'vps' 
-                  ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs' 
+              title="VPS Deployment & MongoDB Pipeline"
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'gap-2.5 px-3.5 py-2.5'} rounded-xl transition cursor-pointer ${activeTab === 'vps'
+                  ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
                   : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
-              }`}
+                }`}
             >
-              <Server size={16} />
-              <span>VPS & MongoDB Config</span>
+              <Server size={isSidebarCollapsed ? 19 : 16} />
+              {!isSidebarCollapsed && <span>VPS & MongoDB Config</span>}
             </button>
           </nav>
         </div>
 
         {/* Bottom User / Return */}
-        <div className="p-4 border-t border-slate-100 space-y-3">
+        <div className={`p-3 border-t border-slate-100 ${isSidebarCollapsed ? 'flex flex-col items-center space-y-2' : 'space-y-3'}`}>
           <Link
             href="/"
             target="_blank"
-            className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-800 text-xs font-semibold rounded-xl transition border border-slate-200/80 shadow-xs"
+            className={`w-full flex items-center justify-center gap-2 py-2 px-3 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-800 text-xs font-semibold rounded-xl transition border border-slate-200/80 shadow-xs`}
+            title="View Public Storefront"
           >
-            <span>View Public Storefront</span>
+            {!isSidebarCollapsed && <span>View Public Storefront</span>}
             <ExternalLink size={13} />
           </Link>
 
           <button
             type="button"
             onClick={() => setActiveTab('vps')}
-            className="w-full flex items-center justify-between text-[11px] p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/60 transition cursor-pointer text-left shadow-2xs"
+            className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-2.5' : 'justify-between text-[11px] p-2'} rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/60 transition cursor-pointer text-left shadow-2xs relative`}
+            title={dbStatus.connected ? `MongoDB Connected (${dbStatus.latency || 'Live'})` : 'MongoDB Standby Mode'}
           >
             <span className="font-mono text-slate-500 flex items-center gap-1.5">
-              <Database size={12} className={dbStatus.connected ? "text-emerald-500" : "text-amber-500"} />
-              <span>MongoDB</span>
+              <Database size={isSidebarCollapsed ? 16 : 12} className={dbStatus.connected ? "text-emerald-500" : "text-amber-500"} />
+              {!isSidebarCollapsed && <span>MongoDB</span>}
             </span>
-            {dbStatus.connected ? (
-              <span className="text-emerald-600 flex items-center gap-1.5 font-semibold text-[10px]">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                Connected ({dbStatus.latency || 'Live'})
-              </span>
+            {isSidebarCollapsed ? (
+              <span className={`absolute top-1.5 right-1.5 w-2 h-2 rounded-full border border-white ${dbStatus.connected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'
+                }`}></span>
             ) : (
-              <span className="text-amber-600 flex items-center gap-1.5 font-medium text-[10px]">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                Standby Mode
-              </span>
+              dbStatus.connected ? (
+                <span className="text-emerald-600 flex items-center gap-1.5 font-semibold text-[10px]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Connected ({dbStatus.latency || 'Live'})
+                </span>
+              ) : (
+                <span className="text-amber-600 flex items-center gap-1.5 font-medium text-[10px]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                  Standby Mode
+                </span>
+              )
             )}
           </button>
         </div>
@@ -624,10 +713,20 @@ export default function AdminDashboardPage() {
 
       {/* Main Workspace Area (Scrollable with Sticky Sidebar) */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
-        
+
         {/* Top Navbar */}
         <header className="h-16 bg-white/95 backdrop-blur-md border-b border-slate-100 px-6 flex items-center justify-between sticky top-0 z-30 shrink-0">
           <div className="flex items-center gap-3">
+            {/* Toggle Sidebar Collapse Button (Top Navbar) */}
+            <button
+              type="button"
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition cursor-pointer border border-slate-200/80 shadow-2xs mr-1 shrink-0"
+              title={isSidebarCollapsed ? "Expand Sidebar (Wider Menu)" : "Collapse Sidebar (Full Width Workspace)"}
+            >
+              {isSidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+            </button>
+
             <h1 className="text-base font-bold text-slate-800 flex items-center gap-2">
               {activeTab === 'leads' && (
                 <>
@@ -646,6 +745,14 @@ export default function AdminDashboardPage() {
                   </span>
                 </>
               )}
+              {activeTab === 'quotation' && (
+                <>
+                  <span>Web Quotation</span>
+                  <span className="text-xs px-2 py-0.5 rounded-md font-mono bg-sky-50 text-sky-700 border border-sky-200">
+                    Official Letterhead
+                  </span>
+                </>
+              )}
               {activeTab === 'vps' && 'VPS Deployment & MongoDB Pipeline'}
             </h1>
           </div>
@@ -656,21 +763,19 @@ export default function AdminDashboardPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setMarketingSubTab('compose')}
-                  className={`text-xs px-3.5 py-1.5 rounded-xl font-semibold transition cursor-pointer ${
-                    marketingSubTab === 'compose'
+                  className={`text-xs px-3.5 py-1.5 rounded-xl font-semibold transition cursor-pointer ${marketingSubTab === 'compose'
                       ? 'bg-sky-500 text-white shadow-xs'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80'
-                  }`}
+                    }`}
                 >
                   ✍️ Compose Campaign
                 </button>
                 <button
                   onClick={() => setMarketingSubTab('history')}
-                  className={`text-xs px-3.5 py-1.5 rounded-xl font-semibold transition flex items-center gap-1.5 cursor-pointer ${
-                    marketingSubTab === 'history'
+                  className={`text-xs px-3.5 py-1.5 rounded-xl font-semibold transition flex items-center gap-1.5 cursor-pointer ${marketingSubTab === 'history'
                       ? 'bg-sky-500 text-white shadow-xs'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80'
-                  }`}
+                    }`}
                 >
                   <History size={13} />
                   <span>Delivery Logs ({campaignHistory.length})</span>
@@ -682,11 +787,10 @@ export default function AdminDashboardPage() {
             <button
               type="button"
               onClick={() => setActiveTab('vps')}
-              className={`text-xs px-3 py-1.5 rounded-xl border font-mono transition flex items-center gap-2 cursor-pointer shadow-2xs ${
-                dbStatus.connected 
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 hover:bg-emerald-100/70' 
+              className={`text-xs px-3 py-1.5 rounded-xl border font-mono transition flex items-center gap-2 cursor-pointer shadow-2xs ${dbStatus.connected
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 hover:bg-emerald-100/70'
                   : 'bg-amber-50 text-amber-700 border-amber-200/80 hover:bg-amber-100/70'
-              }`}
+                }`}
             >
               <span className={`w-2 h-2 rounded-full ${dbStatus.connected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`}></span>
               <span className="font-semibold">{dbStatus.connected ? `MongoDB: Live (${dbStatus.latency || 'OK'})` : 'MongoDB: Standby'}</span>
@@ -748,7 +852,7 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
             </div>
-          ) : (
+          ) : activeTab === 'leads' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs hover:shadow-sm transition flex items-center justify-between">
                 <div>
@@ -794,7 +898,7 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
             </div>
-          )}
+          ) : null}
 
           {/* =========================================================================
               TAB 2: CENTRAL LEADS & RFQ INQUIRIES DESK
@@ -860,48 +964,55 @@ export default function AdminDashboardPage() {
                       </tr>
                     ) : (
                       filteredLeads.map((lead) => (
-                      <tr key={lead.id} className="hover:bg-sky-50/30 transition">
-                        <td className="py-3 px-4">
-                          <span className="font-mono font-semibold text-slate-700 block">{lead.id}</span>
-                          <span className="text-[10px] text-slate-400">{lead.date}</span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-100 font-mono text-[11px] font-medium">
-                            {lead.siteDomain}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="font-semibold text-slate-800 text-xs">{lead.hospital}</div>
-                          <span className="text-[11px] text-slate-500 block">{lead.contact}</span>
-                          <span className="text-[10px] text-slate-400 font-mono">{lead.phone}</span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="text-slate-700 font-medium">{lead.equipment}</span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="text-emerald-600 font-bold text-sm font-mono">{lead.amount}</span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200/70">
-                            {lead.status}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <a
-                            href={`tel:${lead.phone}`}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold transition shadow-xs"
-                          >
-                            <PhoneCall size={12} />
-                            <span>Call</span>
-                          </a>
-                        </td>
-                      </tr>
-                    ))
-                  )}
+                        <tr key={lead.id} className="hover:bg-sky-50/30 transition">
+                          <td className="py-3 px-4">
+                            <span className="font-mono font-semibold text-slate-700 block">{lead.id}</span>
+                            <span className="text-[10px] text-slate-400">{lead.date}</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-100 font-mono text-[11px] font-medium">
+                              {lead.siteDomain}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="font-semibold text-slate-800 text-xs">{lead.hospital}</div>
+                            <span className="text-[11px] text-slate-500 block">{lead.contact}</span>
+                            <span className="text-[10px] text-slate-400 font-mono">{lead.phone}</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="text-slate-700 font-medium">{lead.equipment}</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="text-emerald-600 font-bold text-sm font-mono">{lead.amount}</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200/70">
+                              {lead.status}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <a
+                              href={`tel:${lead.phone}`}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold transition shadow-xs"
+                            >
+                              <PhoneCall size={12} />
+                              <span>Call</span>
+                            </a>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
             </div>
+          )}
+
+          {/* =========================================================================
+              TAB: WEBSITE CMS & DYNAMIC HOMEPAGE BUILDER
+              ========================================================================= */}
+          {activeTab === 'website' && (
+            <WebsiteHomepageManager />
           )}
 
           {/* =========================================================================
@@ -912,21 +1023,26 @@ export default function AdminDashboardPage() {
           )}
 
           {/* =========================================================================
+              TAB: WEB QUOTATION DESK & 4-PAGE OFFICIAL RAJ BIOSIS PDF GENERATOR
+              ========================================================================= */}
+          {activeTab === 'quotation' && (
+            <WebQuotationManager products={PRODUCTS} />
+          )}
+
+          {/* =========================================================================
               TAB 4: LIVE MONGODB CONNECTION STUDIO & MULTI-DOMAIN PIPELINE
               ========================================================================= */}
           {activeTab === 'vps' && (
             <div className="space-y-6">
 
               {/* Top MongoDB Cluster Status Banner */}
-              <div className={`p-6 rounded-3xl border shadow-xs transition flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-                dbStatus.connected 
-                  ? 'bg-emerald-50/70 border-emerald-200/80 text-emerald-950' 
+              <div className={`p-6 rounded-3xl border shadow-xs transition flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${dbStatus.connected
+                  ? 'bg-emerald-50/70 border-emerald-200/80 text-emerald-950'
                   : 'bg-amber-50/70 border-amber-200/80 text-amber-950'
-              }`}>
+                }`}>
                 <div className="flex items-start sm:items-center gap-3.5">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-xs shrink-0 ${
-                    dbStatus.connected ? 'bg-emerald-500' : 'bg-amber-500'
-                  }`}>
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-xs shrink-0 ${dbStatus.connected ? 'bg-emerald-500' : 'bg-amber-500'
+                    }`}>
                     <Database size={24} />
                   </div>
                   <div>
@@ -934,14 +1050,13 @@ export default function AdminDashboardPage() {
                       <h3 className="text-base font-bold text-slate-800">
                         {dbStatus.connected ? 'MongoDB Cluster Connected & Active' : 'MongoDB Standby Mode (In-Memory Fallback Active)'}
                       </h3>
-                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                        dbStatus.connected ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-300'
-                      }`}>
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${dbStatus.connected ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-300'
+                        }`}>
                         {dbStatus.connected ? 'LIVE POOL' : 'STANDBY CACHE'}
                       </span>
                     </div>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      {dbStatus.connected 
+                      {dbStatus.connected
                         ? `All 70 websites, hospital quotations, and marketing campaigns are continuously synchronizing with '${dbStatus.database}'. Latency: ${dbStatus.latency}.`
                         : 'Currently serving and saving data in memory with zero downtime. Connect your MongoDB Atlas cluster or local MongoDB instance below to activate persistent storage.'
                       }
@@ -1103,11 +1218,10 @@ export default function AdminDashboardPage() {
 
                   {/* Real-Time Test Feedback Banner */}
                   {mongoTestResult && (
-                    <div className={`p-4 rounded-2xl border text-xs shadow-xs transition ${
-                      mongoTestResult.connected 
-                        ? 'bg-emerald-50 border-emerald-200 text-emerald-900' 
+                    <div className={`p-4 rounded-2xl border text-xs shadow-xs transition ${mongoTestResult.connected
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
                         : 'bg-rose-50 border-rose-200 text-rose-900'
-                    }`}>
+                      }`}>
                       <div className="flex items-center gap-2 font-bold mb-1">
                         {mongoTestResult.connected ? (
                           <>
@@ -1294,11 +1408,10 @@ export default function AdminDashboardPage() {
                               key={company.id}
                               type="button"
                               onClick={() => setSelectedCompanyId(company.id)}
-                              className={`p-3.5 rounded-xl border transition text-left cursor-pointer flex flex-col justify-between ${
-                                isSelected
+                              className={`p-3.5 rounded-xl border transition text-left cursor-pointer flex flex-col justify-between ${isSelected
                                   ? 'bg-sky-50 border-sky-500 ring-2 ring-sky-400/25 shadow-xs'
                                   : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/60'
-                              }`}
+                                }`}
                             >
                               <div>
                                 <div className="flex items-center justify-between mb-2">
@@ -1307,7 +1420,7 @@ export default function AdminDashboardPage() {
                                       <img src={company.logo} alt={company.name} className="w-full h-full object-contain" />
                                     </div>
                                   ) : (
-                                    <div 
+                                    <div
                                       className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-xs"
                                       style={{ backgroundColor: company.accentColor }}
                                     >
@@ -1349,11 +1462,10 @@ export default function AdminDashboardPage() {
                         <button
                           type="button"
                           onClick={() => setTargetAudience('followup')}
-                          className={`p-3 rounded-xl border transition text-left cursor-pointer flex flex-col justify-between ${
-                            targetAudience === 'followup'
+                          className={`p-3 rounded-xl border transition text-left cursor-pointer flex flex-col justify-between ${targetAudience === 'followup'
                               ? 'bg-amber-50/80 border-amber-400 font-semibold ring-2 ring-amber-300/30 shadow-xs'
                               : 'bg-white border-slate-200 hover:bg-slate-50'
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-1.5 text-xs text-amber-800">
                             <Target size={15} className="text-amber-500 shrink-0" />
@@ -1365,11 +1477,10 @@ export default function AdminDashboardPage() {
                         <button
                           type="button"
                           onClick={() => setTargetAudience('all')}
-                          className={`p-3 rounded-xl border transition text-left cursor-pointer flex flex-col justify-between ${
-                            targetAudience === 'all'
+                          className={`p-3 rounded-xl border transition text-left cursor-pointer flex flex-col justify-between ${targetAudience === 'all'
                               ? 'bg-sky-50/80 border-sky-400 font-semibold ring-2 ring-sky-300/30 shadow-xs'
                               : 'bg-white border-slate-200 hover:bg-slate-50'
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-1.5 text-xs text-sky-800">
                             <Users size={15} className="text-sky-500 shrink-0" />
@@ -1381,11 +1492,10 @@ export default function AdminDashboardPage() {
                         <button
                           type="button"
                           onClick={() => setTargetAudience('specific')}
-                          className={`p-3 rounded-xl border transition text-left cursor-pointer flex flex-col justify-between ${
-                            targetAudience === 'specific'
+                          className={`p-3 rounded-xl border transition text-left cursor-pointer flex flex-col justify-between ${targetAudience === 'specific'
                               ? 'bg-indigo-50/80 border-indigo-400 font-semibold ring-2 ring-indigo-300/30 shadow-xs'
                               : 'bg-white border-slate-200 hover:bg-slate-50'
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-1.5 text-xs text-indigo-800">
                             <Building2 size={15} className="text-indigo-500 shrink-0" />
@@ -1397,11 +1507,10 @@ export default function AdminDashboardPage() {
                         <button
                           type="button"
                           onClick={() => setTargetAudience('new_sites')}
-                          className={`p-3 rounded-xl border transition text-left cursor-pointer flex flex-col justify-between ${
-                            targetAudience === 'new_sites'
+                          className={`p-3 rounded-xl border transition text-left cursor-pointer flex flex-col justify-between ${targetAudience === 'new_sites'
                               ? 'bg-emerald-50/80 border-emerald-400 font-semibold ring-2 ring-emerald-300/30 shadow-xs'
                               : 'bg-white border-slate-200 hover:bg-slate-50'
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-1.5 text-xs text-emerald-800">
                             <Globe size={15} className="text-emerald-500 shrink-0" />
@@ -1468,11 +1577,10 @@ export default function AdminDashboardPage() {
                               key={tpl.id}
                               type="button"
                               onClick={() => handleSelectTemplate(tpl.id)}
-                              className={`px-3 py-1.5 rounded-xl border text-xs font-medium transition cursor-pointer ${
-                                selectedTemplateId === tpl.id
+                              className={`px-3 py-1.5 rounded-xl border text-xs font-medium transition cursor-pointer ${selectedTemplateId === tpl.id
                                   ? 'bg-sky-500 text-white border-sky-500 shadow-xs font-semibold'
                                   : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
-                              }`}
+                                }`}
                             >
                               {tpl.name}
                             </button>
@@ -1604,14 +1712,13 @@ export default function AdminDashboardPage() {
                         <Eye size={15} className="text-sky-500" />
                         <span>Live Email Preview (Hospital Inbox)</span>
                       </div>
-                      
+
                       <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg text-xs">
                         <button
                           type="button"
                           onClick={() => setPreviewDevice('desktop')}
-                          className={`px-2 py-0.5 rounded transition text-[11px] font-medium flex items-center gap-1 cursor-pointer ${
-                            previewDevice === 'desktop' ? 'bg-white text-sky-700 shadow-xs font-semibold' : 'text-slate-500'
-                          }`}
+                          className={`px-2 py-0.5 rounded transition text-[11px] font-medium flex items-center gap-1 cursor-pointer ${previewDevice === 'desktop' ? 'bg-white text-sky-700 shadow-xs font-semibold' : 'text-slate-500'
+                            }`}
                         >
                           <Laptop size={12} />
                           <span>Desktop</span>
@@ -1619,9 +1726,8 @@ export default function AdminDashboardPage() {
                         <button
                           type="button"
                           onClick={() => setPreviewDevice('mobile')}
-                          className={`px-2 py-0.5 rounded transition text-[11px] font-medium flex items-center gap-1 cursor-pointer ${
-                            previewDevice === 'mobile' ? 'bg-white text-sky-700 shadow-xs font-semibold' : 'text-slate-500'
-                          }`}
+                          className={`px-2 py-0.5 rounded transition text-[11px] font-medium flex items-center gap-1 cursor-pointer ${previewDevice === 'mobile' ? 'bg-white text-sky-700 shadow-xs font-semibold' : 'text-slate-500'
+                            }`}
                         >
                           <Smartphone size={12} />
                           <span>Mobile</span>
@@ -1630,10 +1736,9 @@ export default function AdminDashboardPage() {
                     </div>
 
                     {/* Realistic Email Box */}
-                    <div 
-                      className={`mx-auto bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden transition-all duration-300 max-h-[calc(100vh-9.5rem)] flex flex-col ${
-                        previewDevice === 'mobile' ? 'max-w-sm' : 'w-full'
-                      }`}
+                    <div
+                      className={`mx-auto bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden transition-all duration-300 max-h-[calc(100vh-9.5rem)] flex flex-col ${previewDevice === 'mobile' ? 'max-w-sm' : 'w-full'
+                        }`}
                     >
                       {/* Email Header Chrome */}
                       <div className="bg-slate-50 border-b border-slate-200/80 p-3 space-y-1.5 text-xs shrink-0">
@@ -1665,7 +1770,7 @@ export default function AdminDashboardPage() {
                             </div>
                           ) : (
                             <div className="flex items-center gap-2.5">
-                              <div 
+                              <div
                                 className="w-9 h-9 rounded-xl text-white font-bold flex items-center justify-center text-sm shadow-xs"
                                 style={{ backgroundColor: currentCompany.accentColor }}
                               >
@@ -1781,8 +1886,8 @@ export default function AdminDashboardPage() {
                               <div className="flex items-center gap-2">
                                 <span className="font-bold font-mono text-emerald-600 text-xs">{camp.openRate}</span>
                                 <div className="w-12 h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                                  <div 
-                                    className="h-full bg-emerald-500 rounded-full" 
+                                  <div
+                                    className="h-full bg-emerald-500 rounded-full"
                                     style={{ width: camp.openRate }}
                                   ></div>
                                 </div>

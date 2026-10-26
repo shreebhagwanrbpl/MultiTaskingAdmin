@@ -107,23 +107,69 @@ export async function GET() {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const db = await getDatabase();
-    const collection = db.collection('leads');
-
     const newLead = {
+      id: body.id || `lead-${Date.now()}`,
       ...body,
       createdAt: new Date().toISOString(),
       date: 'Just now',
       status: body.status || 'Pending RFQ'
     };
 
-    const result = await collection.insertOne(newLead);
-    return NextResponse.json({
-      success: true,
-      source: 'mongodb',
-      lead: { ...newLead, _id: result.insertedId }
-    });
+    try {
+      const db = await getDatabase();
+      const collection = db.collection('leads');
+      const result = await collection.insertOne(newLead);
+      return NextResponse.json({
+        success: true,
+        source: 'mongodb',
+        lead: { ...newLead, _id: result.insertedId }
+      });
+    } catch (dbErr) {
+      INITIAL_LEADS.unshift(newLead);
+      return NextResponse.json({
+        success: true,
+        source: 'fallback',
+        lead: newLead
+      });
+    }
   } catch (err) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
+
+export async function PUT(request) {
+  try {
+    const body = await request.json();
+    const { id, _id, status } = body;
+
+    try {
+      const db = await getDatabase();
+      const collection = db.collection('leads');
+      const query = id ? { id } : {};
+      if (_id && !id) {
+        try {
+          const { ObjectId } = await import('mongodb');
+          query._id = new ObjectId(_id);
+        } catch (e) {
+          query._id = _id;
+        }
+      }
+      await collection.updateOne(query, {
+        $set: {
+          status: status || 'Quote Generated',
+          updatedAt: new Date().toISOString()
+        }
+      });
+      return NextResponse.json({ success: true, updated: true, source: 'mongodb' });
+    } catch (dbErr) {
+      const found = INITIAL_LEADS.find(l => l.id === id || l._id === _id);
+      if (found) {
+        found.status = status || 'Quote Generated';
+      }
+      return NextResponse.json({ success: true, updated: true, source: 'fallback' });
+    }
+  } catch (err) {
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
+}
+
