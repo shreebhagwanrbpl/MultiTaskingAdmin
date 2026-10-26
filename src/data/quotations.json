@@ -1,1 +1,167 @@
-[]
+[
+  {
+    "_id": "6adf313d54a0d9d3da7447c7",
+    "createdAt": "2026-10-26T11:10:37.077Z",
+    "customerAddress1": "Kota, Rajasthan",
+    "customerAddress2": "Contact: +91 8547965841",
+    "customerName": "Apex Hospital",
+    "date": "26/10/2026",
+    "grandTotal": 1050200,
+    "id": "RFQ-029052",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+        "qty": 1,
+        "unitPrice": 0,
+        "totalPrice": 1050200
+      }
+    ],
+    "refNo": "RB-QT-2026-5304",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+    "subjectQuotation": "Purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+    "updatedAt": "2026-10-26T11:10:37.077Z"
+  },
+  {
+    "_id": "6adf34dc54a0d9d3da744812",
+    "createdAt": "2026-10-26T11:09:15.983Z",
+    "customerAddress1": "Kota, Rajasthan",
+    "customerAddress2": "Contact: +91 8547965841",
+    "customerName": "Apex Hospital",
+    "date": "26/10/2026",
+    "grandTotal": 1050200,
+    "id": "RFQ-952919",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+        "qty": 1,
+        "unitPrice": 890000,
+        "totalPrice": 1050200
+      }
+    ],
+    "refNo": "RB-QT-2026-8778",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+    "subjectQuotation": "Purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+    "updatedAt": "2026-10-26T11:09:15.983Z"
+  },
+  {
+    "_id": "6adf34dc54a0d9d3da744811",
+    "createdAt": "2026-10-26T11:09:15.979Z",
+    "customerAddress1": "Kota, Rajasthan",
+    "customerAddress2": "Contact: +91 8547965841",
+    "customerName": "Apex Hospital",
+    "date": "26/10/2026",
+    "grandTotal": 1050200,
+    "id": "RFQ-952892",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+        "qty": 1,
+        "unitPrice": 890000,
+        "totalPrice": 1050200
+      }
+    ],
+    "refNo": "RB-QT-2026-6306",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+    "subjectQuotation": "Purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+    "updatedAt": "2026-10-26T11:09:15.979Z"
+  },
+  {
+    "_id": "6adf313d54a0d9d3da7447c6",
+    "createdAt": "2026-10-26T10:53:49.289Z",
+    "customerAddress1": "Kota, Rajasthan",
+    "customerAddress2": "Contact: +91 8547965841",
+    "customerName": "Apex Hospital",
+    "date": "26/10/2026",
+    "grandTotal": 1050200,
+    "id": "RFQ-029050",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+        "qty": 1,
+        "unitPrice": 890000,
+        "totalPrice": 1050200
+      }
+    ],
+    "refNo": "RB-QT-2026-8140",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+    "subjectQuotation": "Purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+    "updatedAt": "2026-10-26T10:53:49.289Z"
+  },
+  {
+    "_id": "6adf30ed54a0d9d3da7447c2",
+    "createdAt": "2026-10-26T10:52:28.998Z",
+    "customerAddress1": "Kota, Rajasthan",
+    "customerAddress2": "Contact: +91 8547965841",
+    "customerName": "Kota Healthcare Institution",
+    "date": "26/10/2026",
+    "grandTotal": 1050200,
+    "id": "RFQ-948847",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+        "qty": 1,
+        "unitPrice": 890000,
+        "totalPrice": 1050200
+      }
+    ],
+    "refNo": "RB-QT-2026-1344",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+    "subjectQuotation": "Purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+    "updatedAt": "2026-10-26T10:52:28.998Z"
+  }
+]

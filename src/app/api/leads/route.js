@@ -102,17 +102,51 @@ export async function GET() {
 export async function POST(request) {
   try {
     const body = await request.json();
+    const leadId = body.id || ('lead-' + Date.now());
     const newLead = {
-      id: body.id || `lead-${Date.now()}`,
       ...body,
-      createdAt: new Date().toISOString(),
-      date: 'Just now',
+      id: leadId,
+      createdAt: body.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      date: body.date || 'Just now',
       status: body.status || 'Pending RFQ'
     };
 
     try {
       const db = await getDatabase();
       const collection = db.collection('leads');
+
+      // Check if lead already exists by ID OR (same phone + same equipment on this site domain)
+      const orConditions = [{ id: leadId }];
+      if (body.phone && body.equipment) {
+        orConditions.push({
+          phone: body.phone,
+          equipment: body.equipment,
+          siteDomain: body.siteDomain || 'rajbiosis.com'
+        });
+      }
+
+      const existing = await collection.findOne({ $or: orConditions });
+      if (existing) {
+        await collection.updateOne(
+          { _id: existing._id },
+          {
+            $set: {
+              ...newLead,
+              id: existing.id || leadId,
+              createdAt: existing.createdAt || newLead.createdAt,
+              updatedAt: new Date().toISOString()
+            }
+          }
+        );
+        return NextResponse.json({
+          success: true,
+          source: 'mongodb',
+          updated: true,
+          lead: { ...existing, ...newLead }
+        });
+      }
+
       const result = await collection.insertOne(newLead);
       return NextResponse.json({
         success: true,
@@ -120,6 +154,11 @@ export async function POST(request) {
         lead: { ...newLead, _id: result.insertedId }
       });
     } catch (dbErr) {
+      const existingIdx = INITIAL_LEADS.findIndex(l => l.id === leadId || (l.phone === body.phone && l.equipment === body.equipment));
+      if (existingIdx >= 0) {
+        INITIAL_LEADS[existingIdx] = { ...INITIAL_LEADS[existingIdx], ...newLead };
+        return NextResponse.json({ success: true, source: 'fallback', updated: true, lead: INITIAL_LEADS[existingIdx] });
+      }
       INITIAL_LEADS.unshift(newLead);
       return NextResponse.json({
         success: true,
@@ -127,6 +166,45 @@ export async function POST(request) {
         lead: newLead
       });
     }
+  } catch (err) {
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    const deleteTest = searchParams.get('deleteTest');
+    const db = await getDatabase();
+    const collection = db.collection('leads');
+
+    if (deleteTest === 'true') {
+      await collection.deleteMany({
+        $or: [
+          { id: { $regex: 'test', $options: 'i' } },
+          { doctorName: { $regex: 'test', $options: 'i' } },
+          { id: { $regex: '^cust-', $options: 'i' } },
+          { equipment: { $regex: '^Profile Registration', $options: 'i' } }
+        ]
+      });
+      return NextResponse.json({ success: true, message: 'Deleted test and profile registration entries' });
+    }
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Lead ID required' }, { status: 400 });
+    }
+
+    let query = { id };
+    try {
+      const { ObjectId } = await import('mongodb');
+      if (ObjectId.isValid(id)) {
+        query = { $or: [{ id }, { _id: new ObjectId(id) }] };
+      }
+    } catch (e) {}
+
+    await collection.deleteOne(query);
+    return NextResponse.json({ success: true, deletedId: id });
   } catch (err) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
