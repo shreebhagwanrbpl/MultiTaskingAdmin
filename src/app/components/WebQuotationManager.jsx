@@ -228,6 +228,26 @@ export default function WebQuotationManager({ products = [] }) {
     } catch (e) {}
   };
 
+  // Helper to insert incoming web lead immediately (0ms latency)
+  const insertIncomingLead = (freshLead) => {
+    if (!freshLead) return;
+    const freshId = freshLead.id || freshLead._id;
+    setWebLeads(prev => {
+      const exists = prev.some(l => (l.id || l._id) === freshId);
+      if (exists) {
+        return prev.map(l => (l.id || l._id) === freshId ? { ...l, ...freshLead } : l);
+      }
+      return [freshLead, ...prev];
+    });
+    // Ensure this new lead is not blocked by processed list
+    setProcessedLeadIds(prev => prev.filter(id => id !== freshId));
+    setSelectedLeadIdx(0);
+    setHasNewLeadAlert(true);
+    playLeadNotificationSound();
+    const hospitalName = freshLead.hospital || freshLead.doctorName || 'Website Customer';
+    setSuccessToast(`🔔 New Website RFQ from ${hospitalName}! Click "⚡ New Web Lead" to generate.`);
+  };
+
   // Fetch leads from MongoDB /api/leads
   const fetchWebLeads = async (silent = false) => {
     try {
@@ -241,7 +261,10 @@ export default function WebQuotationManager({ products = [] }) {
             setHasNewLeadAlert(true);
             playLeadNotificationSound();
           }
-          return data.leads;
+          // Merge preserving any fresh leads currently in memory
+          const serverIds = new Set(data.leads.map(l => l.id || l._id));
+          const uncommitted = prev.filter(l => !serverIds.has(l.id || l._id));
+          return [...uncommitted, ...data.leads];
         });
       }
     } catch (err) {
@@ -252,38 +275,66 @@ export default function WebQuotationManager({ products = [] }) {
   useEffect(() => {
     fetchWebLeads(true);
 
-    // Periodic polling every 4 seconds for live web inquiries
+    // Fast polling every 1200ms so any web submission arrives in ~1 second even without local events
     const interval = setInterval(() => {
       fetchWebLeads(false);
-    }, 4000);
+    }, 1200);
 
-    // Cross-tab / same-window instant live listener via BroadcastChannel
+    // 1. Initial check on mount from localStorage (only if fresh within last 10 seconds)
+    try {
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('latest_web_lead');
+        if (stored) {
+          const lead = JSON.parse(stored);
+          const leadTs = lead?.ts || 0;
+          if (Date.now() - leadTs < 10 * 1000) {
+            insertIncomingLead(lead);
+          } else {
+            localStorage.removeItem('latest_web_lead');
+          }
+        }
+      }
+    } catch (e) {}
+
+    // 2. BroadcastChannel across browser tabs (Same Origin)
     let channel;
     try {
       if (typeof window !== 'undefined') {
         channel = new BroadcastChannel('biomedical_leads_channel');
         channel.onmessage = (event) => {
           if (event.data?.type === 'NEW_WEB_LEAD' && event.data.lead) {
-            const freshLead = event.data.lead;
-            setWebLeads(prev => [freshLead, ...prev.filter(l => (l.id || l._id) !== (freshLead.id || freshLead._id))]);
-            setSelectedLeadIdx(0);
-            setHasNewLeadAlert(true);
-            playLeadNotificationSound();
-            setSuccessToast(`🔔 Website RFQ from ${freshLead.hospital || freshLead.doctorName}! Click "Make Quotation" to generate.`);
+            insertIncomingLead(event.data.lead);
           }
         };
       }
     } catch (e) {}
 
-    // LocalStorage storage event fallback
+    // 3. Window postMessage listener (for iframes, child windows, and popups)
+    const handleWindowMessage = (event) => {
+      if (event.data?.type === 'NEW_WEB_LEAD' && event.data.lead) {
+        insertIncomingLead(event.data.lead);
+      }
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('message', handleWindowMessage);
+    }
+
+    // 4. Same-window custom event listener
+    const handleCustomLead = (event) => {
+      if (event.detail) {
+        insertIncomingLead(event.detail);
+      }
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('new_web_lead', handleCustomLead);
+    }
+
+    // 5. LocalStorage storage event listener (cross-window fallback)
     const handleStorage = (e) => {
       if (e.key === 'latest_web_lead' && e.newValue) {
         try {
           const lead = JSON.parse(e.newValue);
-          setWebLeads(prev => [lead, ...prev.filter(l => (l.id || l._id) !== (lead.id || lead._id))]);
-          setSelectedLeadIdx(0);
-          setHasNewLeadAlert(true);
-          playLeadNotificationSound();
+          if (lead) insertIncomingLead(lead);
         } catch (err) {}
       }
     };
@@ -293,8 +344,12 @@ export default function WebQuotationManager({ products = [] }) {
 
     return () => {
       clearInterval(interval);
-      if (channel) channel.close();
+      if (channel) {
+        try { channel.close(); } catch(e){}
+      }
       if (typeof window !== 'undefined') {
+        window.removeEventListener('message', handleWindowMessage);
+        window.removeEventListener('new_web_lead', handleCustomLead);
         window.removeEventListener('storage', handleStorage);
       }
     };
@@ -501,6 +556,21 @@ export default function WebQuotationManager({ products = [] }) {
         body: JSON.stringify(simLead)
       });
     } catch (e) {}
+  };
+
+  // Clear all leads and start completely fresh
+  const handleClearAllWebLeads = async () => {
+    setWebLeads([]);
+    setProcessedLeadIds([]);
+    setSelectedLeadIdx(0);
+    setHasNewLeadAlert(false);
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('latest_web_lead');
+      }
+      await fetch('/api/leads', { method: 'DELETE' });
+    } catch (e) {}
+    setSuccessToast('🧹 All leads cleared! Starting completely fresh.');
   };
 
 
@@ -1062,6 +1132,15 @@ export default function WebQuotationManager({ products = [] }) {
               </div>
 
               <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleClearAllWebLeads}
+                  className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold transition cursor-pointer border border-rose-200 shadow-2xs flex items-center gap-1.5"
+                  title="Clear all leads and start completely fresh"
+                >
+                  <Trash2 size={13} className="text-rose-600" />
+                  <span>Clear All</span>
+                </button>
                 <button
                   type="button"
                   onClick={handleSimulateWebLead}

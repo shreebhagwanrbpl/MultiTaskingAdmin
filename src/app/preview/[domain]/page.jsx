@@ -485,25 +485,52 @@ export default function WebsiteDomainPreviewPage(props) {
       date: 'Just now'
     };
 
+    // 1. INSTANT ZERO-LATENCY BROADCAST TO ADMIN WEB QUOTATION DESK (Fired immediately in 0ms)
+    try {
+      if (typeof window !== 'undefined') {
+        // BroadcastChannel across tabs (keep alive - do NOT close immediately!)
+        try {
+          const channel = new BroadcastChannel('biomedical_leads_channel');
+          channel.postMessage({ type: 'NEW_WEB_LEAD', lead: leadPayload });
+          // Graceful close after 15 seconds to ensure delivery across slow render loops
+          setTimeout(() => { try { channel.close(); } catch(e){} }, 15000);
+        } catch(bcErr) {}
+
+        // LocalStorage for cross-window sync
+        try {
+          localStorage.setItem('latest_web_lead', JSON.stringify({ ...leadPayload, ts: Date.now() }));
+        } catch(lsErr) {}
+
+        // Iframe parent communication
+        try {
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'NEW_WEB_LEAD', lead: leadPayload }, '*');
+          }
+        } catch(ipErr) {}
+
+        // Window opener communication (if opened in separate tab)
+        try {
+          if (window.opener) {
+            window.opener.postMessage({ type: 'NEW_WEB_LEAD', lead: leadPayload }, '*');
+          }
+        } catch(opErr) {}
+
+        // Same-window CustomEvent dispatch
+        try {
+          window.dispatchEvent(new CustomEvent('new_web_lead', { detail: leadPayload }));
+        } catch(ceErr) {}
+      }
+    } catch (instantErr) {
+      console.warn('Instant lead broadcast error:', instantErr);
+    }
+
+    // 2. Persist to MongoDB API in background
     try {
       await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(leadPayload)
       });
-
-      // Instant live sync to Web Quotation Manager via BroadcastChannel & LocalStorage
-      try {
-        if (typeof window !== 'undefined') {
-          const channel = new BroadcastChannel('biomedical_leads_channel');
-          channel.postMessage({ type: 'NEW_WEB_LEAD', lead: leadPayload });
-          channel.close();
-          localStorage.setItem('latest_web_lead', JSON.stringify({ ...leadPayload, ts: Date.now() }));
-        }
-      } catch (bcErr) {
-        console.warn('Broadcast channel sync:', bcErr);
-      }
-
       setRfqSuccess(true);
     } catch (err) {
       setRfqSuccess(true);
