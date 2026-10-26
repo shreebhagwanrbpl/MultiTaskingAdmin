@@ -57,25 +57,6 @@ export const INITIAL_SITES = [
     theme: 'Surgical Teal'
   },
   {
-    id: 'site-04',
-    companyId: 'rajbiosis',
-    domain: 'cardiopulse.in',
-    brandName: 'CardioPulse Medical',
-    tagline: 'Cardiology Telemetry & Resuscitation Monitors',
-    primaryColor: '#e11d48',
-    font: 'Inter',
-    headerStyle: 'Centered Search',
-    homepageLayout: 'Catalog First',
-    categoryFocus: 'Cardiology & Resuscitation',
-    cardStyle: 'Bordered Minimal',
-    phone: '+91 98112 44321',
-    email: 'orders@cardiopulse.in',
-    city: 'New Delhi, NCR',
-    active: true,
-    leadsCount: 18,
-    theme: 'Cardio Ruby'
-  },
-  {
     id: 'site-05',
     companyId: 'human_bio',
     domain: 'nephrolife.in',
@@ -112,24 +93,5 @@ export const INITIAL_SITES = [
     active: true,
     leadsCount: 11,
     theme: 'Amber Precision'
-  },
-  {
-    id: 'site-07',
-    companyId: 'rajbiosis',
-    domain: 'laparovision.com',
-    brandName: 'LaparoVision 4K',
-    tagline: 'Ultra HD Endoscopy & Arthroscopy Camera Hubs',
-    primaryColor: '#0891b2',
-    font: 'Outfit',
-    headerStyle: 'Sticky Floating Pill',
-    homepageLayout: 'Turnkey Solution Suites',
-    categoryFocus: 'Surgical & OT Equipment',
-    cardStyle: 'Glassmorphic Modern',
-    phone: '+91 98100 11223',
-    email: 'support@laparovision.com',
-    city: 'Pune, Maharashtra',
-    active: true,
-    leadsCount: 31,
-    theme: 'Cyan Endoscopy'
   }
 ];

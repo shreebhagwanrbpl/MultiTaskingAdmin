@@ -78,12 +78,7 @@ export async function GET() {
   try {
     const db = await getDatabase();
     const collection = db.collection('leads');
-    let leads = await collection.find({}).toArray();
-
-    if (!leads || leads.length === 0) {
-      await collection.insertMany(INITIAL_LEADS);
-      leads = INITIAL_LEADS;
-    }
+    let leads = await collection.find({}).sort({ createdAt: -1 }).toArray();
 
     return NextResponse.json({
       success: true,
@@ -98,8 +93,8 @@ export async function GET() {
       source: 'fallback',
       isDbConnected: false,
       error: err.message,
-      count: INITIAL_LEADS.length,
-      leads: INITIAL_LEADS
+      count: 0,
+      leads: []
     });
   }
 }
@@ -171,5 +166,16 @@ export async function PUT(request) {
   } catch (err) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+    },
+  });
 }
 

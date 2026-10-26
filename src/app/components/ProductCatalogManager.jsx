@@ -59,7 +59,7 @@ const COMPANIES = [
     shortName: 'Raj Biosis',
     color: '#0ea5e9',
     badgeClass: 'bg-sky-50 text-sky-800 border-sky-200',
-    defaultWebsites: ['rajbiosis.com', 'cardiopulse.in', 'laparovision.com']
+    defaultWebsites: ['rajbiosis.com']
   },
   {
     id: 'human_bio',

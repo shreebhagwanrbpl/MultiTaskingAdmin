@@ -65,14 +65,14 @@ function readLocalQuotations() {
     if (fs.existsSync(QUOTATIONS_FILE)) {
       const content = fs.readFileSync(QUOTATIONS_FILE, 'utf-8');
       const parsed = JSON.parse(content);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed;
       }
     }
   } catch (e) {
     console.warn('Failed to read local quotations file:', e.message);
   }
-  return [SAMPLE_QUOTATION];
+  return [];
 }
 
 function writeLocalQuotations(list) {
@@ -96,15 +96,6 @@ export async function GET() {
     const db = await getDatabase();
     const collection = db.collection('quotations');
     let docs = await collection.find({}).sort({ createdAt: -1 }).toArray();
-
-    if (docs.length === 0) {
-      if (localDocs.length > 0) {
-        try {
-          await collection.insertMany(localDocs.map(d => ({ ...d, _id: undefined })));
-        } catch {}
-      }
-      docs = localDocs;
-    }
 
     const normalized = docs.map(d => ({
       ...d,
@@ -226,4 +217,15 @@ export async function DELETE(request) {
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+    },
+  });
 }

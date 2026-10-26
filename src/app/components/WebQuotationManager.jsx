@@ -82,24 +82,7 @@ export default function WebQuotationManager({ products = [] }) {
   const [signatoryPhone, setSignatoryPhone] = useState('Mob: +91-998-3333-469');
 
   // Quotation Line Items (100% Dynamic)
-  const [items, setItems] = useState([
-    {
-      id: 'item-init-1',
-      sr: 1,
-      itemCode: 'CQ-2026',
-      title: 'Semi-Automated Clinical Chemistry Quantification Analyzer',
-      bullets: [
-        '7 assay modes with preloaded test protocols',
-        '100 open test programs & 200 patient memory',
-        '32μl quartz flow cell with minimum aspiration of 200μl',
-        'Real-time reaction graph display & RS 232 interfacing',
-        'Assays: Clinical chemistry, Special proteins, Electrolytes'
-      ].join('\n'),
-      qty: 1,
-      unitLabel: 'No', // 'No' | 'Nos' | 'Sets' | 'Units' | 'Pcs'
-      unitPrice: 150000
-    }
-  ]);
+  const [items, setItems] = useState([]);
 
   // New Item Quick Adder Form State
   const [newItemMode, setNewItemMode] = useState('catalog'); // 'catalog' | 'custom'

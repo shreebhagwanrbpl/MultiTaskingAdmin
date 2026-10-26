@@ -1,0 +1,332 @@
+[
+  {
+    "_id": "6adf21fd54a0d9d3da74470b",
+    "createdAt": "2026-10-26T09:48:45.628Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 8569874859",
+    "customerName": "Jaipur Healthcare Institution",
+    "date": "26/10/2026",
+    "grandTotal": 207200,
+    "id": "RFQ-124612",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "LumiLux Duo Dual-Dome LED Shadowless OT Light",
+        "qty": 1,
+        "unitPrice": 185000,
+        "totalPrice": 207200
+      }
+    ],
+    "refNo": "RB-QT-2026-5548",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of LumiLux Duo Dual-Dome LED Shadowless OT Light",
+    "subjectQuotation": "Purchase of LumiLux Duo Dual-Dome LED Shadowless OT Light",
+    "updatedAt": "2026-10-26T09:48:45.628Z"
+  },
+  {
+    "_id": "6adf22d654a0d9d3da744727",
+    "createdAt": "2026-10-26T09:52:20.990Z",
+    "customerAddress1": "Udaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 8569874859",
+    "customerName": "Udaipur Healthcare Institution",
+    "date": "26/10/2026",
+    "grandTotal": 274400,
+    "id": "RFQ-331960",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "OmniFlex Electric-Hydraulic Universal Operating Table",
+        "qty": 1,
+        "unitPrice": 245000,
+        "totalPrice": 274400
+      }
+    ],
+    "refNo": "RB-QT-2026-4129",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of OmniFlex Electric-Hydraulic Universal Operating Table",
+    "subjectQuotation": "Purchase of OmniFlex Electric-Hydraulic Universal Operating Table",
+    "updatedAt": "2026-10-26T09:52:20.990Z"
+  },
+  {
+    "_id": "6adf239154a0d9d3da744739",
+    "createdAt": "2026-10-26T09:55:29.453Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 8569745896",
+    "customerName": "Shree Medical",
+    "date": "26/10/2026",
+    "grandTotal": 274400,
+    "id": "RFQ-523258",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "OmniFlex Electric-Hydraulic Universal Operating Table",
+        "qty": 1,
+        "unitPrice": 245000,
+        "totalPrice": 274400
+      }
+    ],
+    "refNo": "RB-QT-2026-1742",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of OmniFlex Electric-Hydraulic Universal Operating Table",
+    "subjectQuotation": "Purchase of OmniFlex Electric-Hydraulic Universal Operating Table",
+    "updatedAt": "2026-10-26T09:55:29.453Z"
+  },
+  {
+    "_id": "6adf239154a0d9d3da74473a",
+    "createdAt": "2026-10-26T09:55:29.459Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 8569745896",
+    "customerName": "Shree Medical",
+    "date": "26/10/2026",
+    "grandTotal": 274400,
+    "id": "RFQ-523163",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "OmniFlex Electric-Hydraulic Universal Operating Table",
+        "qty": 1,
+        "unitPrice": 245000,
+        "totalPrice": 274400
+      }
+    ],
+    "refNo": "RB-QT-2026-5818",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of OmniFlex Electric-Hydraulic Universal Operating Table",
+    "subjectQuotation": "Purchase of OmniFlex Electric-Hydraulic Universal Operating Table",
+    "updatedAt": "2026-10-26T09:55:29.459Z"
+  },
+  {
+    "_id": "6adf281754a0d9d3da744757",
+    "createdAt": "2026-10-26T10:14:47.198Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 8574965896",
+    "customerName": "Jaipur Healthcare Institution",
+    "date": "26/10/2026",
+    "grandTotal": 76720,
+    "id": "RFQ-677115",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+        "qty": 1,
+        "unitPrice": 68500,
+        "totalPrice": 76720
+      }
+    ],
+    "refNo": "RB-QT-2026-1913",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "updatedAt": "2026-10-26T10:14:47.198Z"
+  },
+  {
+    "_id": "6adf282254a0d9d3da744758",
+    "createdAt": "2026-10-26T10:14:58.198Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 8574965896",
+    "customerName": "Jaipur Healthcare Institution",
+    "date": "26/10/2026",
+    "grandTotal": 218400,
+    "id": "RFQ-690043",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+        "qty": 1,
+        "unitPrice": 195000,
+        "totalPrice": 218400
+      }
+    ],
+    "refNo": "RB-QT-2026-1867",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+    "subjectQuotation": "Purchase of DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+    "updatedAt": "2026-10-26T10:14:58.198Z"
+  },
+  {
+    "_id": "6adf292054a0d9d3da744766",
+    "createdAt": "2026-10-26T10:19:12.339Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 8569854785",
+    "customerName": "Jaipur Healthcare Institution",
+    "date": "26/10/2026",
+    "grandTotal": 218400,
+    "id": "RFQ-952001",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+        "qty": 1,
+        "unitPrice": 195000,
+        "totalPrice": 218400
+      }
+    ],
+    "refNo": "RB-QT-2026-4648",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+    "subjectQuotation": "Purchase of DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+    "updatedAt": "2026-10-26T10:19:12.339Z"
+  },
+  {
+    "_id": "6adf293554a0d9d3da744767",
+    "createdAt": "2026-10-26T10:19:32.900Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 8569854785",
+    "customerName": "Shree Medical",
+    "date": "26/10/2026",
+    "grandTotal": 218400,
+    "id": "RFQ-972604",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+        "qty": 1,
+        "unitPrice": 195000,
+        "totalPrice": 218400
+      }
+    ],
+    "refNo": "RB-QT-2026-8354",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+    "subjectQuotation": "Purchase of DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+    "updatedAt": "2026-10-26T10:19:32.900Z"
+  },
+  {
+    "_id": "6adf293554a0d9d3da744768",
+    "createdAt": "2026-10-26T10:19:32.911Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 8569854785",
+    "customerName": "Shree Medical",
+    "date": "26/10/2026",
+    "grandTotal": 218400,
+    "id": "RFQ-972609",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+        "qty": 1,
+        "unitPrice": 195000,
+        "totalPrice": 218400
+      }
+    ],
+    "refNo": "RB-QT-2026-7616",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+    "subjectQuotation": "Purchase of DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+    "updatedAt": "2026-10-26T10:19:32.911Z"
+  },
+  {
+    "_id": "6adf29dd54a0d9d3da744770",
+    "createdAt": "2026-10-26T10:22:21.013Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 8569854785",
+    "customerName": "Shree Medical",
+    "date": "26/10/2026",
+    "grandTotal": 132160,
+    "id": "RFQ-136566",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "SteamSteril 50L Horizontal High-Pressure Class-B Autoclave",
+        "qty": 1,
+        "unitPrice": 118000,
+        "totalPrice": 132160
+      }
+    ],
+    "refNo": "RB-QT-2026-2420",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of SteamSteril 50L Horizontal High-Pressure Class-B Autoclave",
+    "subjectQuotation": "Purchase of SteamSteril 50L Horizontal High-Pressure Class-B Autoclave",
+    "updatedAt": "2026-10-26T10:22:21.013Z"
+  }
+]

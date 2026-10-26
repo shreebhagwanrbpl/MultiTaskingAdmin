@@ -5,7 +5,7 @@ import { PRODUCTS as INITIAL_PRODUCTS } from '../../../data/products';
 
 // Default initial website assignments per company
 export const DEFAULT_COMPANY_WEBSITES = {
-  rajbiosis: ['rajbiosis.com', 'cardiopulse.in', 'laparovision.com'],
+  rajbiosis: ['rajbiosis.com'],
   human_bio: ['humanbiomedicals.in', 'pulmocare.in', 'nephrolife.in'],
   global_bio: ['globalbiomedical.com', 'surgitech.in', 'orthodrive.in']
 };
@@ -78,6 +78,7 @@ function normalizeProduct(p) {
 
     // Product Commercials, Inventory & Expiry
     title: p.title || p.name || 'Untitled Medical Device',
+    name: p.name || p.title || 'Untitled Medical Device',
     sku: skuVal,
     price: priceVal,
     mrp: mrpVal,
@@ -92,6 +93,7 @@ function normalizeProduct(p) {
 
     // Specifications & Details
     desc: p.desc || p.shortDesc || p.description || '',
+    shortDesc: p.shortDesc || p.desc || p.description || '',
     capacity: p.capacity || (p.specs ? p.specs['Tidal Volume Range'] || p.specs['Constant Throughput'] || '' : ''),
     throughput: p.throughput || (p.specs ? p.specs['Constant Throughput'] || '' : ''),
     instrument: p.instrument || (p.specs ? p.specs['Gas Supply'] || p.specs['Electric Actuators'] || '' : ''),
@@ -101,8 +103,10 @@ function normalizeProduct(p) {
     parameters: p.parameters || (p.specs ? p.specs['Ventilation Modes'] || p.specs['Functions'] || '' : ''),
     automation: p.automation || 'Standard Clinical',
     availability: p.availability || p.stockStatus || (qtyVal > 0 ? 'In Stock' : 'Out of Stock'),
+    stockStatus: p.stockStatus || p.availability || (qtyVal > 0 ? 'In Stock' : 'Out of Stock'),
     size: p.size || '',
     images: p.images || p.image || 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80',
+    image: p.image || p.images || 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80',
     video: p.video || '',
     pdf: p.pdf || '',
     category: p.category || 'General Medical Devices',
@@ -203,24 +207,8 @@ export async function GET(request) {
 
     let docs = await collection.find(query).sort({ updatedAt: -1, createdAt: -1 }).toArray();
 
-    // If database is completely empty and no filters applied, seed with formatted initial products
-    if (docs.length === 0 && Object.keys(query).length === 0) {
-      const defaultDocs = INITIAL_PRODUCTS.map((p, idx) => {
-        let assignedCompany = 'rajbiosis';
-        if (idx % 3 === 1) assignedCompany = 'human_bio';
-        if (idx % 3 === 2) assignedCompany = 'global_bio';
-        return normalizeProduct({ ...p, companyId: assignedCompany });
-      });
-
-      if (defaultDocs.length > 0) {
-        try {
-          await collection.insertMany(defaultDocs);
-          docs = defaultDocs;
-        } catch (e) {
-          docs = defaultDocs;
-        }
-      }
-    }
+    // Database empty check: Do not auto-seed dummy products so admin remains clean for user import
+    // User will import products with custom categories and subcategories via Excel
 
     const normalized = docs.map(normalizeProduct);
 
@@ -532,4 +520,15 @@ export async function DELETE(request) {
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+    },
+  });
 }
