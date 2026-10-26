@@ -2,6 +2,6 @@
 
 import AdminDashboardPage from '../page';
 
-export default function AdminPage() {
-  return <AdminDashboardPage />;
+export default function AdminPage({ searchParams }) {
+  return <AdminDashboardPage searchParams={searchParams} />;
 }

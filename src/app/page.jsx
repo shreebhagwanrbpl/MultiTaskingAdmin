@@ -210,10 +210,78 @@ const MARKETING_CUSTOMERS = [
   { id: 'cust-7', name: 'Dr. Priya Nair', role: 'Nephrology Head', hospital: 'Manipal Hospital Bengaluru', email: 'priya.nair@manipalhospitals.com', phone: '+91 98440 22331', equipment: 'HemoPure Dialysis Machine', quoteAmount: '₹11,20,000', status: 'Demo Requested' }
 ];
 
-export default function AdminDashboardPage() {
-  const [activeTab, setActiveTab] = useState('leads'); // 'leads', 'products', 'vps'
+export default function AdminDashboardPage({ searchParams }) {
+  // Determine initial tab safely across SSR and Client Hydration
+  const resolveInitialTab = () => {
+    // 1. Check server-provided searchParams
+    if (searchParams?.tab && ['leads', 'website', 'products', 'quotation', 'vps', 'marketing'].includes(searchParams.tab)) {
+      return searchParams.tab;
+    }
+    // 2. Check window location or localStorage on client
+    if (typeof window !== 'undefined') {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTab = urlParams.get('tab');
+        const storedTab = window.localStorage.getItem('admin_active_tab');
+        const chosen = urlTab || storedTab;
+        if (chosen && ['leads', 'website', 'products', 'quotation', 'vps', 'marketing'].includes(chosen)) {
+          return chosen;
+        }
+      } catch (e) {}
+    }
+    return 'leads';
+  };
+
+  const [activeTab, setActiveTabRaw] = useState(resolveInitialTab);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [leadFilterDomain, setLeadFilterDomain] = useState('all');
+
+  const setActiveTab = (tab) => {
+    setActiveTabRaw(tab);
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem('admin_active_tab', tab);
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', tab);
+        window.history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString());
+      } catch (e) {}
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTab = urlParams.get('tab');
+        const storedTab = window.localStorage.getItem('admin_active_tab');
+        const chosen = urlTab || (searchParams?.tab) || storedTab;
+        if (chosen && ['leads', 'website', 'products', 'quotation', 'vps', 'marketing'].includes(chosen)) {
+          setActiveTabRaw(chosen);
+          // Sync URL if tab parameter was missing so hard refresh always stays here
+          const url = new URL(window.location.href);
+          if (url.searchParams.get('tab') !== chosen) {
+            url.searchParams.set('tab', chosen);
+            window.history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString());
+          }
+        }
+      } catch (e) {}
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTab = urlParams.get('tab');
+        if (urlTab && ['leads', 'website', 'products', 'quotation', 'vps', 'marketing'].includes(urlTab)) {
+          setActiveTabRaw(urlTab);
+        }
+      } catch (e) {}
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
 
   // Live MongoDB Database State
   const [dbStatus, setDbStatus] = useState({
