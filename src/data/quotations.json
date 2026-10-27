@@ -1,5 +1,366 @@
 [
   {
+    "id": "RFQ-999644",
+    "refNo": "RB-QT-2026-3601",
+    "date": "27/10/2026",
+    "customerName": "Apex Hospital",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 8546987456",
+    "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+        "qty": 1,
+        "unitPrice": 68500,
+        "totalPrice": 76720
+      }
+    ],
+    "grandTotal": 76720,
+    "createdAt": "2026-10-27T06:03:19.797Z",
+    "updatedAt": "2026-10-27T06:03:19.797Z"
+  },
+  {
+    "id": "RFQ-999641",
+    "refNo": "RB-QT-2026-1461",
+    "date": "27/10/2026",
+    "customerName": "Apex Hospital",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 8546987456",
+    "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+        "qty": 1,
+        "unitPrice": 68500,
+        "totalPrice": 76720
+      }
+    ],
+    "grandTotal": 76720,
+    "createdAt": "2026-10-27T06:03:19.787Z",
+    "updatedAt": "2026-10-27T06:03:19.787Z"
+  },
+  {
+    "_id": "6ae03e2554a0d9d3da74ea96",
+    "createdAt": "2026-10-27T06:01:09.024Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 8546987456",
+    "customerName": "Jaipur Healthcare Institution",
+    "date": "27/10/2026",
+    "grandTotal": 76720,
+    "id": "RFQ-868864",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+        "qty": 1,
+        "unitPrice": 68500,
+        "totalPrice": 76720
+      }
+    ],
+    "refNo": "RB-QT-2026-5296",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "updatedAt": "2026-10-27T06:01:09.024Z"
+  },
+  {
+    "_id": "6adf49b654a0d9d3da744aeb",
+    "createdAt": "2026-10-26T12:38:14.600Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 9856748525",
+    "customerName": "Kamal Hospital",
+    "date": "26/10/2026",
+    "grandTotal": 76720,
+    "id": "RFQ-294270",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+        "qty": 1,
+        "unitPrice": 68500,
+        "totalPrice": 76720
+      }
+    ],
+    "refNo": "RB-QT-2026-4473",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "updatedAt": "2026-10-26T12:38:14.600Z"
+  },
+  {
+    "_id": "6adf49b654a0d9d3da744aec",
+    "createdAt": "2026-10-26T12:38:14.596Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 9856748525",
+    "customerName": "Kamal Hospital",
+    "date": "26/10/2026",
+    "grandTotal": 76720,
+    "id": "RFQ-294254",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+        "qty": 1,
+        "unitPrice": 68500,
+        "totalPrice": 76720
+      }
+    ],
+    "refNo": "RB-QT-2026-2435",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "updatedAt": "2026-10-26T12:38:14.596Z"
+  },
+  {
+    "_id": "6adf499354a0d9d3da744ae8",
+    "createdAt": "2026-10-26T12:37:39.313Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 9856748525",
+    "customerName": "Kamal Hospital",
+    "date": "26/10/2026",
+    "grandTotal": 76720,
+    "id": "RFQ-259175",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+        "qty": 1,
+        "unitPrice": 68500,
+        "totalPrice": 76720
+      }
+    ],
+    "refNo": "RB-QT-2026-9693",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "updatedAt": "2026-10-26T12:37:39.313Z"
+  },
+  {
+    "_id": "6adf3e5754a0d9d3da74499d",
+    "createdAt": "2026-10-26T11:49:42.934Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 9856748525",
+    "customerName": "Kamal Hospital",
+    "date": "26/10/2026",
+    "grandTotal": 1817200,
+    "id": "RFQ-382459",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+        "qty": 1,
+        "unitPrice": 1540000,
+        "totalPrice": 1817200
+      }
+    ],
+    "refNo": "RB-QT-2026-1312",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+    "subjectQuotation": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+    "updatedAt": "2026-10-26T11:49:42.934Z"
+  },
+  {
+    "_id": "6adf3e5754a0d9d3da74499e",
+    "createdAt": "2026-10-26T11:49:42.931Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 9856748525",
+    "customerName": "Kamal Hospital",
+    "date": "26/10/2026",
+    "grandTotal": 1817200,
+    "id": "RFQ-382376",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+        "qty": 1,
+        "unitPrice": 1540000,
+        "totalPrice": 1817200
+      }
+    ],
+    "refNo": "RB-QT-2026-3565",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+    "subjectQuotation": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+    "updatedAt": "2026-10-26T11:49:42.931Z"
+  },
+  {
+    "_id": "6adf3d2054a0d9d3da744973",
+    "createdAt": "2026-10-26T11:44:32.540Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 9856748525",
+    "customerName": "Kamal Hospital",
+    "date": "26/10/2026",
+    "grandTotal": 1817200,
+    "id": "RFQ-072113",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+        "qty": 1,
+        "unitPrice": 1540000,
+        "totalPrice": 1817200
+      }
+    ],
+    "refNo": "RB-QT-2026-6953",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+    "subjectQuotation": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+    "updatedAt": "2026-10-26T11:44:32.540Z"
+  },
+  {
+    "_id": "6adf3d2054a0d9d3da744972",
+    "createdAt": "2026-10-26T11:44:32.536Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 9856748525",
+    "customerName": "Kamal Hospital",
+    "date": "26/10/2026",
+    "grandTotal": 1817200,
+    "id": "RFQ-072109",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+        "qty": 1,
+        "unitPrice": 1540000,
+        "totalPrice": 1817200
+      }
+    ],
+    "refNo": "RB-QT-2026-6583",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+    "subjectQuotation": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+    "updatedAt": "2026-10-26T11:44:32.536Z"
+  },
+  {
+    "_id": "6adf3cff54a0d9d3da74496d",
+    "createdAt": "2026-10-26T11:43:59.580Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 9856748525",
+    "customerName": "Apex Hospital",
+    "date": "26/10/2026",
+    "grandTotal": 1817200,
+    "id": "RFQ-038664",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+        "qty": 1,
+        "unitPrice": 1540000,
+        "totalPrice": 1817200
+      }
+    ],
+    "refNo": "RB-QT-2026-4844",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+    "subjectQuotation": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+    "updatedAt": "2026-10-26T11:43:59.580Z"
+  },
+  {
     "_id": "6adf313d54a0d9d3da7447c7",
     "createdAt": "2026-10-26T11:10:37.077Z",
     "customerAddress1": "Kota, Rajasthan",

@@ -51,12 +51,17 @@ import {
   Key,
   Copy,
   Zap,
-  Dices
+  Dices,
+  Bell,
+  Volume2,
+  VolumeX,
+  MessageCircle
 } from 'lucide-react';
 import { PRODUCTS } from '../data/products';
 import ProductCatalogManager from './components/ProductCatalogManager';
 import WebsiteHomepageManager from './components/WebsiteHomepageManager';
 import WebQuotationManager from './components/WebQuotationManager';
+import CustomerProfilesManager from './components/CustomerProfilesManager';
 
 // ============================================================================
 // 3 SENDER BIOMEDICAL COMPANIES (Raj Biosis, Human Biomedicals, Global Biomedical)
@@ -214,7 +219,7 @@ export default function AdminDashboardPage({ searchParams }) {
   // Determine initial tab safely across SSR and Client Hydration
   const resolveInitialTab = () => {
     // 1. Check server-provided searchParams
-    if (searchParams?.tab && ['leads', 'website', 'products', 'quotation', 'vps', 'marketing'].includes(searchParams.tab)) {
+    if (searchParams?.tab && ['leads', 'customers', 'website', 'products', 'quotation', 'vps', 'marketing'].includes(searchParams.tab)) {
       return searchParams.tab;
     }
     // 2. Check window location or localStorage on client
@@ -224,7 +229,7 @@ export default function AdminDashboardPage({ searchParams }) {
         const urlTab = urlParams.get('tab');
         const storedTab = window.localStorage.getItem('admin_active_tab');
         const chosen = urlTab || storedTab;
-        if (chosen && ['leads', 'website', 'products', 'quotation', 'vps', 'marketing'].includes(chosen)) {
+        if (chosen && ['leads', 'customers', 'website', 'products', 'quotation', 'vps', 'marketing'].includes(chosen)) {
           return chosen;
         }
       } catch (e) {}
@@ -255,7 +260,7 @@ export default function AdminDashboardPage({ searchParams }) {
         const urlTab = urlParams.get('tab');
         const storedTab = window.localStorage.getItem('admin_active_tab');
         const chosen = urlTab || (searchParams?.tab) || storedTab;
-        if (chosen && ['leads', 'website', 'products', 'quotation', 'vps', 'marketing'].includes(chosen)) {
+        if (chosen && ['leads', 'customers', 'website', 'products', 'quotation', 'vps', 'marketing'].includes(chosen)) {
           setActiveTabRaw(chosen);
           // Sync URL if tab parameter was missing so hard refresh always stays here
           const url = new URL(window.location.href);
@@ -273,7 +278,7 @@ export default function AdminDashboardPage({ searchParams }) {
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const urlTab = urlParams.get('tab');
-        if (urlTab && ['leads', 'website', 'products', 'quotation', 'vps', 'marketing'].includes(urlTab)) {
+        if (urlTab && ['leads', 'customers', 'website', 'products', 'quotation', 'vps', 'marketing'].includes(urlTab)) {
           setActiveTabRaw(urlTab);
         }
       } catch (e) {}
@@ -444,13 +449,71 @@ export default function AdminDashboardPage({ searchParams }) {
 
   // Centralized Inquiries / Leads (cross-domain) - Loaded live from MongoDB Atlas
   const [leads, setLeads] = useState([]);
+  const [customerProfilesCount, setCustomerProfilesCount] = useState(0);
 
-  // Load live data from MongoDB on mount
+  // Persistent New Lead Alert System (Does NOT auto-hide as requested)
+  const [newLeadAlerts, setNewLeadAlerts] = useState([]);
+  const [isSoundEnabled, setIsSoundEnabled] = useState(true);
+  const knownLeadIdsRef = React.useRef(new Set());
+  const isInitialLeadFetchRef = React.useRef(true);
+
+  // Synthesized Web Audio API Chime for New Incoming Leads
+  const playLeadAlertSound = () => {
+    if (!isSoundEnabled) return;
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+      const now = ctx.currentTime;
+
+      // Primary tone (E5 -> A5)
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(659.25, now);
+      osc1.frequency.exponentialRampToValueAtTime(880, now + 0.12);
+      gain1.gain.setValueAtTime(0.3, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.35);
+
+      // Harmonic confirmation tone (A5 -> D6)
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(880, now + 0.14);
+      osc2.frequency.exponentialRampToValueAtTime(1174.66, now + 0.32);
+      gain2.gain.setValueAtTime(0.3, now + 0.14);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now + 0.14);
+      osc2.stop(now + 0.6);
+    } catch (e) {
+      console.log('Audio chime notice:', e);
+    }
+  };
+
+  // Load live data from MongoDB on mount + 5-second polling interval
   useEffect(() => {
     checkDbStatus();
     loadSitesFromDb();
     loadLeadsFromDb();
     loadCampaignsFromDb();
+    loadCustomerProfilesCount();
+
+    // Periodic 2-second polling to capture incoming leads and customer profile edits
+    const pollTimer = setInterval(() => {
+      loadLeadsFromDb();
+      loadCustomerProfilesCount();
+    }, 2000);
+
+    return () => clearInterval(pollTimer);
   }, []);
 
   const checkDbStatus = async () => {
@@ -494,11 +557,140 @@ export default function AdminDashboardPage({ searchParams }) {
       const res = await fetch('/api/leads');
       const data = await res.json();
       if (data.success && Array.isArray(data.leads)) {
-        setLeads(data.leads);
+        // Guarantee newest leads are ALWAYS sorted at the very top
+        const sorted = [...data.leads].sort((a, b) => {
+          const timeA = new Date(a.createdAt || a.timestamp || 0).getTime();
+          const timeB = new Date(b.createdAt || b.timestamp || 0).getTime();
+          if (timeB !== timeA) return timeB - timeA;
+          return String(b.id || '').localeCompare(String(a.id || ''));
+        });
+
+        if (isInitialLeadFetchRef.current) {
+          sorted.forEach(l => {
+            if (l.id) knownLeadIdsRef.current.add(l.id);
+          });
+          isInitialLeadFetchRef.current = false;
+        } else {
+          // Detect newly arrived leads
+          const incoming = [];
+          sorted.forEach(l => {
+            if (l.id && !knownLeadIdsRef.current.has(l.id)) {
+              knownLeadIdsRef.current.add(l.id);
+              incoming.push(l);
+            }
+          });
+
+          if (incoming.length > 0) {
+            // Prepend new leads to persistent notification alerts (NO AUTO-HIDE!)
+            setNewLeadAlerts(prev => [...incoming, ...prev]);
+            playLeadAlertSound();
+          }
+        }
+
+        setLeads(sorted);
       }
     } catch (e) {
       console.warn('MongoDB leads fallback:', e);
     }
+  };
+
+  const [customersList, setCustomersList] = useState([]);
+
+  const loadCustomerProfilesCount = async () => {
+    try {
+      const res = await fetch('/api/customers');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.customers)) {
+        setCustomersList(data.customers);
+        setCustomerProfilesCount(data.customers.length);
+      }
+    } catch (err) {
+      console.warn('Customer profiles count err:', err);
+    }
+  };
+
+  const isLeadProfileComplete = (lead) => {
+    if (!lead) return false;
+
+    const phoneClean = (lead.phone || lead.customerPhone || lead.rawLeadData?.customerPhone || lead.rawLeadData?.phone || '').replace(/\D/g, '').slice(-10);
+    const emailClean = (lead.email || lead.customerEmail || lead.rawLeadData?.customerEmail || '').trim().toLowerCase();
+
+    // 1. Check against registered customer accounts first
+    const matched = customersList.find(c => {
+      const cPhone = (c.phone || '').replace(/\D/g, '').slice(-10);
+      const cEmail = (c.email || '').trim().toLowerCase();
+      return (phoneClean && cPhone && phoneClean === cPhone) || (emailClean && cEmail && emailClean === cEmail);
+    });
+
+    if (matched) {
+      const hosp = (matched.hospitalName || '').trim();
+      const addr = (matched.address || '').trim();
+      const dist = (matched.district || '').trim();
+      const name = (matched.fullName || '').trim();
+      const isGeneric = !hosp || [
+        'clinic / hospital', 'healthcare facility', 'general hospital', 'hospital',
+        'customer hospital / lab', 'customer hospital / diagnostic lab'
+      ].some(g => hosp.toLowerCase() === g || hosp.toLowerCase().includes('healthcare institution'));
+
+      if (!isGeneric && hosp.length >= 3 && name.length >= 2 && (addr.length >= 3 || dist.length >= 3)) {
+        return true;
+      }
+    }
+
+    // 2. Explicit verified boolean flag if present
+    if (lead.isProfileComplete === true || lead.rawLeadData?.isProfileComplete === true) {
+      return true;
+    }
+
+    // 3. Fallback to direct lead fields
+    const raw = lead.rawLeadData || {};
+    const hospital = (lead.hospital || raw.hospitalName || lead.hospitalName || '').trim();
+    const name = (lead.doctorName || raw.customerName || lead.customerName || '').trim();
+    const address = (lead.address || raw.address || lead.deliveryAddress || '').trim();
+    const city = (lead.city || raw.district || lead.district || '').trim();
+
+    const isGenericHosp = !hospital || [
+      'clinic / hospital',
+      'healthcare facility',
+      'general hospital',
+      'healthcare institution',
+      'customer hospital / lab',
+      'customer hospital / diagnostic lab'
+    ].some(ph => hospital.toLowerCase() === ph || hospital.toLowerCase().includes('healthcare institution'));
+
+    const hasRealHospital = !isGenericHosp && hospital.length >= 3;
+    const hasRealName = name && name.length >= 2 && name.toLowerCase() !== 'medical client';
+    const hasRealPhone = (lead.phone || lead.customerPhone || raw.customerPhone || '').replace(/\D/g, '').length >= 10;
+    const hasLocation = (address && address.length >= 3) || (city && city.length >= 3 && city !== 'India');
+
+    return Boolean(hasRealHospital && hasRealName && hasRealPhone && hasLocation);
+  };
+
+  const handleDeleteLead = async (leadId) => {
+    if (!confirm(`Are you sure you want to remove inquiry ${leadId}?`)) return;
+    try {
+      const res = await fetch(`/api/leads?id=${encodeURIComponent(leadId)}`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+      if (data.success) {
+        setLeads(prev => prev.filter(l => l.id !== leadId));
+        knownLeadIdsRef.current.delete(leadId);
+        setNewLeadAlerts(prev => prev.filter(a => a.id !== leadId));
+      }
+    } catch (e) {
+      console.error('Delete lead err:', e);
+    }
+  };
+
+  const isRecentLead = (lead) => {
+    if (!lead) return false;
+    if (newLeadAlerts.some(a => a.id === lead.id)) return true;
+    if (lead.createdAt) {
+      const diff = Date.now() - new Date(lead.createdAt).getTime();
+      return diff >= 0 && diff < 3 * 3600 * 1000; // Received within last 3 hours
+    }
+    return false;
   };
 
   const loadCampaignsFromDb = async () => {
@@ -577,12 +769,20 @@ export default function AdminDashboardPage({ searchParams }) {
     new Set([...leads.map(l => l.siteDomain), ...sites.map(s => s.domain)].filter(Boolean))
   );
 
-  const filteredLeads = leads.filter(l => {
-    if (leadFilterDomain !== 'all') {
-      return l.siteDomain === leadFilterDomain;
-    }
-    return true;
-  });
+  const filteredLeads = [...leads]
+    .filter(l => {
+      if (leadFilterDomain !== 'all') {
+        return l.siteDomain === leadFilterDomain;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      // Guarantee newest leads are ALWAYS on top
+      const timeA = new Date(a.createdAt || a.timestamp || 0).getTime();
+      const timeB = new Date(b.createdAt || b.timestamp || 0).getTime();
+      if (timeB !== timeA) return timeB - timeA;
+      return String(b.id || '').localeCompare(String(a.id || ''));
+    });
 
   const totalPipelineVal = filteredLeads.reduce((acc, l) => {
     const num = parseInt((l.amount || l.quoteAmount || '0').replace(/[^0-9]/g, '')) || 0;
@@ -665,6 +865,30 @@ export default function AdminDashboardPage({ searchParams }) {
               ) : (
                 <span className="text-[10px] bg-sky-500 text-white font-bold px-1.5 py-0.5 rounded-full">
                   {leads.length}
+                </span>
+              )}
+            </button>
+
+            {/* Registered Customer Profiles (Stored Separately with Edit Tracking) */}
+            <button
+              onClick={() => setActiveTab('customers')}
+              title={`Registered Customer Profiles (${customerProfilesCount})`}
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer relative group ${activeTab === 'customers'
+                  ? 'bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200/80 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
+                }`}
+            >
+              <span className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+                <Users size={isSidebarCollapsed ? 19 : 16} />
+                {!isSidebarCollapsed && <span>Registered Profiles</span>}
+              </span>
+              {isSidebarCollapsed ? (
+                customerProfilesCount > 0 && (
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-indigo-500 rounded-full border border-white"></span>
+                )
+              ) : (
+                <span className="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-1.5 py-0.5 rounded-full">
+                  {customerProfilesCount}
                 </span>
               )}
             </button>
@@ -804,7 +1028,16 @@ export default function AdminDashboardPage({ searchParams }) {
                   </span>
                 </>
               )}
+              {activeTab === 'customers' && (
+                <>
+                  <span>Registered Customer Profiles & Hospital Directory</span>
+                  <span className="text-xs px-2 py-0.5 rounded-md font-mono bg-indigo-50 text-indigo-700 border border-indigo-200">
+                    {customerProfilesCount} Accounts
+                  </span>
+                </>
+              )}
               {activeTab === 'marketing' && 'Multi-Brand Email Marketing Hub (Raj Biosis, Human & Global Bio)'}
+              {activeTab === 'website' && 'Website & Home Page CMS Builder'}
               {activeTab === 'products' && (
                 <>
                   <span>Multi-Company Products & Catalog Manager</span>
@@ -851,6 +1084,21 @@ export default function AdminDashboardPage({ searchParams }) {
               </div>
             )}
 
+            {/* Sound Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setIsSoundEnabled(!isSoundEnabled)}
+              title={isSoundEnabled ? "Lead Chime Sound: ON (Click to Mute)" : "Lead Chime Sound: MUTED (Click to Enable)"}
+              className={`text-xs px-2.5 py-1.5 rounded-xl border font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-2xs ${
+                isSoundEnabled
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 hover:bg-emerald-100/70'
+                  : 'bg-slate-50 text-slate-400 border-slate-200/80 hover:bg-slate-100'
+              }`}
+            >
+              {isSoundEnabled ? <Volume2 size={14} className="text-emerald-600" /> : <VolumeX size={14} className="text-slate-400" />}
+              <span className="hidden sm:inline text-[11px]">{isSoundEnabled ? 'Alert Chime ON' : 'Muted'}</span>
+            </button>
+
             {/* Live MongoDB Status Pill in Header */}
             <button
               type="button"
@@ -869,6 +1117,66 @@ export default function AdminDashboardPage({ searchParams }) {
             </div>
           </div>
         </header>
+
+        {/* Persistent New Lead Notification Alert (DOES NOT AUTO-HIDE AS REQUESTED) */}
+        {newLeadAlerts.length > 0 && (
+          <div className="mx-6 mt-4 p-4 rounded-2xl bg-linear-to-r from-rose-50 via-amber-50 to-orange-50 border-2 border-rose-300 shadow-md shadow-rose-100/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-md animate-pulse">
+                <AlertCircle size={22} />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-black tracking-wide bg-rose-600 text-white px-2 py-0.5 rounded-full uppercase">
+                    🚨 New Lead Received ({newLeadAlerts.length})
+                  </span>
+                  <span className="text-xs font-bold text-slate-900">
+                    {newLeadAlerts[0].doctorName || newLeadAlerts[0].customerName || 'Hospital Purchase Lead'}
+                  </span>
+                  <span className="text-xs text-slate-400">•</span>
+                  <span className="text-xs font-semibold text-slate-800">
+                    {newLeadAlerts[0].hospital || newLeadAlerts[0].hospitalName || 'Healthcare Facility'}
+                  </span>
+                  <span className="text-[11px] font-mono bg-white px-2 py-0.5 rounded-md border border-rose-200 text-rose-800 font-bold">
+                    {newLeadAlerts[0].equipment || newLeadAlerts[0].productName || 'Biomedical Equipment'}
+                  </span>
+                  <span className="text-xs font-mono font-bold text-emerald-700">
+                    {newLeadAlerts[0].quoteAmount || newLeadAlerts[0].amount || '₹0'}
+                  </span>
+                </div>
+                <div className="text-[11px] text-slate-600 flex items-center gap-2 flex-wrap">
+                  <span>Phone: <strong className="font-mono text-slate-900">{newLeadAlerts[0].phone || '-'}</strong></span>
+                  <span>•</span>
+                  <span>Source: <strong className="font-mono text-sky-700">{newLeadAlerts[0].siteDomain || 'rajbiosis.com'}</strong></span>
+                  <span>•</span>
+                  <span className="text-rose-700 font-bold">📌 Alert will remain open until reviewed</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('leads');
+                  setNewLeadAlerts([]);
+                }}
+                className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>View RFQ Inquiries</span>
+                <ArrowRight size={13} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setNewLeadAlerts(prev => prev.slice(1))}
+                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-white rounded-xl transition cursor-pointer border border-slate-200/60"
+                title="Dismiss this notification"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Dashboard Content Body */}
         <main className="p-6 space-y-6">
@@ -973,37 +1281,80 @@ export default function AdminDashboardPage({ searchParams }) {
               ========================================================================= */}
           {activeTab === 'leads' && (
             <div className="bg-white rounded-3xl border border-slate-100 shadow-xs overflow-hidden space-y-4">
-              {/* Filter Bar */}
-              <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <label className="text-xs font-semibold text-slate-500">Filter by Website:</label>
-                  <select
-                    value={leadFilterDomain}
-                    onChange={(e) => setLeadFilterDomain(e.target.value)}
-                    className="bg-slate-50/80 border border-slate-200/80 rounded-xl px-3 py-1.5 text-xs text-slate-700 font-mono outline-none focus:bg-white focus:border-sky-400"
-                  >
-                    <option value="all">All Source Websites ({leads.length})</option>
-                    {availableLeadDomains.map(d => {
-                      const siteObj = sites.find(s => s.domain === d);
-                      return (
-                        <option key={d} value={d}>
-                          {siteObj?.brandName ? `${siteObj.brandName} (${d})` : d}
-                        </option>
-                      );
-                    })}
-                  </select>
+              {/* Filter & Subtab Bar */}
+              <div className="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3 flex-wrap">
+                  {/* Desk Mode Switcher */}
+                  <div className="flex items-center p-1 bg-slate-100 rounded-xl">
+                    <button
+                      type="button"
+                      className="px-3 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-800 shadow-xs"
+                    >
+                      📋 Hospital RFQs & Leads ({filteredLeads.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('customers')}
+                      className="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-500 hover:text-slate-800 transition cursor-pointer flex items-center gap-1.5"
+                    >
+                      <span>👥 Registered Profiles ({customerProfilesCount})</span>
+                      <ArrowRight size={12} />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-semibold text-slate-400">Website:</label>
+                    <select
+                      value={leadFilterDomain}
+                      onChange={(e) => setLeadFilterDomain(e.target.value)}
+                      className="bg-slate-50/80 border border-slate-200/80 rounded-xl px-3 py-1.5 text-xs text-slate-700 font-mono outline-none focus:bg-white focus:border-sky-400"
+                    >
+                      <option value="all">All Source Websites ({leads.length})</option>
+                      {availableLeadDomains.map(d => {
+                        const siteObj = sites.find(s => s.domain === d);
+                        return (
+                          <option key={d} value={d}>
+                            {siteObj?.brandName ? `${siteObj.brandName} (${d})` : d}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
                 </div>
 
-                <button
-                  onClick={() => alert("Exporting all hospital leads to CSV / Excel...")}
-                  className="text-xs py-1.5 px-3 bg-white border border-slate-200/80 text-slate-600 hover:bg-slate-50 rounded-xl font-medium flex items-center gap-1.5 transition shadow-xs"
-                >
-                  <Download size={13} />
-                  <span>Export to Excel / CSV</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => loadLeadsFromDb()}
+                    className="text-xs py-1.5 px-3 bg-white border border-slate-200/80 text-slate-600 hover:bg-slate-50 rounded-xl font-medium flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+                    title="Refresh leads list"
+                  >
+                    <RefreshCw size={13} />
+                    <span>Refresh</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      const csvContent = "data:text/csv;charset=utf-8," + 
+                        ["Ref,Date,Website,Hospital,Doctor,Phone,Equipment,Amount,Status"]
+                          .concat(filteredLeads.map(l => `"${l.id}","${l.date || ''}","${l.siteDomain || ''}","${(l.hospital || '').replace(/"/g, '""')}","${(l.doctorName || l.contact || '').replace(/"/g, '""')}","${l.phone || ''}","${(l.equipment || '').replace(/"/g, '""')}","${(l.quoteAmount || l.amount || '').replace(/"/g, '""')}","${l.status || ''}"`))
+                          .join("\n");
+                      const encodedUri = encodeURI(csvContent);
+                      const link = document.createElement("a");
+                      link.setAttribute("href", encodedUri);
+                      link.setAttribute("download", `Hospital_Leads_${new Date().toISOString().slice(0,10)}.csv`);
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                    className="text-xs py-1.5 px-3 bg-white border border-slate-200/80 text-slate-600 hover:bg-slate-50 rounded-xl font-medium flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+                  >
+                    <Download size={13} />
+                    <span>Export CSV</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Leads Table */}
+              {/* Leads Table - Always Sorted Newest First */}
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
@@ -1031,49 +1382,124 @@ export default function AdminDashboardPage({ searchParams }) {
                         </td>
                       </tr>
                     ) : (
-                      filteredLeads.map((lead) => (
-                        <tr key={lead.id} className="hover:bg-sky-50/30 transition">
-                          <td className="py-3 px-4">
-                            <span className="font-mono font-semibold text-slate-700 block">{lead.id}</span>
-                            <span className="text-[10px] text-slate-400">{lead.date}</span>
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-100 font-mono text-[11px] font-medium">
-                              {lead.siteDomain}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="font-semibold text-slate-800 text-xs">{lead.hospital}</div>
-                            <span className="text-[11px] text-slate-500 block">{lead.contact}</span>
-                            <span className="text-[10px] text-slate-400 font-mono">{lead.phone}</span>
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="text-slate-700 font-medium">{lead.equipment}</span>
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="text-emerald-600 font-bold text-sm font-mono">{lead.amount}</span>
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200/70">
-                              {lead.status}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <a
-                              href={`tel:${lead.phone}`}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold transition shadow-xs"
-                            >
-                              <PhoneCall size={12} />
-                              <span>Call</span>
-                            </a>
-                          </td>
-                        </tr>
-                      ))
+                      filteredLeads.map((lead) => {
+                        const isRecent = isRecentLead(lead);
+                        const phoneClean = (lead.phone || '').replace(/\D/g, '');
+                        return (
+                          <tr key={lead.id} className={`transition ${isRecent ? 'bg-amber-50/50 hover:bg-amber-50/80' : 'hover:bg-sky-50/30'}`}>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-mono font-bold text-slate-800 block">{lead.id}</span>
+                                {isRecent && (
+                                  <span className="text-[9px] bg-rose-500 text-white font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider animate-pulse">
+                                    NEW
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[10px] text-slate-400">
+                                {lead.createdAt ? new Date(lead.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }) : (lead.date || 'Recent')}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-100 font-mono text-[11px] font-medium">
+                                {lead.siteDomain || 'rajbiosis.com'}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="font-bold text-slate-800 text-xs">
+                                {lead.hospital || lead.hospitalName || 'Healthcare Facility'}
+                              </div>
+                              <span className="text-[11px] text-slate-600 font-medium block">
+                                {lead.doctorName || lead.customerName || lead.contact || 'Medical Representative'}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-mono">{lead.phone || lead.mobile || '-'}</span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="text-slate-800 font-medium">
+                                {lead.equipment || lead.productName || 'Biomedical Equipment'}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="text-emerald-600 font-bold text-sm font-mono">
+                                {lead.quoteAmount || lead.amount || '₹0'}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/70">
+                                {lead.status || 'Pending RFQ'}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                                {/* Quotation Readiness Action */}
+                                {isLeadProfileComplete(lead) ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setActiveTab('quotation')}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-xs cursor-pointer shrink-0"
+                                    title="Profile Complete: Click to generate official quotation"
+                                  >
+                                    <Sparkles size={11} className="text-amber-200" />
+                                    <span>Make Quotation</span>
+                                  </button>
+                                ) : (
+                                  <span
+                                    className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg shrink-0 text-left"
+                                    title="Customer profile incomplete. Ask customer to complete profile before generating quotation."
+                                  >
+                                    <AlertCircle size={11} className="text-amber-600 shrink-0" />
+                                    <span>Incomplete Profile: Ask customer to complete profile first</span>
+                                  </span>
+                                )}
+
+                                {lead.phone && (
+                                  <>
+                                    <a
+                                      href={`tel:${lead.phone}`}
+                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold transition shadow-xs"
+                                      title="Call Direct"
+                                    >
+                                      <PhoneCall size={12} />
+                                      <span>Call</span>
+                                    </a>
+                                    {phoneClean && (
+                                      <a
+                                        href={`https://wa.me/91${phoneClean.slice(-10)}?text=${encodeURIComponent(`Hello Dr. ${lead.doctorName || lead.customerName || ''}, regarding your quotation inquiry for ${lead.equipment || 'hospital equipment'} with Raj Biosis:`)}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition"
+                                        title="WhatsApp Message"
+                                      >
+                                        <MessageCircle size={13} />
+                                      </a>
+                                    )}
+                                  </>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteLead(lead.id)}
+                                  className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                                  title="Delete / Dismiss Inquiry"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
               </div>
             </div>
+          )}
+
+          {/* =========================================================================
+              TAB: REGISTERED CUSTOMER PROFILES & HOSPITAL DIRECTORY
+              ========================================================================= */}
+          {activeTab === 'customers' && (
+            <CustomerProfilesManager onRefreshNeeded={loadCustomerProfilesCount} />
           )}
 
           {/* =========================================================================

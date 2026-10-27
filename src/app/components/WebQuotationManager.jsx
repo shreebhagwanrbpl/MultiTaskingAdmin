@@ -34,7 +34,8 @@ import {
   Zap,
   Info,
   Edit3,
-  ExternalLink
+  ExternalLink,
+  AlertCircle
 } from 'lucide-react';
 import { numberToWordsIndian } from '../../lib/numberToWords';
 
@@ -203,9 +204,86 @@ export default function WebQuotationManager({ products = [] }) {
     }
   };
 
+  // Registered customer accounts (for cross-checking profile completeness)
+  const [customersList, setCustomersList] = useState([]);
+
+  const fetchCustomerProfiles = async () => {
+    try {
+      const res = await fetch('/api/customers');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.customers)) {
+        setCustomersList(data.customers);
+      }
+    } catch (e) {}
+  };
+
   useEffect(() => {
     fetchQuotations();
+    fetchCustomerProfiles();
   }, []);
+
+  // Helper to find matched customer profile from registered customer directory (Live & Always fresh)
+  const getMatchedCustomer = (lead) => {
+    if (!lead || !Array.isArray(customersList) || customersList.length === 0) return null;
+    const phoneClean = (lead.phone || lead.customerPhone || lead.rawLeadData?.customerPhone || lead.rawLeadData?.phone || '').replace(/\D/g, '').slice(-10);
+    const emailClean = (lead.email || lead.customerEmail || lead.rawLeadData?.customerEmail || '').trim().toLowerCase();
+
+    return customersList.find(c => {
+      const cPhone = (c.phone || '').replace(/\D/g, '').slice(-10);
+      const cEmail = (c.email || '').trim().toLowerCase();
+      return (phoneClean && cPhone && phoneClean === cPhone) || (emailClean && cEmail && emailClean === cEmail);
+    }) || null;
+  };
+
+  // Check if a lead's customer profile is complete (Real hospital name, contact, address/city)
+  const isProfileComplete = (lead) => {
+    if (!lead) return false;
+
+    // 1. Check matched customer profile from registered customers collection (Live & Always fresh)
+    const matched = getMatchedCustomer(lead);
+    if (matched) {
+      const hosp = (matched.hospitalName || '').trim();
+      const addr = (matched.address || '').trim();
+      const dist = (matched.district || '').trim();
+      const name = (matched.fullName || '').trim();
+      const isGeneric = !hosp || [
+        'clinic / hospital', 'healthcare facility', 'general hospital', 'hospital',
+        'customer hospital / lab', 'customer hospital / diagnostic lab'
+      ].some(g => hosp.toLowerCase() === g || hosp.toLowerCase().includes('healthcare institution'));
+
+      if (!isGeneric && hosp.length >= 3 && name.length >= 2 && (addr.length >= 3 || dist.length >= 3)) {
+        return true;
+      }
+    }
+
+    // 2. Explicit boolean flag if verified by backend / sync
+    if (lead.isProfileComplete === true || lead.rawLeadData?.isProfileComplete === true) {
+      return true;
+    }
+
+    // 3. Direct check on lead fields (e.g. if quotation had full address and hospital name)
+    const raw = lead.rawLeadData || {};
+    const hospital = (lead.hospital || raw.hospitalName || lead.hospitalName || '').trim();
+    const name = (lead.doctorName || raw.customerName || lead.customerName || '').trim();
+    const address = (lead.address || raw.address || lead.deliveryAddress || '').trim();
+    const city = (lead.city || raw.district || lead.district || '').trim();
+
+    const isGenericHosp = !hospital || [
+      'clinic / hospital',
+      'healthcare facility',
+      'general hospital',
+      'healthcare institution',
+      'customer hospital / lab',
+      'customer hospital / diagnostic lab'
+    ].some(ph => hospital.toLowerCase() === ph || hospital.toLowerCase().includes('healthcare institution'));
+
+    const hasRealHospital = !isGenericHosp && hospital.length >= 3;
+    const hasRealName = name && name.length >= 2 && name.toLowerCase() !== 'medical client';
+    const hasRealPhone = (lead.phone || lead.customerPhone || raw.customerPhone || '').replace(/\D/g, '').length >= 10;
+    const hasLocation = (address && address.length >= 3) || (city && city.length >= 3 && city !== 'India');
+
+    return Boolean(hasRealHospital && hasRealName && hasRealPhone && hasLocation);
+  };
 
   // Audio chime helper using Web Audio API (smooth 2-tone clinical chime)
   const playLeadNotificationSound = () => {
@@ -278,6 +356,7 @@ export default function WebQuotationManager({ products = [] }) {
     // Fast polling every 1200ms so any web submission arrives in ~1 second even without local events
     const interval = setInterval(() => {
       fetchWebLeads(false);
+      fetchCustomerProfiles();
     }, 1200);
 
     // 1. Initial check on mount from localStorage (only if fresh within last 10 seconds)
@@ -360,16 +439,26 @@ export default function WebQuotationManager({ products = [] }) {
     if (!lead) return;
     setIsProcessingLeadQuote(true);
 
+    const matchedCustomer = getMatchedCustomer(lead);
+
     // 1. Customer & Hospital Information
-    const hospitalName = (lead.hospital || lead.doctorName || 'Customer Hospital / Diagnostic Lab').trim();
+    const hospitalName = (
+      matchedCustomer?.hospitalName ||
+      lead.hospital ||
+      lead.doctorName ||
+      'Customer Hospital / Diagnostic Lab'
+    ).trim();
     setCustomerName(hospitalName);
 
-    const doctorPart = lead.doctorName ? `Attn: ${lead.doctorName}` : 'Attn: Procurement Officer';
-    const phonePart = lead.phone ? `Mob: ${lead.phone}` : '';
+    const docName = matchedCustomer?.fullName || lead.doctorName;
+    const doctorPart = docName ? `Attn: ${docName}` : 'Attn: Procurement Officer';
+    const phoneVal = matchedCustomer?.phone || lead.phone;
+    const phonePart = phoneVal ? `Mob: ${phoneVal}` : '';
     setCustomerAddress1([doctorPart, phonePart].filter(Boolean).join(', '));
 
-    const cityPart = lead.city || 'India';
-    const emailPart = lead.email ? `Email: ${lead.email}` : '';
+    const cityPart = matchedCustomer?.district || matchedCustomer?.address || lead.city || 'India';
+    const emailVal = matchedCustomer?.email || lead.email;
+    const emailPart = emailVal ? `Email: ${emailVal}` : '';
     setCustomerAddress2([cityPart, emailPart].filter(Boolean).join(' • '));
 
     // 2. Reference & Date
@@ -1180,84 +1269,122 @@ export default function WebQuotationManager({ products = [] }) {
                   </button>
                 </div>
               ) : (
-                pendingWebLeads.map((lead, idx) => (
-                  <div
-                    key={lead.id || lead._id || idx}
-                    className="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 group"
-                  >
-                    {/* Left Column: Customer Name, Contact, Location (Matching Image 2 wireframe) */}
-                    <div className="space-y-1.5 min-w-0 flex-1">
-                      {/* Customer Name */}
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition">
-                          {lead.hospital || lead.doctorName || 'Customer Hospital / Lab'}
-                        </span>
-                        {lead.siteDomain && (
-                          <span className="text-[10px] bg-slate-100 text-slate-600 font-mono px-2 py-0.5 rounded-md border border-slate-200">
-                            🌐 {lead.siteDomain}
+                pendingWebLeads.map((lead, idx) => {
+                  const matchedCustomer = getMatchedCustomer(lead);
+                  const complete = isProfileComplete(lead);
+                  const displayHospital = matchedCustomer?.hospitalName || lead.hospital || lead.doctorName || 'Customer Hospital / Lab';
+                  const displayContact = matchedCustomer?.fullName || lead.doctorName || 'Procurement Officer';
+                  const displayPhone = matchedCustomer?.phone || lead.phone;
+                  const displayEmail = matchedCustomer?.email || lead.email;
+                  const displayLocation = matchedCustomer?.district || matchedCustomer?.address || lead.city || 'India';
+
+                  return (
+                    <div
+                      key={lead.id || lead._id || idx}
+                      className="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 group"
+                    >
+                      {/* Left Column: Customer Name, Contact, Location (Matching Image 2 wireframe) */}
+                      <div className="space-y-1.5 min-w-0 flex-1">
+                        {/* Customer Name */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition">
+                            {displayHospital}
                           </span>
-                        )}
-                        <span className="text-[10px] text-slate-400 font-mono">
-                          {lead.date || 'Just now'}
-                        </span>
+                          {complete && (
+                            <span className="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-md border border-emerald-300 flex items-center gap-1 shadow-2xs">
+                              <CheckCircle2 size={11} className="text-emerald-600" />
+                              <span>Profile Complete</span>
+                            </span>
+                          )}
+                          {lead.siteDomain && (
+                            <span className="text-[10px] bg-slate-100 text-slate-600 font-mono px-2 py-0.5 rounded-md border border-slate-200">
+                              🌐 {lead.siteDomain}
+                            </span>
+                          )}
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            {lead.date || 'Just now'}
+                          </span>
+                        </div>
+
+                        {/* Contact */}
+                        <div className="text-xs text-slate-600 flex items-center gap-2 flex-wrap font-medium">
+                          <span className="text-slate-800 font-bold">Contact:</span>
+                          <span>{displayContact}</span>
+                          {displayPhone && (
+                            <>
+                              <span className="text-slate-300">•</span>
+                              <span className="font-mono text-slate-700">{displayPhone}</span>
+                            </>
+                          )}
+                          {displayEmail && (
+                            <>
+                              <span className="text-slate-300">•</span>
+                              <span className="text-slate-500">{displayEmail}</span>
+                            </>
+                          )}
+                        </div>
+
+                        {/* Location */}
+                        <div className="text-xs text-slate-600 flex items-center gap-2 flex-wrap">
+                          <span className="text-slate-800 font-bold">Location:</span>
+                          <span>{displayLocation}</span>
+                        </div>
+
+                        {/* Requested Hardware Info */}
+                        <div className="pt-1 flex items-center gap-2 text-xs">
+                          <span className="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100 font-semibold flex items-center gap-1.5">
+                            <span>📦</span>
+                            <span>{lead.equipment || lead.productName || 'Requested Hardware'}</span>
+                          </span>
+                          <span className="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">
+                            {lead.quoteAmount || (lead.price ? `₹${lead.price.toLocaleString('en-IN')}` : '₹1,50,000')}
+                          </span>
+                        </div>
                       </div>
 
-                      {/* Contact */}
-                      <div className="text-xs text-slate-600 flex items-center gap-2 flex-wrap font-medium">
-                        <span className="text-slate-800 font-bold">Contact:</span>
-                        <span>{lead.doctorName || 'Procurement Officer'}</span>
-                        {lead.phone && (
-                          <>
-                            <span className="text-slate-300">•</span>
-                            <span className="font-mono text-slate-700">{lead.phone}</span>
-                          </>
-                        )}
-                        {lead.email && (
-                          <>
-                            <span className="text-slate-300">•</span>
-                            <span className="text-slate-500">{lead.email}</span>
-                          </>
-                        )}
-                      </div>
-
-                      {/* Location */}
-                      <div className="text-xs text-slate-600 flex items-center gap-2 flex-wrap">
-                        <span className="text-slate-800 font-bold">Location:</span>
-                        <span>{lead.city || 'India'}</span>
-                      </div>
-
-                      {/* Requested Hardware Info */}
-                      <div className="pt-1 flex items-center gap-2 text-xs">
-                        <span className="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100 font-semibold flex items-center gap-1.5">
-                          <span>📦</span>
-                          <span>{lead.equipment || lead.productName || 'Requested Hardware'}</span>
-                        </span>
-                        <span className="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">
-                          {lead.quoteAmount || (lead.price ? `₹${lead.price.toLocaleString('en-IN')}` : '₹1,50,000')}
-                        </span>
-                      </div>
+                      {/* Right Column: Make Quotation Button OR Incomplete Profile Notice */}
+                      <div className="shrink-0 flex items-center justify-end">
+                        {complete ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleMakeQuotationFromLead(lead);
+                              setIsLeadsModalOpen(false);
+                            }}
+                            className="w-full md:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white text-xs font-extrabold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer hover:scale-105 active:scale-95 ring-2 ring-amber-400/40"
+                            title="Click to generate official quotation within 1 second"
+                          >
+                            <Sparkles size={14} className="text-amber-100" />
+                            <span>Make Quotation</span>
+                            <ArrowRight size={14} />
+                          </button>
+                        ) : (
+                        <div className="w-full md:w-72 p-3 bg-amber-50/90 border border-amber-200 rounded-xl text-left space-y-1.5 shadow-2xs">
+                          <div className="flex items-center gap-1.5 text-amber-900 text-xs font-bold">
+                            <AlertCircle size={14} className="text-amber-600 shrink-0" />
+                            <span>Incomplete Customer Profile</span>
+                          </div>
+                          <p className="text-[11px] text-amber-800 font-semibold leading-tight">
+                            Please ask customer to complete profile first before generating quotation.
+                          </p>
+                          {lead.phone && (
+                            <a
+                              href={`https://wa.me/91${(lead.phone || '').replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Hello Dr. ${lead.doctorName || lead.customerName || ''}, please complete your hospital profile details on our website (hospital name & delivery address) so our biomedical engineering team can issue your official quotation.`)}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-950 bg-amber-200/80 hover:bg-amber-300 px-2.5 py-1 rounded-md transition"
+                            >
+                              <span>Request Profile on WhatsApp</span>
+                              <ArrowRight size={10} />
+                            </a>
+                          )}
+                        </div>
+                      )}
                     </div>
-
-                    {/* Right Column: Make Quotation Button */}
-                    <div className="shrink-0 flex items-center justify-end">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          handleMakeQuotationFromLead(lead);
-                          setIsLeadsModalOpen(false);
-                        }}
-                        className="w-full md:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white text-xs font-extrabold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer hover:scale-105 active:scale-95 ring-2 ring-amber-400/40"
-                        title="Click to generate official quotation within 1 second"
-                      >
-                        <Sparkles size={14} className="text-amber-100" />
-                        <span>Make Quotation</span>
-                        <ArrowRight size={14} />
-                      </button>
-                    </div>
-
                   </div>
-                ))
-              )}
+                );
+              })
+            )}
             </div>
 
             {/* Modal Footer */}

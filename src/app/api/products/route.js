@@ -492,7 +492,7 @@ export async function DELETE(request) {
         const body = await request.json();
         if (Array.isArray(body.ids)) ids = body.ids;
         else if (body.id) ids = [body.id];
-      } catch (e) {}
+      } catch (e) { }
     }
 
     if (ids.length === 0) {

@@ -10,26 +10,129 @@ export async function GET() {
   try {
     const db = await getDatabase();
     const collection = db.collection('leads');
-    const leads = await collection.find({}).sort({ createdAt: -1 }).toArray();
+    const customersCollection = db.collection('customers');
+
+    const [leads, customers] = await Promise.all([
+      collection.find({}).sort({ createdAt: -1 }).toArray(),
+      customersCollection.find({}).toArray().catch(() => [])
+    ]);
+
+    // Build fast lookup by phone & email
+    const customerByPhone = new Map();
+    const customerByEmail = new Map();
+    (customers || []).forEach(c => {
+      const p = (c.phone || '').replace(/\D/g, '').slice(-10);
+      const e = (c.email || '').trim().toLowerCase();
+      if (p) customerByPhone.set(p, c);
+      if (e) customerByEmail.set(e, c);
+    });
+
+    const enrichedLeads = (leads || []).map(lead => {
+      const phoneClean = (lead.phone || lead.customerPhone || lead.rawLeadData?.customerPhone || lead.rawLeadData?.phone || '').replace(/\D/g, '').slice(-10);
+      const emailClean = (lead.email || lead.customerEmail || lead.rawLeadData?.customerEmail || '').trim().toLowerCase();
+      const matched = customerByPhone.get(phoneClean) || customerByEmail.get(emailClean);
+
+      if (matched) {
+        const hosp = (matched.hospitalName || '').trim();
+        const doc = (matched.fullName || '').trim();
+        const addr = (matched.address || '').trim();
+        const dist = (matched.district || '').trim();
+        const isComplete = Boolean(
+          hosp.length >= 3 &&
+          !['clinic / hospital', 'healthcare facility', 'general hospital', 'hospital'].some(g => hosp.toLowerCase() === g || hosp.toLowerCase().includes('healthcare institution')) &&
+          doc.length >= 2 &&
+          (addr.length >= 3 || dist.length >= 3)
+        );
+
+        if (isComplete) {
+          return {
+            ...lead,
+            isProfileComplete: true,
+            hospital: hosp || lead.hospital,
+            doctorName: doc || lead.doctorName,
+            address: addr || lead.address,
+            city: dist || lead.city,
+            rawLeadData: {
+              ...(lead.rawLeadData || {}),
+              isProfileComplete: true,
+              hospitalName: hosp || lead.rawLeadData?.hospitalName,
+              customerName: doc || lead.rawLeadData?.customerName,
+              address: addr || lead.rawLeadData?.address,
+              district: dist || lead.rawLeadData?.district
+            }
+          };
+        }
+      }
+      return lead;
+    });
 
     return NextResponse.json({
       success: true,
       source: 'mongodb',
       isDbConnected: true,
-      count: leads.length,
-      leads: leads || []
+      count: enrichedLeads.length,
+      leads: enrichedLeads || []
     });
   } catch (err) {
     if (!global._biomedical_leads) {
       global._biomedical_leads = [];
     }
+    const memCustomers = global._biomedical_customers || [];
+    const customerByPhone = new Map();
+    const customerByEmail = new Map();
+    memCustomers.forEach(c => {
+      const p = (c.phone || '').replace(/\D/g, '').slice(-10);
+      const e = (c.email || '').trim().toLowerCase();
+      if (p) customerByPhone.set(p, c);
+      if (e) customerByEmail.set(e, c);
+    });
+
+    const enrichedMemLeads = (global._biomedical_leads || []).map(lead => {
+      const phoneClean = (lead.phone || lead.customerPhone || lead.rawLeadData?.customerPhone || lead.rawLeadData?.phone || '').replace(/\D/g, '').slice(-10);
+      const emailClean = (lead.email || lead.customerEmail || lead.rawLeadData?.customerEmail || '').trim().toLowerCase();
+      const matched = customerByPhone.get(phoneClean) || customerByEmail.get(emailClean);
+
+      if (matched) {
+        const hosp = (matched.hospitalName || '').trim();
+        const doc = (matched.fullName || '').trim();
+        const addr = (matched.address || '').trim();
+        const dist = (matched.district || '').trim();
+        const isComplete = Boolean(
+          hosp.length >= 3 &&
+          !['clinic / hospital', 'healthcare facility', 'general hospital', 'hospital'].some(g => hosp.toLowerCase() === g || hosp.toLowerCase().includes('healthcare institution')) &&
+          doc.length >= 2 &&
+          (addr.length >= 3 || dist.length >= 3)
+        );
+
+        if (isComplete) {
+          return {
+            ...lead,
+            isProfileComplete: true,
+            hospital: hosp || lead.hospital,
+            doctorName: doc || lead.doctorName,
+            address: addr || lead.address,
+            city: dist || lead.city,
+            rawLeadData: {
+              ...(lead.rawLeadData || {}),
+              isProfileComplete: true,
+              hospitalName: hosp || lead.rawLeadData?.hospitalName,
+              customerName: doc || lead.rawLeadData?.customerName,
+              address: addr || lead.rawLeadData?.address,
+              district: dist || lead.rawLeadData?.district
+            }
+          };
+        }
+      }
+      return lead;
+    });
+
     return NextResponse.json({
       success: true,
       source: 'fallback',
       isDbConnected: false,
       error: err.message,
-      count: global._biomedical_leads.length,
-      leads: global._biomedical_leads
+      count: enrichedMemLeads.length,
+      leads: enrichedMemLeads
     });
   }
 }
@@ -110,8 +213,18 @@ export async function DELETE(request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     const deleteTest = searchParams.get('deleteTest');
+    const clearAll = searchParams.get('all') === 'true' || searchParams.get('clearAll') === 'true';
     const db = await getDatabase();
     const collection = db.collection('leads');
+
+    if (global._biomedical_leads) {
+      global._biomedical_leads = [];
+    }
+
+    if (clearAll) {
+      await collection.deleteMany({});
+      return NextResponse.json({ success: true, count: 0, cleared: true, source: 'mongodb' });
+    }
 
     if (deleteTest === 'true') {
       await collection.deleteMany({
@@ -126,7 +239,9 @@ export async function DELETE(request) {
     }
 
     if (!id) {
-      return NextResponse.json({ success: false, error: 'Lead ID required' }, { status: 400 });
+      // If neither id nor specific action provided, clear all
+      await collection.deleteMany({});
+      return NextResponse.json({ success: true, count: 0, cleared: true, source: 'mongodb' });
     }
 
     let query = { id };
@@ -178,23 +293,6 @@ export async function PUT(request) {
       return NextResponse.json({ success: true, updated: true, source: 'mongodb' });
     } catch (dbErr) {
       return NextResponse.json({ success: true, updated: true, source: 'fallback' });
-    }
-  } catch (err) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
-  }
-}
-
-// Clear all leads endpoint
-export async function DELETE() {
-  try {
-    global._biomedical_leads = [];
-    try {
-      const db = await getDatabase();
-      const collection = db.collection('leads');
-      await collection.deleteMany({});
-      return NextResponse.json({ success: true, count: 0, cleared: true, source: 'mongodb' });
-    } catch (dbErr) {
-      return NextResponse.json({ success: true, count: 0, cleared: true, source: 'fallback' });
     }
   } catch (err) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
