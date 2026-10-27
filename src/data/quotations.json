@@ -1,22 +1,13 @@
 [
   {
-    "id": "RFQ-999644",
-    "refNo": "RB-QT-2026-3601",
-    "date": "27/10/2026",
-    "customerName": "Apex Hospital",
+    "_id": "6ae03ea754a0d9d3da74eaab",
+    "createdAt": "2026-10-27T06:03:19.797Z",
     "customerAddress1": "Jaipur, Rajasthan",
     "customerAddress2": "Contact: +91 8546987456",
-    "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
-    "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
-    "signatory": {
-      "name": "Bhupender Raj",
-      "role": "Sales & Mkt. Head",
-      "company": "Raj Biosis Pvt Ltd.",
-      "address1": "B-7, Aman Plaza, Plot No. 26,",
-      "address2": "Heera Nagar-A, Chitrakoot",
-      "city": "Jaipur-302021 Rajasthan",
-      "phone": "+91-998-3333-469"
-    },
+    "customerName": "Apex Hospital",
+    "date": "27/10/2026",
+    "grandTotal": 76720,
+    "id": "RFQ-999644",
     "items": [
       {
         "id": "item-1",
@@ -27,28 +18,29 @@
         "totalPrice": 76720
       }
     ],
-    "grandTotal": 76720,
-    "createdAt": "2026-10-27T06:03:19.797Z",
+    "refNo": "RB-QT-2026-3601",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
     "updatedAt": "2026-10-27T06:03:19.797Z"
   },
   {
-    "id": "RFQ-999641",
-    "refNo": "RB-QT-2026-1461",
-    "date": "27/10/2026",
-    "customerName": "Apex Hospital",
+    "_id": "6ae03ea754a0d9d3da74eaac",
+    "createdAt": "2026-10-27T06:03:19.787Z",
     "customerAddress1": "Jaipur, Rajasthan",
     "customerAddress2": "Contact: +91 8546987456",
-    "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
-    "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
-    "signatory": {
-      "name": "Bhupender Raj",
-      "role": "Sales & Mkt. Head",
-      "company": "Raj Biosis Pvt Ltd.",
-      "address1": "B-7, Aman Plaza, Plot No. 26,",
-      "address2": "Heera Nagar-A, Chitrakoot",
-      "city": "Jaipur-302021 Rajasthan",
-      "phone": "+91-998-3333-469"
-    },
+    "customerName": "Apex Hospital",
+    "date": "27/10/2026",
+    "grandTotal": 76720,
+    "id": "RFQ-999641",
     "items": [
       {
         "id": "item-1",
@@ -59,8 +51,18 @@
         "totalPrice": 76720
       }
     ],
-    "grandTotal": 76720,
-    "createdAt": "2026-10-27T06:03:19.787Z",
+    "refNo": "RB-QT-2026-1461",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
     "updatedAt": "2026-10-27T06:03:19.787Z"
   },
   {
