@@ -35,7 +35,13 @@ import {
   Info,
   Edit3,
   ExternalLink,
-  AlertCircle
+  AlertCircle,
+  MessageCircle,
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  Clock
 } from 'lucide-react';
 import { numberToWordsIndian } from '../../lib/numberToWords';
 
@@ -223,7 +229,7 @@ export default function WebQuotationManager({ products = [] }) {
       if (data.success && Array.isArray(data.customers)) {
         setCustomersList(data.customers);
       }
-    } catch (e) {}
+    } catch (e) { }
   };
 
   useEffect(() => {
@@ -244,54 +250,54 @@ export default function WebQuotationManager({ products = [] }) {
     }) || null;
   };
 
-  // Check if a lead's customer profile is complete (Real hospital name, contact, address/city)
+  // Check if a lead's customer profile is complete (ALL 8 fields must be non-empty)
   const isProfileComplete = (lead) => {
     if (!lead) return false;
 
-    // 1. Check matched customer profile from registered customers collection (Live & Always fresh)
+    // Check matched registered customer account first, or fallback to lead's own fields
     const matched = getMatchedCustomer(lead);
-    if (matched) {
-      const hosp = (matched.hospitalName || '').trim();
-      const addr = (matched.address || '').trim();
-      const dist = (matched.district || '').trim();
-      const name = (matched.fullName || '').trim();
-      const isGeneric = !hosp || [
-        'clinic / hospital', 'healthcare facility', 'general hospital', 'hospital',
-        'customer hospital / lab', 'customer hospital / diagnostic lab'
-      ].some(g => hosp.toLowerCase() === g || hosp.toLowerCase().includes('healthcare institution'));
-
-      if (!isGeneric && hosp.length >= 3 && name.length >= 2 && (addr.length >= 3 || dist.length >= 3)) {
-        return true;
-      }
-    }
-
-    // 2. Explicit boolean flag if verified by backend / sync
-    if (lead.isProfileComplete === true || lead.rawLeadData?.isProfileComplete === true) {
-      return true;
-    }
-
-    // 3. Direct check on lead fields (e.g. if quotation had full address and hospital name)
     const raw = lead.rawLeadData || {};
-    const hospital = (lead.hospital || raw.hospitalName || lead.hospitalName || '').trim();
-    const name = (lead.doctorName || raw.customerName || lead.customerName || '').trim();
-    const address = (lead.address || raw.address || lead.deliveryAddress || '').trim();
-    const city = (lead.city || raw.district || lead.district || '').trim();
 
+    const fullName = (matched?.fullName || lead.doctorName || raw.customerName || lead.customerName || '').trim();
+    const phone = (matched?.phone || lead.phone || lead.customerPhone || raw.customerPhone || raw.phone || '').replace(/\D/g, '');
+    const email = (matched?.email || lead.email || lead.customerEmail || raw.customerEmail || '').trim();
+    const hospital = (matched?.hospitalName || lead.hospital || raw.hospitalName || lead.hospitalName || '').trim();
+    const state = (matched?.state || lead.state || raw.state || '').trim();
+    const district = (matched?.district || lead.city || raw.district || lead.district || '').trim();
+    const address = (matched?.address || lead.address || raw.address || lead.deliveryAddress || '').trim();
+    const pincode = (matched?.pincode || lead.pincode || raw.pincode || '').toString().trim();
+
+    // Generic hospital names are considered incomplete
     const isGenericHosp = !hospital || [
       'clinic / hospital',
       'healthcare facility',
       'general hospital',
+      'hospital',
       'healthcare institution',
       'customer hospital / lab',
       'customer hospital / diagnostic lab'
-    ].some(ph => hospital.toLowerCase() === ph || hospital.toLowerCase().includes('healthcare institution'));
+    ].some(g => hospital.toLowerCase() === g || hospital.toLowerCase().includes('healthcare institution'));
 
-    const hasRealHospital = !isGenericHosp && hospital.length >= 3;
-    const hasRealName = name && name.length >= 2 && name.toLowerCase() !== 'medical client';
-    const hasRealPhone = (lead.phone || lead.customerPhone || raw.customerPhone || '').replace(/\D/g, '').length >= 10;
-    const hasLocation = (address && address.length >= 3) || (city && city.length >= 3 && city !== 'India');
+    // Strict validation: Every single input must be filled (NONE can be empty)
+    const hasName = fullName.length >= 2 && fullName.toLowerCase() !== 'medical client';
+    const hasPhone = phone.length >= 10;
+    const hasEmail = email.length >= 5 && email.includes('@') && email.includes('.');
+    const hasHospital = !isGenericHosp && hospital.length >= 3;
+    const hasState = state.length >= 2;
+    const hasDistrict = district.length >= 2 && district.toLowerCase() !== 'india';
+    const hasAddress = address.length >= 3;
+    const hasPincode = pincode.length >= 4;
 
-    return Boolean(hasRealHospital && hasRealName && hasRealPhone && hasLocation);
+    return Boolean(
+      hasName &&
+      hasPhone &&
+      hasEmail &&
+      hasHospital &&
+      hasState &&
+      hasDistrict &&
+      hasAddress &&
+      hasPincode
+    );
   };
 
   // Audio chime helper using Web Audio API (smooth 2-tone clinical chime)
@@ -312,7 +318,7 @@ export default function WebQuotationManager({ products = [] }) {
       gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
       osc.start();
       osc.stop(audioCtx.currentTime + 0.4);
-    } catch (e) {}
+    } catch (e) { }
   };
 
   // Helper to insert incoming web quotation immediately (0ms latency)
@@ -430,7 +436,7 @@ export default function WebQuotationManager({ products = [] }) {
           }
         }
       }
-    } catch (e) {}
+    } catch (e) { }
 
     // 2. BroadcastChannel across browser tabs (Same Origin)
     let channel;
@@ -446,7 +452,7 @@ export default function WebQuotationManager({ products = [] }) {
           }
         };
       }
-    } catch (e) {}
+    } catch (e) { }
 
     // 3. Window postMessage listener (for iframes, child windows, and popups)
     const handleWindowMessage = (event) => {
@@ -483,13 +489,13 @@ export default function WebQuotationManager({ products = [] }) {
         try {
           const quot = JSON.parse(e.newValue);
           if (quot) insertIncomingQuotation(quot);
-        } catch (err) {}
+        } catch (err) { }
       }
       if (e.key === 'latest_web_lead' && e.newValue) {
         try {
           const lead = JSON.parse(e.newValue);
           if (lead) insertIncomingLead(lead);
-        } catch (err) {}
+        } catch (err) { }
       }
     };
     if (typeof window !== 'undefined') {
@@ -499,7 +505,7 @@ export default function WebQuotationManager({ products = [] }) {
     return () => {
       clearInterval(interval);
       if (channel) {
-        try { channel.close(); } catch(e){}
+        try { channel.close(); } catch (e) { }
       }
       if (typeof window !== 'undefined') {
         window.removeEventListener('message', handleWindowMessage);
@@ -513,6 +519,10 @@ export default function WebQuotationManager({ products = [] }) {
   // 1-SECOND INSTANT QUOTATION GENERATOR FROM WEB LEAD
   const handleMakeQuotationFromLead = (lead) => {
     if (!lead) return;
+    if (!isProfileComplete(lead)) {
+      alert('Customer profile is incomplete. Please ask customer to complete profile to generate quotation.');
+      return;
+    }
     setIsProcessingLeadQuote(true);
 
     const matchedCustomer = getMatchedCustomer(lead);
@@ -637,8 +647,8 @@ export default function WebQuotationManager({ products = [] }) {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: lead.id, _id: lead._id, status: 'Quote Generated' })
-      }).catch(() => {});
-    } catch (e) {}
+      }).catch(() => { });
+    } catch (e) { }
 
     // Instant Feedback
     setSuccessToast(`⚡ Quotation Ready for ${hospitalName} in 0.4s! 4-Page PDF generated.`);
@@ -720,7 +730,7 @@ export default function WebQuotationManager({ products = [] }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(simLead)
       });
-    } catch (e) {}
+    } catch (e) { }
   };
 
   // Clear all leads and start completely fresh
@@ -734,7 +744,7 @@ export default function WebQuotationManager({ products = [] }) {
         localStorage.removeItem('latest_web_lead');
       }
       await fetch('/api/leads', { method: 'DELETE' });
-    } catch (e) {}
+    } catch (e) { }
     setSuccessToast('🧹 All leads cleared! Starting completely fresh.');
   };
 
@@ -1275,22 +1285,22 @@ export default function WebQuotationManager({ products = [] }) {
       {/* INCOMING WEB LEADS MODAL (EXACT WIREFRAME DESIGN FROM IMAGE 2) */}
       {isLeadsModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[85vh] shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-3xl max-w-5xl w-full max-h-[88vh] shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
 
             {/* Modal Header */}
-            <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-rose-500 text-white flex items-center justify-center font-bold shadow-xs">
-                  <Sparkles size={20} />
+            <div className="p-5 sm:p-6 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500 via-orange-500 to-rose-500 text-white flex items-center justify-center font-bold shadow-sm">
+                  <Sparkles size={22} />
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2.5">
                     <span>Website Quotation Requests</span>
                     <span className="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-xs font-mono font-bold">
                       {pendingWebLeads.length} Pending
                     </span>
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 mt-0.5">
                     Click &quot;Make Quotation&quot; on any customer below to generate complete quotation within 1 second.
                   </p>
                 </div>
@@ -1300,16 +1310,16 @@ export default function WebQuotationManager({ products = [] }) {
                 <button
                   type="button"
                   onClick={handleClearAllWebLeads}
-                  className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold transition cursor-pointer border border-rose-200 shadow-2xs flex items-center gap-1.5"
+                  className="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition cursor-pointer border border-rose-200 shadow-2xs flex items-center gap-1.5"
                   title="Clear all leads and start completely fresh"
                 >
                   <Trash2 size={13} className="text-rose-600" />
-                  <span>Clear All</span>
+                  <span className="hidden sm:inline">Clear All</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleSimulateWebLead}
-                  className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition cursor-pointer border border-slate-200 shadow-2xs flex items-center gap-1"
+                  className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold transition cursor-pointer border border-slate-200 shadow-2xs flex items-center gap-1.5"
                   title="Simulate another test lead"
                 >
                   <Plus size={13} className="text-amber-600" />
@@ -1318,17 +1328,17 @@ export default function WebQuotationManager({ products = [] }) {
                 <button
                   type="button"
                   onClick={() => setIsLeadsModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-700 flex items-center justify-center transition cursor-pointer font-bold"
+                  className="w-9 h-9 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-700 flex items-center justify-center transition cursor-pointer font-bold ml-1"
                 >
                   <X size={16} />
                 </button>
               </div>
             </div>
 
-            {/* Modal Body: Cards List (Exact layout matching Image 2 wireframe) */}
-            <div className="p-6 overflow-y-auto space-y-3.5 flex-1 bg-slate-50/50">
+            {/* Modal Body: Spacious Cards List */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-4 flex-1 bg-slate-50/60 custom-scrollbar">
               {pendingWebLeads.length === 0 ? (
-                <div className="py-16 text-center space-y-3 bg-white rounded-2xl border border-dashed border-slate-300 p-8">
+                <div className="py-16 text-center space-y-3 bg-white rounded-3xl border border-dashed border-slate-300 p-8 shadow-xs">
                   <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
                     <Sparkles size={28} />
                   </div>
@@ -1339,7 +1349,7 @@ export default function WebQuotationManager({ products = [] }) {
                   <button
                     type="button"
                     onClick={handleSimulateWebLead}
-                    className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold transition hover:bg-slate-800 cursor-pointer"
+                    className="px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold transition hover:bg-slate-800 cursor-pointer shadow-xs"
                   >
                     + Generate Sample Web RFQ Lead
                   </button>
@@ -1357,95 +1367,166 @@ export default function WebQuotationManager({ products = [] }) {
                   return (
                     <div
                       key={lead.id || lead._id || idx}
-                      className="bg-white rounded-2xl p-5 border-2 border-slate-900 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 group"
+                      className={`rounded-2xl transition-all duration-200 bg-white border ${complete
+                        ? 'border-emerald-200/90 shadow-sm hover:shadow-md hover:border-emerald-300'
+                        : 'border-amber-200/90 shadow-sm hover:shadow-md hover:border-amber-300'
+                        } relative overflow-hidden group`}
                     >
-                      {/* Left Column: Customer Name, Contact, Location (Matching Image 2 wireframe) */}
-                      <div className="space-y-1.5 min-w-0 flex-1">
-                        {/* Customer Name */}
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition">
-                            {displayHospital}
-                          </span>
-                          {complete && (
-                            <span className="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-md border border-emerald-300 flex items-center gap-1 shadow-2xs">
-                              <CheckCircle2 size={11} className="text-emerald-600" />
-                              <span>Profile Complete</span>
+                      {/* Left Status Strip */}
+                      <div
+                        className={`absolute left-0 top-0 bottom-0 w-1.5 ${complete ? 'bg-emerald-500' : 'bg-gradient-to-b from-amber-400 to-orange-500'
+                          }`}
+                      />
+
+                      <div className="p-5 sm:p-6 space-y-4 pl-6 sm:pl-7">
+                        {/* Header Row: Hospital Name & Status Badges */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-slate-100">
+                          <div className="flex items-center gap-2.5 flex-wrap">
+                            <h4 className="text-base sm:text-lg font-extrabold text-slate-900 group-hover:text-indigo-600 transition tracking-tight">
+                              {displayHospital}
+                            </h4>
+
+                            {lead.siteDomain && (
+                              <span className="text-[11px] bg-slate-100 text-slate-600 font-mono px-2.5 py-0.5 rounded-lg border border-slate-200 flex items-center gap-1 font-semibold">
+                                <span>🌐</span>
+                                <span>{lead.siteDomain}</span>
+                              </span>
+                            )}
+
+                            <span className="text-xs text-slate-400 font-mono font-medium flex items-center gap-1">
+                              <Clock size={11} className="text-slate-400" />
+                              <span>{lead.date || 'Just now'}</span>
                             </span>
-                          )}
-                          {lead.siteDomain && (
-                            <span className="text-[10px] bg-slate-100 text-slate-600 font-mono px-2 py-0.5 rounded-md border border-slate-200">
-                              🌐 {lead.siteDomain}
-                            </span>
-                          )}
-                          <span className="text-[10px] text-slate-400 font-mono">
-                            {lead.date || 'Just now'}
-                          </span>
+                          </div>
+
+                          <div>
+                            {complete ? (
+                              <span className="inline-flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-800 font-bold px-3 py-1 rounded-full border border-emerald-300/80 shadow-2xs">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                <span>Profile Complete</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 text-xs bg-amber-50 text-amber-800 font-bold px-3 py-1 rounded-full border border-amber-300/80 shadow-2xs">
+                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                                <span>Profile Incomplete</span>
+                              </span>
+                            )}
+                          </div>
                         </div>
 
-                        {/* Contact */}
-                        <div className="text-xs text-slate-600 flex items-center gap-2 flex-wrap font-medium">
-                          <span className="text-slate-800 font-bold">Contact:</span>
-                          <span>{displayContact}</span>
-                          {displayPhone && (
-                            <>
-                              <span className="text-slate-300">•</span>
-                              <span className="font-mono text-slate-700">{displayPhone}</span>
-                            </>
-                          )}
-                          {displayEmail && (
-                            <>
-                              <span className="text-slate-300">•</span>
-                              <span className="text-slate-500">{displayEmail}</span>
-                            </>
-                          )}
+                        {/* Customer Info 4-Card Grid (Spacious, Never Overlapping) */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                          {/* 1. Contact Person */}
+                          <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/70 flex items-start gap-2.5">
+                            <div className="w-7 h-7 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center shrink-0 mt-0.5">
+                              <User size={14} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Contact</div>
+                              <div className="text-xs font-bold text-slate-900 truncate" title={displayContact}>
+                                {displayContact}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 2. Mobile Phone */}
+                          <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/70 flex items-start gap-2.5">
+                            <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                              <Phone size={14} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Mobile Phone</div>
+                              <div className="text-xs font-mono font-bold text-slate-800 truncate">
+                                {displayPhone || <span className="text-slate-400 font-sans italic">Not provided</span>}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 3. Official Email */}
+                          <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/70 flex items-start gap-2.5">
+                            <div className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 mt-0.5">
+                              <Mail size={14} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Email Address</div>
+                              <div className="text-xs font-medium text-slate-700 truncate" title={displayEmail || 'Not provided'}>
+                                {displayEmail || <span className="text-slate-400 italic">Not provided</span>}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 4. Location */}
+                          <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/70 flex items-start gap-2.5">
+                            <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+                              <MapPin size={14} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Location</div>
+                              <div className="text-xs font-semibold text-slate-800 truncate" title={displayLocation}>
+                                {displayLocation}
+                              </div>
+                            </div>
+                          </div>
                         </div>
 
-                        {/* Location */}
-                        <div className="text-xs text-slate-600 flex items-center gap-2 flex-wrap">
-                          <span className="text-slate-800 font-bold">Location:</span>
-                          <span>{displayLocation}</span>
+                        {/* Bottom Row: Hardware Requested & Actions */}
+                        <div className="pt-2 flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-t border-slate-100">
+                          {/* Hardware & Price */}
+                          <div className="flex items-center gap-2.5 flex-wrap">
+                            <div className="px-3.5 py-2 rounded-xl bg-indigo-50/90 text-indigo-950 border border-indigo-100 text-xs font-bold flex items-center gap-2 shadow-2xs">
+                              <span className="text-sm">📦</span>
+                              <span>{lead.equipment || lead.productName || 'Requested Hardware'}</span>
+                            </div>
+                            <div className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 text-emerald-800 font-mono font-black text-xs flex items-center gap-1 shadow-2xs">
+                              <span>₹</span>
+                              <span>{lead.quoteAmount ? String(lead.quoteAmount).replace(/^₹\s*/, '') : (lead.price ? Number(lead.price).toLocaleString('en-IN') : '1,50,000')}</span>
+                            </div>
+                          </div>
+
+                          {/* Right Action Area */}
+                          <div className="shrink-0 flex items-center justify-end gap-2.5">
+                            {complete ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleMakeQuotationFromLead(lead);
+                                  setIsLeadsModalOpen(false);
+                                }}
+                                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white text-xs font-black shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer hover:scale-[1.02] active:scale-[0.98] ring-2 ring-amber-400/30 tracking-wider uppercase"
+                                title="Click to generate official quotation within 1 second"
+                              >
+                                <Sparkles size={16} className="text-amber-100" />
+                                <span>Make Quotation</span>
+                                <ArrowRight size={15} />
+                              </button>
+                            ) : (
+                              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+                                <div className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50/70 border border-amber-300 text-amber-950 flex items-center gap-2.5 shadow-2xs">
+                                  <div className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-800 flex items-center justify-center shrink-0">
+                                    <AlertCircle size={15} />
+                                  </div>
+                                  <span className="text-xs font-bold text-slate-800">
+                                    Ask customer to complete profile to generate quotation
+                                  </span>
+                                </div>
+
+                                {lead.phone && (
+                                  <a
+                                    href={`https://wa.me/91${(lead.phone || '').replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Hello Dr. ${lead.doctorName || lead.customerName || ''}, please complete your profile details (Hospital Name & Delivery Address) on ${lead.siteDomain || 'rajbiosis.com'} so we can generate and issue your official stamped quotation for ${lead.equipment || 'medical equipment'}.`)}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-black shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98] shrink-0"
+                                    title="Send WhatsApp message asking customer to complete profile"
+                                  >
+                                    <MessageCircle size={16} />
+                                    <span>WhatsApp Customer</span>
+                                    <ExternalLink size={12} className="opacity-70" />
+                                  </a>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
-
-                        {/* Requested Hardware Info */}
-                        <div className="pt-1 flex items-center gap-2 text-xs">
-                          <span className="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100 font-semibold flex items-center gap-1.5">
-                            <span>📦</span>
-                            <span>{lead.equipment || lead.productName || 'Requested Hardware'}</span>
-                          </span>
-                          <span className="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">
-                            {lead.quoteAmount || (lead.price ? `₹${lead.price.toLocaleString('en-IN')}` : '₹1,50,000')}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Right Column: Make Quotation Button */}
-                      <div className="shrink-0 flex flex-col md:flex-row items-center gap-2 justify-end">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            handleMakeQuotationFromLead(lead);
-                            setIsLeadsModalOpen(false);
-                          }}
-                          className="w-full md:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white text-xs font-extrabold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer hover:scale-105 active:scale-95 ring-2 ring-amber-400/40"
-                          title="Click to generate official quotation within 1 second"
-                        >
-                          <Sparkles size={14} className="text-amber-100" />
-                          <span>Make Quotation</span>
-                          <ArrowRight size={14} />
-                        </button>
-
-                        {!complete && lead.phone && (
-                          <a
-                            href={`https://wa.me/91${(lead.phone || '').replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Hello Dr. ${lead.doctorName || lead.customerName || ''}, regarding your quotation request for ${lead.equipment || 'medical equipment'} with Raj Biosis:`)}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-950 bg-amber-100 hover:bg-amber-200 px-3 py-2 rounded-xl transition border border-amber-200"
-                            title="Request additional profile info on WhatsApp"
-                          >
-                            <span>WhatsApp</span>
-                            <ArrowRight size={11} />
-                          </a>
-                        )}
                       </div>
                     </div>
                   );
@@ -1454,14 +1535,14 @@ export default function WebQuotationManager({ products = [] }) {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-slate-200 bg-white flex items-center justify-between text-xs text-slate-500">
-              <span className="font-mono text-[11px]">
+            <div className="p-4 sm:p-5 border-t border-slate-200 bg-white flex items-center justify-between text-xs text-slate-500">
+              <span className="font-mono text-[11px] hidden sm:inline">
                 ⚡ 1-Click Automation: Clicking &quot;Make Quotation&quot; populates customer, line items &amp; updates PDF in 1 second.
               </span>
               <button
                 type="button"
                 onClick={() => setIsLeadsModalOpen(false)}
-                className="px-4 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition cursor-pointer"
+                className="px-5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition cursor-pointer ml-auto"
               >
                 Close
               </button>
@@ -1529,194 +1610,177 @@ export default function WebQuotationManager({ products = [] }) {
       )}
 
       {/* TOP COMMAND BAR */}
-      <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-sm space-y-4">
 
-        {/* Title & Live Status */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold shadow-xs">
-            <FileText size={20} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-slate-800">
-                Web Quotation
-              </h2>
+        {/* Upper Row: Title, New Lead Pill & Global Toolbar Actions (Never Collapsing) */}
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+
+          {/* Left: Title, Badges & Subtitle */}
+          <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-indigo-600 text-white flex items-center justify-center font-bold shadow-sm shrink-0 mt-0.5 sm:mt-0">
+              <FileText size={22} />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h2 className="text-lg font-black text-slate-900 tracking-tight whitespace-nowrap">
+                  Web Quotation
+                </h2>
+
+
+                {/* New Lead Alert Badge (Integrated right beside the title) */}
+                {pendingWebLeads.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsLeadsModalOpen(true)}
+                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white font-extrabold text-xs shadow-sm hover:shadow-md transition cursor-pointer hover:scale-105 active:scale-95 ring-2 ring-amber-400/40 whitespace-nowrap"
+                    title="Click to view all website leads and make quotation"
+                  >
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                    </span>
+                    <Sparkles size={13} className="text-amber-100" />
+                    <span>⚡ New Web Lead ({pendingWebLeads.length})</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleSimulateWebLead}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-dashed border-slate-300 hover:border-amber-400 bg-slate-50 hover:bg-amber-50/50 text-slate-500 hover:text-amber-800 text-[11px] font-semibold transition cursor-pointer whitespace-nowrap"
+                    title="Click to simulate a website customer RFQ request"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Listening</span>
+                    <span className="text-[10px] bg-slate-200/90 text-slate-700 px-1.5 py-0.2 rounded font-mono font-bold">+ Test Lead</span>
+                  </button>
+                )}
+              </div>
+
             </div>
           </div>
-        </div>
 
-        {/* Dynamic New Lead Trigger Button ("yha to new web lead he dikhe bs") */}
-        {pendingWebLeads.length > 0 ? (
-          <div className="flex-1 max-w-xs mx-2 flex items-center justify-center animate-in fade-in zoom-in-95 duration-200">
+          {/* Right: Global Toolbar Actions (Always on ONE Single Line) */}
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
             <button
               type="button"
-              onClick={() => setIsLeadsModalOpen(true)}
-              className="px-4 py-2 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white font-extrabold text-xs shadow-md hover:shadow-lg transition flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 ring-2 ring-amber-400/40"
-              title="Click to view all website leads and make quotation"
+              onClick={handleStartBlankQuotation}
+              className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-slate-200/80 shadow-2xs whitespace-nowrap"
+              title="Start a new blank quotation ready for input"
             >
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+              <Plus size={14} className="text-sky-600" />
+              <span>Blank Form</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsHistoryDrawerOpen(true)}
+              className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-slate-200/80 shadow-2xs whitespace-nowrap"
+            >
+              <Layers size={14} className="text-slate-600" />
+              <span>History ({savedQuotations.length})</span>
+            </button>
+
+            <button
+              type="button"
+              disabled={isSavingDb}
+              onClick={handleSaveToMongoDB}
+              className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-emerald-200 shadow-2xs whitespace-nowrap"
+            >
+              {isSavingDb ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
+              <span>Save</span>
+            </button>
+
+            <button
+              type="button"
+              disabled={isGeneratingPdf}
+              onClick={handleDownloadPdf}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold transition cursor-pointer flex items-center gap-2 shadow-sm shadow-sky-500/25 hover:shadow-md whitespace-nowrap"
+            >
+              {isGeneratingPdf ? (
+                <>
+                  <RefreshCw size={14} className="animate-spin" />
+                  <span>Exporting...</span>
+                </>
+              ) : (
+                <>
+                  <Download size={14} />
+                  <span>Download PDF</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition cursor-pointer shrink-0"
+              title="Print or Save via Browser"
+            >
+              <Printer size={16} />
+            </button>
+          </div>
+
+        </div>
+
+        {/* Lower Row: Workspace View Selector + Live Metrics Pill Bar */}
+        <div className="pt-3.5 border-t border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <span className="font-extrabold text-slate-400 uppercase tracking-wider text-[11px] whitespace-nowrap">
+              Workspace View:
+            </span>
+            <div className="inline-flex items-center p-1 bg-slate-100/90 rounded-2xl border border-slate-200/70">
+              <button
+                type="button"
+                onClick={() => setActiveLayout('split')}
+                className={`px-3.5 py-1.5 rounded-xl font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap text-xs ${activeLayout === 'split'
+                  ? 'bg-slate-900 text-white shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
+                  }`}
+              >
+                <SplitSquareVertical size={13} />
+                <span>Split View</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveLayout('editor')}
+                className={`px-3.5 py-1.5 rounded-xl font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap text-xs ${activeLayout === 'editor'
+                  ? 'bg-slate-900 text-white shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
+                  }`}
+              >
+                <FileText size={13} />
+                <span>Form Editor Only</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveLayout('preview')}
+                className={`px-3.5 py-1.5 rounded-xl font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap text-xs ${activeLayout === 'preview'
+                  ? 'bg-slate-900 text-white shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
+                  }`}
+              >
+                <Eye size={13} />
+                <span>Live 4-Page PDF</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Live Financial Metrics Pill */}
+          <div className="flex items-center gap-3 bg-slate-50/90 px-4 py-2 rounded-2xl border border-slate-200/80 font-mono text-xs shrink-0 self-start md:self-auto">
+            <span className="text-slate-600 whitespace-nowrap">
+              Items: <strong className="text-slate-900">{items.length}</strong>
+            </span>
+            <span className="text-slate-300">•</span>
+            <span className="text-slate-600 whitespace-nowrap">
+              Grand Total: <strong className="text-emerald-700 font-bold text-sm">₹{formatCurrency(grandTotal)}</strong>
+            </span>
+            {amountInWords && (
+              <span className="text-[11px] text-slate-500 font-sans hidden 2xl:inline max-w-xs truncate" title={amountInWords}>
+                ({amountInWords})
               </span>
-              <Sparkles size={14} className="text-amber-100" />
-              <span>⚡ New Web Lead ({pendingWebLeads.length})</span>
-            </button>
-          </div>
-        ) : (
-          <div className="flex-1 max-w-xs mx-2 hidden xl:flex items-center justify-center">
-            <button
-              type="button"
-              onClick={handleSimulateWebLead}
-              className="px-3 py-1.5 rounded-xl border border-dashed border-slate-300 hover:border-amber-400 bg-slate-50/60 hover:bg-amber-50/50 text-slate-500 hover:text-amber-800 text-[11px] font-semibold transition cursor-pointer flex items-center gap-1.5"
-              title="Click to simulate a website customer RFQ request"
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Web RFQ Listening</span>
-              <span className="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded font-mono font-bold">+ Test Lead</span>
-            </button>
-          </div>
-        )}
-
-
-        {/* Global Toolbar Actions */}
-        <div className="flex items-center gap-2 flex-wrap">
-
-          {/* Quick Preset Buttons */}
-          <button
-            type="button"
-            onClick={handleStartBlankQuotation}
-            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-slate-200"
-            title="Start a new blank quotation ready for input"
-          >
-            <Plus size={13} className="text-sky-600" />
-            <span>Blank Form</span>
-          </button>
-
-          {/* <button
-            type="button"
-            onClick={handleLoadDemoHindustanZinc}
-            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-slate-200"
-            title="Load Hindustan Zinc Limited Demo from your uploaded PDF"
-          >
-            <Copy size={13} className="text-slate-500" />
-            <span>Load Demo (HZL)</span>
-          </button> */}
-
-          {/* <button
-            type="button"
-            onClick={handleLoadDemoICUPackage}
-            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-slate-200"
-            title="Load Multi-Item Hospital Package"
-          >
-            <Package size={13} className="text-indigo-600" />
-            <span>Load ICU Package</span>
-          </button> */}
-
-          <button
-            type="button"
-            onClick={() => setIsHistoryDrawerOpen(true)}
-            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-slate-200"
-          >
-            <Layers size={13} className="text-slate-600" />
-            <span>History ({savedQuotations.length})</span>
-          </button>
-
-          <button
-            type="button"
-            disabled={isSavingDb}
-            onClick={handleSaveToMongoDB}
-            className="px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-emerald-200"
-          >
-            {isSavingDb ? <RefreshCw size={13} className="animate-spin" /> : <Save size={13} />}
-            <span>Save</span>
-          </button>
-
-          {/* Primary Action: Download PDF named after customer! */}
-          <button
-            type="button"
-            disabled={isGeneratingPdf}
-            onClick={handleDownloadPdf}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold transition cursor-pointer flex items-center gap-2 shadow-sm shadow-sky-500/25"
-          >
-            {isGeneratingPdf ? (
-              <>
-                <RefreshCw size={14} className="animate-spin" />
-                <span>Exporting 4 Pages...</span>
-              </>
-            ) : (
-              <>
-                <Download size={14} />
-                <span>Download PDF ({customerName || 'Customer'})</span>
-              </>
             )}
-          </button>
-
-          <button
-            type="button"
-            onClick={handlePrint}
-            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition cursor-pointer"
-            title="Print or Save via Browser"
-          >
-            <Printer size={16} />
-          </button>
-
-        </div>
-      </div>
-
-      {/* VIEWPORT LAYOUT SWITCHER */}
-      <div className="flex items-center justify-between bg-white rounded-2xl p-2.5 border border-slate-200/80 shadow-2xs text-xs flex-wrap gap-2">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="font-bold text-slate-400 uppercase tracking-wider text-[10px] mr-1">Workspace View:</span>
-
-          <button
-            type="button"
-            onClick={() => setActiveLayout('split')}
-            className={`px-3 py-1.5 rounded-xl font-bold transition cursor-pointer flex items-center gap-1.5 ${activeLayout === 'split'
-              ? 'bg-slate-900 text-white shadow-2xs'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-          >
-            <SplitSquareVertical size={13} />
-            <span>Split View (Editor + Live PDF)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveLayout('editor')}
-            className={`px-3 py-1.5 rounded-xl font-bold transition cursor-pointer flex items-center gap-1.5 ${activeLayout === 'editor'
-              ? 'bg-slate-900 text-white shadow-2xs'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-          >
-            <FileText size={13} />
-            <span>Quotation Form Editor Only</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveLayout('preview')}
-            className={`px-3 py-1.5 rounded-xl font-bold transition cursor-pointer flex items-center gap-1.5 ${activeLayout === 'preview'
-              ? 'bg-slate-900 text-white shadow-2xs'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-          >
-            <Eye size={13} />
-            <span>Live 4-Page PDF Document Only</span>
-          </button>
+          </div>
         </div>
 
-        {/* Live Calculation Indicator */}
-        <div className="flex items-center gap-3 font-mono">
-          <span className="text-slate-500 text-[11px]">
-            Items: <strong className="text-slate-800">{items.length}</strong>
-          </span>
-          <span className="text-slate-500 text-[11px]">
-            Grand Total: <strong className="text-emerald-600 font-bold text-sm">₹{formatCurrency(grandTotal)}</strong>
-          </span>
-          <span className="text-[11px] text-slate-500 font-sans hidden xl:inline max-w-xs truncate" title={amountInWords}>
-            ({amountInWords})
-          </span>
-        </div>
       </div>
 
       {/* MAIN WORKSPACE GRID */}
@@ -1736,56 +1800,55 @@ export default function WebQuotationManager({ products = [] }) {
           >
 
             {/* STEP 1: CUSTOMER & REFERENCE DATA */}
-            <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-4 text-xs">
-              <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
-                <span className="font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                  <Building2 size={15} className="text-sky-600" />
-                  <span>1.  Quotation Reference</span>
+            <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-sm space-y-5 text-xs">
+              <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
+                <span className="font-extrabold text-slate-900 text-sm tracking-wide flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+                    <Building2 size={16} />
+                  </div>
+                  <span>1. Quotation Reference</span>
                 </span>
-                <span className="text-[11px] font-mono text-sky-700 bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-100">
+                <span className="text-xs font-mono font-bold text-sky-700 bg-sky-50 px-3 py-1 rounded-xl border border-sky-100">
                   Ref: {refNo}
                 </span>
               </div>
 
               {/* Customer Name */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-slate-800 font-bold block">
-                    Customer / Hospital / Company Name *
-                  </label>
-                  <span className="text-[10px] text-sky-600 font-medium">
-                    (Updates Page 1, Page 2 &amp; PDF Download Filename)
-                  </span>
-                </div>
+              <div className="space-y-1.5">
+                <label className="text-slate-800 font-bold block text-xs">
+                  Customer / Hospital Name *
+                </label>
                 <input
                   type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="e.g. Apollo Hospitals / AIIMS / Hindustan Zinc Limited"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-bold text-sm outline-none focus:bg-white focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition shadow-2xs"
+                  placeholder="Enter Customer or Hospital name..."
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-bold text-sm outline-none focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-100 transition shadow-2xs"
                 />
 
                 {/* Quick Autofill Suggestions */}
-                <div className="flex items-center gap-1.5 mt-2 flex-wrap text-[11px] text-slate-400">
-                  <span className="font-medium">⚡ Quick Fill:</span>
+                <div className="flex items-center gap-2 pt-1 flex-wrap text-xs text-slate-400">
+                  <span className="font-semibold text-slate-500 flex items-center gap-1">
+                    <Zap size={11} className="text-amber-500 fill-amber-500" /> Quick Fill:
+                  </span>
                   <button
                     type="button"
                     onClick={() => handleQuickCustomer('Apollo Hospitals Enterprise Ltd.', 'Sarita Vihar, Delhi Mathura Road', 'New Delhi - 110076')}
-                    className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer transition"
+                    className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-sky-50 hover:text-sky-700 hover:border-sky-200 text-slate-700 font-semibold cursor-pointer transition border border-slate-200/80 shadow-2xs"
                   >
                     Apollo Hospital
                   </button>
                   <button
                     type="button"
                     onClick={() => handleQuickCustomer('AIIMS New Delhi', 'Ansari Nagar, Sri Aurobindo Marg', 'New Delhi - 110029')}
-                    className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer transition"
+                    className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-sky-50 hover:text-sky-700 hover:border-sky-200 text-slate-700 font-semibold cursor-pointer transition border border-slate-200/80 shadow-2xs"
                   >
                     AIIMS Delhi
                   </button>
                   <button
                     type="button"
                     onClick={() => handleQuickCustomer('Hindustan Zinc Limited', 'Zinc Park, Yashad Bhawan', 'Udaipur-RAJASTHAN')}
-                    className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer transition"
+                    className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-sky-50 hover:text-sky-700 hover:border-sky-200 text-slate-700 font-semibold cursor-pointer transition border border-slate-200/80 shadow-2xs"
                   >
                     Hindustan Zinc (HZL)
                   </button>
@@ -1793,41 +1856,41 @@ export default function WebQuotationManager({ products = [] }) {
               </div>
 
               {/* Address Lines */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-slate-700 font-semibold block mb-1">Customer Address Line 1</label>
+                  <label className="text-slate-700 font-bold block mb-1">Customer Address</label>
                   <input
                     type="text"
                     value={customerAddress1}
                     onChange={(e) => setCustomerAddress1(e.target.value)}
-                    placeholder="e.g. Zinc Park, Yashad Bhawan"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:bg-white focus:border-sky-400 font-medium"
+                    placeholder="Street, Area, Building"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:bg-white focus:border-sky-500 font-medium transition"
                   />
                 </div>
 
                 <div>
-                  <label className="text-slate-700 font-semibold block mb-1">City, State &amp; PIN (Line 2)</label>
+                  <label className="text-slate-700 font-bold block mb-1">City, State &amp; PIN</label>
                   <input
                     type="text"
                     value={customerAddress2}
                     onChange={(e) => setCustomerAddress2(e.target.value)}
-                    placeholder="e.g. Udaipur-RAJASTHAN"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:bg-white focus:border-sky-400 font-medium"
+                    placeholder="City, State - PIN"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:bg-white focus:border-sky-500 font-medium transition"
                   />
                 </div>
               </div>
 
               {/* Ref No & Date */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-slate-700 font-semibold block">Quotation Reference Number</label>
+                    <label className="text-slate-700 font-bold block">Quotation Ref Number</label>
                     <button
                       type="button"
                       onClick={() => setRefNo(generateRefNo())}
-                      className="text-[10px] text-sky-600 hover:underline flex items-center gap-1 cursor-pointer"
+                      className="text-[11px] text-sky-600 hover:underline flex items-center gap-1 cursor-pointer font-bold"
                     >
-                      <RefreshCw size={10} />
+                      <RefreshCw size={11} />
                       <span>New Ref</span>
                     </button>
                   </div>
@@ -1836,34 +1899,34 @@ export default function WebQuotationManager({ products = [] }) {
                     value={refNo}
                     onChange={(e) => setRefNo(e.target.value)}
                     placeholder="e.g. RBPL/Q00130MAY15"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono font-bold outline-none focus:bg-white focus:border-sky-400"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono font-bold outline-none focus:bg-white focus:border-sky-500 transition"
                   />
                 </div>
 
                 <div>
-                  <label className="text-slate-700 font-semibold block mb-1">Quotation Date (DD.MM.YYYY)</label>
+                  <label className="text-slate-700 font-bold block mb-1">Quotation Date</label>
                   <input
                     type="text"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    placeholder="e.g. 24.10.2026"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono font-bold outline-none focus:bg-white focus:border-sky-400"
+                    placeholder="DD.MM.YYYY"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono font-bold outline-none focus:bg-white focus:border-sky-500 transition"
                   />
                 </div>
               </div>
 
               {/* Subjects */}
-              <div className="space-y-2 pt-2 border-t border-slate-100">
+              <div className="space-y-1.5 pt-2 border-t border-slate-100">
                 <div className="flex items-center justify-between">
-                  <label className="text-slate-700 font-semibold">Subject on Page 1 &amp; Page 2</label>
-                  <label className="flex items-center gap-1.5 text-[11px] text-slate-500 cursor-pointer">
+                  <label className="text-slate-700 font-bold">Quotation Subject</label>
+                  <label className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={isCustomSubject}
                       onChange={(e) => setIsCustomSubject(e.target.checked)}
-                      className="w-3.5 h-3.5 rounded text-sky-600"
+                      className="w-3.5 h-3.5 rounded text-sky-600 cursor-pointer"
                     />
-                    <span>Manual Subject Edit</span>
+                    <span className="font-semibold">Edit Subject</span>
                   </label>
                 </div>
 
@@ -1874,7 +1937,7 @@ export default function WebQuotationManager({ products = [] }) {
                     disabled={!isCustomSubject}
                     onChange={(e) => setSubjectQuotation(e.target.value)}
                     placeholder="Subject line for Quotation..."
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:bg-white focus:border-sky-400 disabled:opacity-60 font-medium"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:bg-white focus:border-sky-500 disabled:opacity-60 font-medium transition"
                   />
                 </div>
               </div>
@@ -1882,18 +1945,17 @@ export default function WebQuotationManager({ products = [] }) {
             </div>
 
             {/* STEP 2: ADD NEW PRODUCT TO QUOTATION (DEDICATED QUICK-ADDER) */}
-            <div className="bg-gradient-to-br from-indigo-50/70 via-sky-50/40 to-white rounded-3xl p-5 border border-indigo-100 shadow-xs space-y-4 text-xs">
+            <div className="bg-gradient-to-br from-indigo-50/50 via-sky-50/30 to-white rounded-3xl p-6 sm:p-7 border border-indigo-100 shadow-sm space-y-5 text-xs">
 
-              <div className="flex items-center justify-between pb-2 border-b border-indigo-100/80">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold">
-                    <Plus size={16} />
+              <div className="flex items-center justify-between pb-3.5 border-b border-indigo-100/80">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-2xs">
+                    <Plus size={18} />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-800 text-sm">
-                      Add Product
+                    <h3 className="font-extrabold text-slate-900 text-sm">
+                      2. Add Product
                     </h3>
-
                   </div>
                 </div>
 
@@ -1902,7 +1964,7 @@ export default function WebQuotationManager({ products = [] }) {
                   <button
                     type="button"
                     onClick={() => setNewItemMode('catalog')}
-                    className={`px-2.5 py-1 rounded-lg font-bold transition text-[11px] cursor-pointer ${newItemMode === 'catalog'
+                    className={`px-3 py-1.5 rounded-lg font-bold transition text-xs cursor-pointer ${newItemMode === 'catalog'
                       ? 'bg-indigo-600 text-white'
                       : 'text-slate-600 hover:text-slate-900'
                       }`}
@@ -1912,7 +1974,7 @@ export default function WebQuotationManager({ products = [] }) {
                   <button
                     type="button"
                     onClick={() => setNewItemMode('custom')}
-                    className={`px-2.5 py-1 rounded-lg font-bold transition text-[11px] cursor-pointer ${newItemMode === 'custom'
+                    className={`px-3 py-1.5 rounded-lg font-bold transition text-xs cursor-pointer ${newItemMode === 'custom'
                       ? 'bg-indigo-600 text-white'
                       : 'text-slate-600 hover:text-slate-900'
                       }`}
@@ -1924,44 +1986,42 @@ export default function WebQuotationManager({ products = [] }) {
 
               {/* Mode A: Store Catalog Picker */}
               {newItemMode === 'catalog' && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-slate-700 font-bold block mb-1">
-                      Select items:
-                    </label>
-                    <select
-                      value={selectedCatalogId}
-                      onChange={(e) => handleCatalogSelection(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-white border border-indigo-200 rounded-xl text-slate-800 font-semibold text-xs outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 shadow-2xs cursor-pointer"
-                    >
-                      <option value="">-- Choose a product from catalog --</option>
-                      {catalogProducts.map(p => (
-                        <option key={p.id || p.sku} value={p.id || p.sku}>
-                          {p.title || p.name} — ₹{Number(p.price || 0).toLocaleString('en-IN')} {p.sku ? `(${p.sku})` : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="space-y-2">
+                  <label className="text-slate-700 font-bold block">
+                    Select Product from Catalog:
+                  </label>
+                  <select
+                    value={selectedCatalogId}
+                    onChange={(e) => handleCatalogSelection(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-white border border-indigo-200 rounded-xl text-slate-800 font-semibold text-xs outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 shadow-2xs cursor-pointer"
+                  >
+                    <option value="">-- Choose a product from catalog --</option>
+                    {catalogProducts.map(p => (
+                      <option key={p.id || p.sku} value={p.id || p.sku}>
+                        {p.title || p.name} — ₹{Number(p.price || 0).toLocaleString('en-IN')} {p.sku ? `(${p.sku})` : ''}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               )}
 
               {/* Inputs for Name, Code, Specs, Qty, Unit Price */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-2">
-                  <label className="text-slate-700 font-bold block mb-1">
-                    Product / Equipment Name *
+                  <label className="text-slate-700 font-bold block mb-1.5">
+                    Product Name *
                   </label>
                   <input
                     type="text"
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     placeholder="e.g. Fully Automated Biochemistry Analyzer"
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 font-semibold outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 font-semibold outline-none focus:border-indigo-500 transition"
                   />
                 </div>
 
                 <div>
-                  <label className="text-slate-700 font-bold block mb-1">
+                  <label className="text-slate-700 font-bold block mb-1.5">
                     Model / Item Code
                   </label>
                   <input
@@ -1969,66 +2029,64 @@ export default function WebQuotationManager({ products = [] }) {
                     value={newItemCode}
                     onChange={(e) => setNewItemCode(e.target.value)}
                     placeholder="e.g. CLINI-QUANT"
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 font-mono outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 font-mono outline-none focus:border-indigo-500 transition"
                   />
                 </div>
               </div>
 
               {/* Bullets / Specs */}
               <div>
-                <label className="text-slate-700 font-bold block mb-1">
-                  Specifications
+                <label className="text-slate-700 font-bold block mb-1.5">
+                  Specifications (Bullets)
                 </label>
                 <textarea
                   rows={2}
                   value={newBullets}
                   onChange={(e) => setNewBullets(e.target.value)}
                   placeholder="• 7 assay modes&#10;• 100 open test protocols&#10;• 2 Years warranty..."
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 text-[11px] leading-relaxed font-sans outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-xs leading-relaxed font-sans outline-none focus:border-indigo-500 transition"
                 />
               </div>
 
               {/* Commercials: Quantity, Unit, Price, and Live Calculated Total */}
-              <div className="p-3 bg-white rounded-2xl border border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="p-4 sm:p-5 bg-white rounded-2xl border border-indigo-100 shadow-2xs flex flex-wrap items-end justify-between gap-4">
 
                 {/* Quantity */}
-                <div className="flex items-center gap-2">
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Quantity</label>
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => setNewQty(Math.max(1, (parseInt(newQty, 10) || 1) - 1))}
-                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition cursor-pointer"
-                      >
-                        <Minus size={12} />
-                      </button>
-                      <input
-                        type="number"
-                        min="1"
-                        value={newQty}
-                        onChange={(e) => setNewQty(Math.max(1, parseInt(e.target.value, 10) || 1))}
-                        className="w-14 px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-mono font-bold text-center"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setNewQty((parseInt(newQty, 10) || 1) + 1)}
-                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition cursor-pointer"
-                      >
-                        <Plus size={12} />
-                      </button>
-                      <select
-                        value={newUnitLabel}
-                        onChange={(e) => setNewUnitLabel(e.target.value)}
-                        className="text-[10px] bg-slate-50 border border-slate-200 rounded-lg p-1 font-semibold text-slate-700"
-                      >
-                        <option value="No">No</option>
-                        <option value="Nos">Nos</option>
-                        <option value="Sets">Sets</option>
-                        <option value="Units">Units</option>
-                        <option value="Pcs">Pcs</option>
-                      </select>
-                    </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Quantity</label>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setNewQty(Math.max(1, (parseInt(newQty, 10) || 1) - 1))}
+                      className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
+                    >
+                      <Minus size={13} />
+                    </button>
+                    <input
+                      type="number"
+                      min="1"
+                      value={newQty}
+                      onChange={(e) => setNewQty(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                      className="w-16 px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-mono font-bold text-center text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setNewQty((parseInt(newQty, 10) || 1) + 1)}
+                      className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
+                    >
+                      <Plus size={13} />
+                    </button>
+                    <select
+                      value={newUnitLabel}
+                      onChange={(e) => setNewUnitLabel(e.target.value)}
+                      className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 font-semibold text-slate-700"
+                    >
+                      <option value="No">No</option>
+                      <option value="Nos">Nos</option>
+                      <option value="Sets">Sets</option>
+                      <option value="Units">Units</option>
+                      <option value="Pcs">Pcs</option>
+                    </select>
                   </div>
                 </div>
 
@@ -2040,27 +2098,27 @@ export default function WebQuotationManager({ products = [] }) {
                     min="0"
                     value={newUnitPrice}
                     onChange={(e) => setNewUnitPrice(Math.max(0, parseFloat(e.target.value) || 0))}
-                    className="w-32 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono font-bold text-xs"
+                    className="w-32 px-3.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono font-bold text-xs"
                   />
                 </div>
 
                 {/* Calculated Row Total */}
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Row Total (₹)</label>
-                  <div className="px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl font-mono font-bold text-emerald-800 text-xs">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Row Total</label>
+                  <div className="px-3.5 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl font-mono font-bold text-emerald-800 text-xs">
                     ₹{formatCurrency((parseInt(newQty, 10) || 1) * (parseFloat(newUnitPrice) || 0))}
                   </div>
                 </div>
 
                 {/* Big Add Button */}
-                <div className="sm:pt-4">
+                <div>
                   <button
                     type="button"
                     onClick={handleAddNewItemToQuotation}
-                    className="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-sm shadow-indigo-500/25"
+                    className="w-full sm:w-auto px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-sm shadow-indigo-500/25 hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    <Plus size={16} />
-                    <span>Add</span>
+                    <Plus size={15} />
+                    <span>Add Item</span>
                   </button>
                 </div>
 
@@ -2069,29 +2127,31 @@ export default function WebQuotationManager({ products = [] }) {
             </div>
 
             {/* STEP 3: CURRENT QUOTATION ITEMS LIST (REAL-TIME EDITABLE TABLE) */}
-            <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-4 text-xs">
-              <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
+            <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-sm space-y-5 text-xs">
+              <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
                 <div>
-                  <span className="font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                    <Package size={15} className="text-indigo-600" />
-                    <span>3. Quotation ({items.length} Products)</span>
+                  <span className="font-extrabold text-slate-900 text-sm tracking-wide flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                      <Package size={16} />
+                    </div>
+                    <span>3. Quotation Items ({items.length})</span>
                   </span>
                 </div>
 
-                <span className="text-[11px] font-mono text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200 font-bold">
+                <span className="text-xs font-mono font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
                   Subtotal: ₹{formatCurrency(subtotal)}
                 </span>
               </div>
 
               {/* Items Card / Row List */}
-              <div className="space-y-3 max-h-[560px] overflow-y-auto pr-1">
+              <div className="space-y-3.5 max-h-[580px] overflow-y-auto pr-1 custom-scrollbar">
                 {items.map((item, idx) => (
-                  <div key={item.id} className="p-3.5 bg-slate-50/90 rounded-2xl border border-slate-200 space-y-3 relative group transition hover:border-sky-300">
+                  <div key={item.id} className="p-4 sm:p-5 bg-slate-50/80 hover:bg-slate-50 rounded-2xl border border-slate-200/90 space-y-3.5 relative group transition hover:border-sky-300 shadow-2xs">
 
                     {/* Item Top Bar */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-lg bg-slate-800 text-white font-mono font-bold text-xs flex items-center justify-center">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                        <span className="w-7 h-7 rounded-xl bg-slate-800 text-white font-mono font-bold text-xs flex items-center justify-center shrink-0">
                           {idx + 1}
                         </span>
                         <input
@@ -2099,90 +2159,90 @@ export default function WebQuotationManager({ products = [] }) {
                           value={item.title}
                           onChange={(e) => handleUpdateItem(idx, 'title', e.target.value)}
                           placeholder="Product Name"
-                          className="font-bold text-slate-800 text-xs bg-transparent border-b border-dashed border-slate-300 focus:border-sky-500 outline-none px-1 py-0.5 w-64 sm:w-80"
+                          className="font-bold text-slate-900 text-xs sm:text-sm bg-transparent border-b border-dashed border-slate-300 focus:border-sky-500 outline-none px-1.5 py-1 w-full max-w-sm sm:max-w-md"
                         />
                       </div>
 
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         <button
                           type="button"
                           onClick={() => handleDuplicateItem(idx)}
-                          className="p-1 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200 transition cursor-pointer"
+                          className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200 transition cursor-pointer"
                           title="Duplicate this item"
                         >
-                          <Copy size={13} />
+                          <Copy size={14} />
                         </button>
 
                         {items.length > 1 && (
                           <button
                             type="button"
                             onClick={() => handleRemoveItem(idx)}
-                            className="p-1 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition cursor-pointer"
+                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition cursor-pointer"
                             title="Delete this row"
                           >
-                            <Trash2 size={13} />
+                            <Trash2 size={14} />
                           </button>
                         )}
                       </div>
                     </div>
 
                     {/* Model & Bullets */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Item Code / Model</label>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Model / Code</label>
                         <input
                           type="text"
                           value={item.itemCode || ''}
                           onChange={(e) => handleUpdateItem(idx, 'itemCode', e.target.value)}
                           placeholder="e.g. CQ-2026"
-                          className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-slate-800 font-mono text-xs outline-none focus:border-sky-400"
+                          className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-800 font-mono text-xs outline-none focus:border-sky-400"
                         />
                       </div>
 
                       <div className="sm:col-span-2">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Specifications Bullets (One per line)</label>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Specifications</label>
                         <textarea
                           rows={2}
                           value={item.bullets || ''}
                           onChange={(e) => handleUpdateItem(idx, 'bullets', e.target.value)}
                           placeholder="• Bullet 1&#10;• Bullet 2..."
-                          className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-slate-800 text-[11px] leading-snug outline-none focus:border-sky-400 font-sans"
+                          className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-xs leading-relaxed outline-none focus:border-sky-400 font-sans"
                         />
                       </div>
                     </div>
 
                     {/* Interactive Quantity, Unit Price, and Auto-Computed Total */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-2.5 bg-white rounded-xl border border-slate-200/80 items-center">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-white rounded-xl border border-slate-200/80 items-center">
 
                       {/* Quantity */}
                       <div>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Quantity</label>
-                        <div className="flex items-center gap-1">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Quantity</label>
+                        <div className="flex items-center gap-1.5">
                           <button
                             type="button"
                             onClick={() => handleAdjustItemQty(idx, -1)}
-                            className="p-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 transition cursor-pointer"
+                            className="p-1.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
                           >
-                            <Minus size={11} />
+                            <Minus size={12} />
                           </button>
                           <input
                             type="number"
                             min="1"
                             value={item.qty}
                             onChange={(e) => handleUpdateItem(idx, 'qty', Math.max(1, parseInt(e.target.value, 10) || 1))}
-                            className="w-14 px-1.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-mono font-bold text-center text-xs"
+                            className="w-14 px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-mono font-bold text-center text-xs"
                           />
                           <button
                             type="button"
                             onClick={() => handleAdjustItemQty(idx, 1)}
-                            className="p-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 transition cursor-pointer"
+                            className="p-1.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
                           >
-                            <Plus size={11} />
+                            <Plus size={12} />
                           </button>
                           <select
                             value={item.unitLabel || 'No'}
                             onChange={(e) => handleUpdateItem(idx, 'unitLabel', e.target.value)}
-                            className="text-[10px] bg-slate-50 border border-slate-200 rounded-lg p-1 font-semibold text-slate-700"
+                            className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 font-semibold text-slate-700"
                           >
                             <option value="No">No</option>
                             <option value="Nos">Nos</option>
@@ -2195,20 +2255,20 @@ export default function WebQuotationManager({ products = [] }) {
 
                       {/* Unit Price */}
                       <div>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Unit Price (₹)</label>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Unit Price (₹)</label>
                         <input
                           type="number"
                           min="0"
                           value={item.unitPrice}
                           onChange={(e) => handleUpdateItem(idx, 'unitPrice', Math.max(0, parseFloat(e.target.value) || 0))}
-                          className="w-full px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-mono font-bold text-xs"
+                          className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono font-bold text-xs"
                         />
                       </div>
 
                       {/* Row Total (Dynamically Computed) */}
                       <div>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Row Total (₹)</label>
-                        <div className="px-2.5 py-1 bg-emerald-50 border border-emerald-200 rounded-lg font-mono font-bold text-emerald-800 text-xs">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Row Total (₹)</label>
+                        <div className="px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl font-mono font-bold text-emerald-800 text-xs">
                           ₹{formatCurrency(getItemTotal(item))}
                         </div>
                       </div>
@@ -2220,15 +2280,15 @@ export default function WebQuotationManager({ products = [] }) {
               </div>
 
               {/* COMMERCIALS & TAX BREAKDOWN PANEL */}
-              <div className="p-4 bg-slate-900 text-white rounded-2xl space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800 flex-wrap gap-2">
-                  <span className="font-bold text-xs text-slate-300">Commercial Summary &amp; Taxes</span>
+              <div className="p-5 sm:p-6 bg-gradient-to-br from-slate-900 via-slate-850 to-slate-900 text-white rounded-2xl space-y-4 shadow-sm border border-slate-800">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-800 flex-wrap gap-2">
+                  <span className="font-extrabold text-xs uppercase tracking-wider text-slate-300">Commercial Summary &amp; Taxes</span>
                   <div className="flex items-center gap-2">
-                    <label className="text-[11px] text-slate-400">GST Mode:</label>
+                    <label className="text-xs text-slate-400 font-medium">GST Mode:</label>
                     <select
                       value={taxMode}
                       onChange={(e) => setTaxMode(e.target.value)}
-                      className="text-[11px] bg-slate-800 text-white border border-slate-700 rounded-lg px-2 py-0.5 font-semibold"
+                      className="text-xs bg-slate-800 text-white border border-slate-700 rounded-xl px-3 py-1.5 font-semibold outline-none"
                     >
                       <option value="inclusive">GST Inclusive (100% Final Price)</option>
                       <option value="none">No Tax (0% Exempt)</option>
@@ -2240,28 +2300,28 @@ export default function WebQuotationManager({ products = [] }) {
                   </div>
                 </div>
 
-                <div className="space-y-1.5 text-xs">
+                <div className="space-y-2 text-xs">
                   <div className="flex items-center justify-between text-slate-300">
                     <span>Items Subtotal ({items.length} items):</span>
-                    <span className="font-mono">₹{formatCurrency(subtotal)}</span>
+                    <span className="font-mono font-bold text-sm">₹{formatCurrency(subtotal)}</span>
                   </div>
 
                   {taxAmount > 0 && (
                     <div className="flex items-center justify-between text-indigo-300 font-mono">
                       <span>GST (+{taxMode}% Extra):</span>
-                      <span>+₹{formatCurrency(taxAmount)}</span>
+                      <span className="font-bold">+₹{formatCurrency(taxAmount)}</span>
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between text-sm font-bold text-white pt-2 border-t border-slate-800">
-                    <span className="text-emerald-400">Final Quotation Amount:</span>
-                    <span className="text-emerald-400 font-mono text-base font-extrabold">
+                  <div className="flex items-center justify-between text-sm font-bold text-white pt-2.5 border-t border-slate-800">
+                    <span className="text-emerald-400 text-sm font-extrabold">Final Quotation Amount:</span>
+                    <span className="text-emerald-400 font-mono text-lg font-black">
                       ₹{formatCurrency(grandTotal)}
                     </span>
                   </div>
 
                   {/* Dynamic English Words Conversion Display */}
-                  <div className="pt-2 border-t border-slate-800/80 text-[11px] text-slate-300 leading-snug">
+                  <div className="pt-2.5 border-t border-slate-800/80 text-xs text-slate-300 leading-snug">
                     <span className="text-slate-400">Amount in Words (English): </span>
                     <strong className="text-emerald-300 italic">Rs. {amountInWords} only</strong>
                   </div>
@@ -2271,45 +2331,45 @@ export default function WebQuotationManager({ products = [] }) {
             </div>
 
             {/* STEP 4: OFFICIAL SIGNATORY CUSTOMIZER */}
-            <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-3 text-xs">
-              <span className="font-bold text-slate-800 uppercase tracking-wider block">
-                4. Authorized Official Signatory
+            <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-sm space-y-4 text-xs">
+              <span className="font-extrabold text-slate-900 text-sm tracking-wide block">
+                4. Authorized Signatory
               </span>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 block mb-0.5">Name</label>
+                  <label className="text-xs font-bold text-slate-600 block mb-1">Name</label>
                   <input
                     type="text"
                     value={signatoryName}
                     onChange={(e) => setSignatoryName(e.target.value)}
-                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-semibold"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-semibold outline-none focus:bg-white focus:border-sky-500 transition"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 block mb-0.5">Designation</label>
+                  <label className="text-xs font-bold text-slate-600 block mb-1">Designation</label>
                   <input
                     type="text"
                     value={signatoryRole}
                     onChange={(e) => setSignatoryRole(e.target.value)}
-                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-semibold"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-semibold outline-none focus:bg-white focus:border-sky-500 transition"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 block mb-0.5">Company</label>
+                  <label className="text-xs font-bold text-slate-600 block mb-1">Company</label>
                   <input
                     type="text"
                     value={signatoryCompany}
                     onChange={(e) => setSignatoryCompany(e.target.value)}
-                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:bg-white focus:border-sky-500 transition"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 block mb-0.5">Phone</label>
+                  <label className="text-xs font-bold text-slate-600 block mb-1">Phone</label>
                   <input
                     type="text"
                     value={signatoryPhone}
                     onChange={(e) => setSignatoryPhone(e.target.value)}
-                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono outline-none focus:bg-white focus:border-sky-500 transition"
                   />
                 </div>
               </div>
@@ -2331,15 +2391,14 @@ export default function WebQuotationManager({ products = [] }) {
           >
 
             {/* Page Tab Selector Toolbar (Sticky at Top of PDF Panel) */}
-            <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md rounded-2xl p-2.5 border border-slate-200/80 shadow-xs flex items-center justify-between text-xs flex-wrap gap-2">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] mr-1">Display:</span>
+            <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md rounded-2xl p-2 sm:p-2.5 border border-slate-200/90 shadow-sm flex items-center">
+              <div className="grid grid-cols-5 gap-1.5 w-full bg-slate-100/90 p-1.5 rounded-xl">
                 {[
-                  { id: 'all', label: 'All 4 Pages' },
-                  { id: '1', label: 'Page 1 (Letter)' },
-                  { id: '2', label: 'Page 2 (Quotation Table)' },
-                  { id: '3', label: 'Page 3 (Terms 1)' },
-                  { id: '4', label: 'Page 4 (Terms 2)' },
+                  { id: 'all', label: 'All Pages' },
+                  { id: '1', label: 'Page 1' },
+                  { id: '2', label: 'Page 2' },
+                  { id: '3', label: 'Page 3' },
+                  { id: '4', label: 'Page 4' },
                 ].map(p => (
                   <button
                     key={p.id}
@@ -2350,19 +2409,15 @@ export default function WebQuotationManager({ products = [] }) {
                         rightPanelRef.current.scrollTo({ top: 0, behavior: 'smooth' });
                       }
                     }}
-                    className={`px-3 py-1.5 rounded-xl font-bold transition cursor-pointer ${previewPage === p.id
-                      ? 'bg-slate-900 text-white shadow-2xs'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    className={`py-2 px-1 text-center rounded-lg font-bold text-xs transition cursor-pointer truncate ${previewPage === p.id
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                       }`}
                   >
                     {p.label}
                   </button>
                 ))}
               </div>
-
-              <span className="text-[11px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 font-bold">
-                ✓ 100% Dynamic PDF
-              </span>
             </div>
 
             {/* LIVE DOCUMENT CANVAS STACK */}
@@ -3120,7 +3175,7 @@ export default function WebQuotationManager({ products = [] }) {
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <FileText size={18} className="text-sky-600" />
-                <h3 className="font-bold text-sm text-slate-800">Saved Quotations in MongoDB</h3>
+                <h3 className="font-bold text-sm text-slate-800">History</h3>
               </div>
               <button
                 type="button"

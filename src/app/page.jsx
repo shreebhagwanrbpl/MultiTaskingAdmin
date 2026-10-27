@@ -232,7 +232,7 @@ export default function AdminDashboardPage({ searchParams }) {
         if (chosen && ['leads', 'customers', 'website', 'products', 'quotation', 'vps', 'marketing'].includes(chosen)) {
           return chosen;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     return 'leads';
   };
@@ -249,7 +249,7 @@ export default function AdminDashboardPage({ searchParams }) {
         const url = new URL(window.location.href);
         url.searchParams.set('tab', tab);
         window.history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString());
-      } catch (e) {}
+      } catch (e) { }
     }
   };
 
@@ -269,7 +269,7 @@ export default function AdminDashboardPage({ searchParams }) {
             window.history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString());
           }
         }
-      } catch (e) {}
+      } catch (e) { }
     }
   }, [searchParams]);
 
@@ -281,7 +281,7 @@ export default function AdminDashboardPage({ searchParams }) {
         if (urlTab && ['leads', 'customers', 'website', 'products', 'quotation', 'vps', 'marketing'].includes(urlTab)) {
           setActiveTabRaw(urlTab);
         }
-      } catch (e) {}
+      } catch (e) { }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -609,61 +609,60 @@ export default function AdminDashboardPage({ searchParams }) {
     }
   };
 
+  // Check if a lead's customer profile is complete (ALL 8 fields must be non-empty)
   const isLeadProfileComplete = (lead) => {
     if (!lead) return false;
 
     const phoneClean = (lead.phone || lead.customerPhone || lead.rawLeadData?.customerPhone || lead.rawLeadData?.phone || '').replace(/\D/g, '').slice(-10);
     const emailClean = (lead.email || lead.customerEmail || lead.rawLeadData?.customerEmail || '').trim().toLowerCase();
 
-    // 1. Check against registered customer accounts first
+    // Check matched customer from registered customer directory
     const matched = customersList.find(c => {
       const cPhone = (c.phone || '').replace(/\D/g, '').slice(-10);
       const cEmail = (c.email || '').trim().toLowerCase();
       return (phoneClean && cPhone && phoneClean === cPhone) || (emailClean && cEmail && emailClean === cEmail);
     });
 
-    if (matched) {
-      const hosp = (matched.hospitalName || '').trim();
-      const addr = (matched.address || '').trim();
-      const dist = (matched.district || '').trim();
-      const name = (matched.fullName || '').trim();
-      const isGeneric = !hosp || [
-        'clinic / hospital', 'healthcare facility', 'general hospital', 'hospital',
-        'customer hospital / lab', 'customer hospital / diagnostic lab'
-      ].some(g => hosp.toLowerCase() === g || hosp.toLowerCase().includes('healthcare institution'));
-
-      if (!isGeneric && hosp.length >= 3 && name.length >= 2 && (addr.length >= 3 || dist.length >= 3)) {
-        return true;
-      }
-    }
-
-    // 2. Explicit verified boolean flag if present
-    if (lead.isProfileComplete === true || lead.rawLeadData?.isProfileComplete === true) {
-      return true;
-    }
-
-    // 3. Fallback to direct lead fields
     const raw = lead.rawLeadData || {};
-    const hospital = (lead.hospital || raw.hospitalName || lead.hospitalName || '').trim();
-    const name = (lead.doctorName || raw.customerName || lead.customerName || '').trim();
-    const address = (lead.address || raw.address || lead.deliveryAddress || '').trim();
-    const city = (lead.city || raw.district || lead.district || '').trim();
+
+    const fullName = (matched?.fullName || lead.doctorName || raw.customerName || lead.customerName || '').trim();
+    const phone = (matched?.phone || lead.phone || lead.customerPhone || raw.customerPhone || raw.phone || '').replace(/\D/g, '');
+    const email = (matched?.email || lead.email || lead.customerEmail || raw.customerEmail || '').trim();
+    const hospital = (matched?.hospitalName || lead.hospital || raw.hospitalName || lead.hospitalName || '').trim();
+    const state = (matched?.state || lead.state || raw.state || '').trim();
+    const district = (matched?.district || lead.city || raw.district || lead.district || '').trim();
+    const address = (matched?.address || lead.address || raw.address || lead.deliveryAddress || '').trim();
+    const pincode = (matched?.pincode || lead.pincode || raw.pincode || '').toString().trim();
 
     const isGenericHosp = !hospital || [
       'clinic / hospital',
       'healthcare facility',
       'general hospital',
+      'hospital',
       'healthcare institution',
       'customer hospital / lab',
       'customer hospital / diagnostic lab'
-    ].some(ph => hospital.toLowerCase() === ph || hospital.toLowerCase().includes('healthcare institution'));
+    ].some(g => hospital.toLowerCase() === g || hospital.toLowerCase().includes('healthcare institution'));
 
-    const hasRealHospital = !isGenericHosp && hospital.length >= 3;
-    const hasRealName = name && name.length >= 2 && name.toLowerCase() !== 'medical client';
-    const hasRealPhone = (lead.phone || lead.customerPhone || raw.customerPhone || '').replace(/\D/g, '').length >= 10;
-    const hasLocation = (address && address.length >= 3) || (city && city.length >= 3 && city !== 'India');
+    const hasName = fullName.length >= 2 && fullName.toLowerCase() !== 'medical client';
+    const hasPhone = phone.length >= 10;
+    const hasEmail = email.length >= 5 && email.includes('@') && email.includes('.');
+    const hasHospital = !isGenericHosp && hospital.length >= 3;
+    const hasState = state.length >= 2;
+    const hasDistrict = district.length >= 2 && district.toLowerCase() !== 'india';
+    const hasAddress = address.length >= 3;
+    const hasPincode = pincode.length >= 4;
 
-    return Boolean(hasRealHospital && hasRealName && hasRealPhone && hasLocation);
+    return Boolean(
+      hasName &&
+      hasPhone &&
+      hasEmail &&
+      hasHospital &&
+      hasState &&
+      hasDistrict &&
+      hasAddress &&
+      hasPincode
+    );
   };
 
   const handleDeleteLead = async (leadId) => {
@@ -850,8 +849,8 @@ export default function AdminDashboardPage({ searchParams }) {
               onClick={() => setActiveTab('leads')}
               title={`Central Leads & RFQ (${leads.length} Inquiries)`}
               className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer relative group ${activeTab === 'leads'
-                  ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
+                ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
                 }`}
             >
               <span className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
@@ -874,8 +873,8 @@ export default function AdminDashboardPage({ searchParams }) {
               onClick={() => setActiveTab('customers')}
               title={`Registered Customer Profiles (${customerProfilesCount})`}
               className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer relative group ${activeTab === 'customers'
-                  ? 'bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200/80 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
+                ? 'bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200/80 shadow-xs'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
                 }`}
             >
               <span className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
@@ -897,8 +896,8 @@ export default function AdminDashboardPage({ searchParams }) {
               onClick={() => setActiveTab('website')}
               title="Website & Home Page (CMS Builder)"
               className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer relative group ${activeTab === 'website'
-                  ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
+                ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
                 }`}
             >
               <span className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
@@ -918,8 +917,8 @@ export default function AdminDashboardPage({ searchParams }) {
               onClick={() => setActiveTab('products')}
               title="Products & Catalog (MongoDB Atlas Synced)"
               className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'gap-2.5 px-3.5 py-2.5'} rounded-xl transition cursor-pointer ${activeTab === 'products'
-                  ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
+                ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
                 }`}
             >
               <Package size={isSidebarCollapsed ? 19 : 16} />
@@ -930,8 +929,8 @@ export default function AdminDashboardPage({ searchParams }) {
               onClick={() => setActiveTab('quotation')}
               title="Web Quotation (4-Page Official PDF Generator)"
               className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer relative group ${activeTab === 'quotation'
-                  ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
+                ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
                 }`}
             >
               <span className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
@@ -951,8 +950,8 @@ export default function AdminDashboardPage({ searchParams }) {
               onClick={() => setActiveTab('vps')}
               title="VPS Deployment & MongoDB Pipeline"
               className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'gap-2.5 px-3.5 py-2.5'} rounded-xl transition cursor-pointer ${activeTab === 'vps'
-                  ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
+                ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
                 }`}
             >
               <Server size={isSidebarCollapsed ? 19 : 16} />
@@ -1049,9 +1048,7 @@ export default function AdminDashboardPage({ searchParams }) {
               {activeTab === 'quotation' && (
                 <>
                   <span>Web Quotation</span>
-                  <span className="text-xs px-2 py-0.5 rounded-md font-mono bg-sky-50 text-sky-700 border border-sky-200">
-                    Official Letterhead
-                  </span>
+
                 </>
               )}
               {activeTab === 'vps' && 'VPS Deployment & MongoDB Pipeline'}
@@ -1065,8 +1062,8 @@ export default function AdminDashboardPage({ searchParams }) {
                 <button
                   onClick={() => setMarketingSubTab('compose')}
                   className={`text-xs px-3.5 py-1.5 rounded-xl font-semibold transition cursor-pointer ${marketingSubTab === 'compose'
-                      ? 'bg-sky-500 text-white shadow-xs'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80'
+                    ? 'bg-sky-500 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80'
                     }`}
                 >
                   ✍️ Compose Campaign
@@ -1074,8 +1071,8 @@ export default function AdminDashboardPage({ searchParams }) {
                 <button
                   onClick={() => setMarketingSubTab('history')}
                   className={`text-xs px-3.5 py-1.5 rounded-xl font-semibold transition flex items-center gap-1.5 cursor-pointer ${marketingSubTab === 'history'
-                      ? 'bg-sky-500 text-white shadow-xs'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80'
+                    ? 'bg-sky-500 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80'
                     }`}
                 >
                   <History size={13} />
@@ -1089,28 +1086,15 @@ export default function AdminDashboardPage({ searchParams }) {
               type="button"
               onClick={() => setIsSoundEnabled(!isSoundEnabled)}
               title={isSoundEnabled ? "Lead Chime Sound: ON (Click to Mute)" : "Lead Chime Sound: MUTED (Click to Enable)"}
-              className={`text-xs px-2.5 py-1.5 rounded-xl border font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-2xs ${
-                isSoundEnabled
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 hover:bg-emerald-100/70'
-                  : 'bg-slate-50 text-slate-400 border-slate-200/80 hover:bg-slate-100'
-              }`}
+              className={`text-xs px-2.5 py-1.5 rounded-xl border font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-2xs ${isSoundEnabled
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 hover:bg-emerald-100/70'
+                : 'bg-slate-50 text-slate-400 border-slate-200/80 hover:bg-slate-100'
+                }`}
             >
               {isSoundEnabled ? <Volume2 size={14} className="text-emerald-600" /> : <VolumeX size={14} className="text-slate-400" />}
               <span className="hidden sm:inline text-[11px]">{isSoundEnabled ? 'Alert Chime ON' : 'Muted'}</span>
             </button>
 
-            {/* Live MongoDB Status Pill in Header */}
-            <button
-              type="button"
-              onClick={() => setActiveTab('vps')}
-              className={`text-xs px-3 py-1.5 rounded-xl border font-mono transition flex items-center gap-2 cursor-pointer shadow-2xs ${dbStatus.connected
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 hover:bg-emerald-100/70'
-                  : 'bg-amber-50 text-amber-700 border-amber-200/80 hover:bg-amber-100/70'
-                }`}
-            >
-              <span className={`w-2 h-2 rounded-full ${dbStatus.connected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`}></span>
-              <span className="font-semibold">{dbStatus.connected ? `MongoDB: Live (${dbStatus.latency || 'OK'})` : 'MongoDB: Standby'}</span>
-            </button>
 
             <div className="text-xs text-slate-500 font-mono bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/80">
               Host: <span className="text-slate-700 font-semibold">rajbiosis.com</span>
@@ -1155,23 +1139,31 @@ export default function AdminDashboardPage({ searchParams }) {
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto justify-end shrink-0 flex-wrap">
-              <button
-                type="button"
-                onClick={() => {
-                  if (typeof window !== 'undefined' && newLeadAlerts[0]) {
-                    try {
-                      localStorage.setItem('active_quotation_lead', JSON.stringify(newLeadAlerts[0]));
-                    } catch (e) {}
-                  }
-                  setActiveTab('quotation');
-                  setNewLeadAlerts([]);
-                }}
-                className="px-3.5 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
-              >
-                <Sparkles size={13} className="text-amber-200" />
-                <span>Open Quotation Desk</span>
-                <ArrowRight size={13} />
-              </button>
+              {!isLeadProfileComplete(newLeadAlerts[0]) && (
+                <div className="px-3 py-1.5 rounded-xl bg-amber-100 border border-amber-300 text-amber-950 text-xs font-bold flex items-center gap-1.5 shadow-2xs">
+                  <AlertCircle size={13} className="text-amber-700 shrink-0" />
+                  <span>Ask customer to complete profile to generate quotation</span>
+                </div>
+              )}
+              {isLeadProfileComplete(newLeadAlerts[0]) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof window !== 'undefined' && newLeadAlerts[0]) {
+                      try {
+                        localStorage.setItem('active_quotation_lead', JSON.stringify(newLeadAlerts[0]));
+                      } catch (e) { }
+                    }
+                    setActiveTab('quotation');
+                    setNewLeadAlerts([]);
+                  }}
+                  className="px-3.5 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Sparkles size={13} className="text-amber-200" />
+                  <span>Make Quotation</span>
+                  <ArrowRight size={13} />
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => {
@@ -1351,14 +1343,14 @@ export default function AdminDashboardPage({ searchParams }) {
 
                   <button
                     onClick={() => {
-                      const csvContent = "data:text/csv;charset=utf-8," + 
+                      const csvContent = "data:text/csv;charset=utf-8," +
                         ["Ref,Date,Website,Hospital,Doctor,Phone,Equipment,Amount,Status"]
                           .concat(filteredLeads.map(l => `"${l.id}","${l.date || ''}","${l.siteDomain || ''}","${(l.hospital || '').replace(/"/g, '""')}","${(l.doctorName || l.contact || '').replace(/"/g, '""')}","${l.phone || ''}","${(l.equipment || '').replace(/"/g, '""')}","${(l.quoteAmount || l.amount || '').replace(/"/g, '""')}","${l.status || ''}"`))
                           .join("\n");
                       const encodedUri = encodeURI(csvContent);
                       const link = document.createElement("a");
                       link.setAttribute("href", encodedUri);
-                      link.setAttribute("download", `Hospital_Leads_${new Date().toISOString().slice(0,10)}.csv`);
+                      link.setAttribute("download", `Hospital_Leads_${new Date().toISOString().slice(0, 10)}.csv`);
                       document.body.appendChild(link);
                       link.click();
                       document.body.removeChild(link);
@@ -1423,8 +1415,17 @@ export default function AdminDashboardPage({ searchParams }) {
                               </span>
                             </td>
                             <td className="py-3 px-4">
-                              <div className="font-bold text-slate-800 text-xs">
-                                {lead.hospital || lead.hospitalName || 'Healthcare Facility'}
+                              <div className="font-bold text-slate-800 text-xs flex items-center gap-1.5 flex-wrap">
+                                <span>{lead.hospital || lead.hospitalName || 'Healthcare Facility'}</span>
+                                {isLeadProfileComplete(lead) ? (
+                                  <span className="text-[9px] bg-emerald-50 text-emerald-800 font-bold px-1.5 py-0.5 rounded border border-emerald-300">
+                                    Profile Complete
+                                  </span>
+                                ) : (
+                                  <span className="text-[9px] bg-amber-50 text-amber-800 font-bold px-1.5 py-0.5 rounded border border-amber-300">
+                                    Profile Incomplete
+                                  </span>
+                                )}
                               </div>
                               <span className="text-[11px] text-slate-600 font-medium block">
                                 {lead.doctorName || lead.customerName || lead.contact || 'Medical Representative'}
@@ -1448,23 +1449,33 @@ export default function AdminDashboardPage({ searchParams }) {
                             </td>
                             <td className="py-3 px-4 text-right">
                               <div className="flex items-center justify-end gap-1.5 flex-wrap">
-                                {/* Direct Quotation Action */}
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (typeof window !== 'undefined') {
-                                      try {
-                                        localStorage.setItem('active_quotation_lead', JSON.stringify(lead));
-                                      } catch (e) {}
-                                    }
-                                    setActiveTab('quotation');
-                                  }}
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold transition shadow-xs cursor-pointer shrink-0 hover:scale-105 active:scale-95"
-                                  title="Click to view and edit 4-page official quotation PDF"
-                                >
-                                  <Sparkles size={12} className="text-amber-200" />
-                                  <span>{lead.quotationRef ? `View Stamped PDF (${lead.quotationRef})` : 'Open / Make Quotation'}</span>
-                                </button>
+                                {/* Direct Quotation Action or Incomplete Profile Notice */}
+                                {isLeadProfileComplete(lead) || lead.quotationRef ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (typeof window !== 'undefined') {
+                                        try {
+                                          localStorage.setItem('active_quotation_lead', JSON.stringify(lead));
+                                        } catch (e) { }
+                                      }
+                                      setActiveTab('quotation');
+                                    }}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold transition shadow-xs cursor-pointer shrink-0 hover:scale-105 active:scale-95"
+                                    title="Click to view and edit 4-page official quotation PDF"
+                                  >
+                                    <Sparkles size={12} className="text-amber-200" />
+                                    <span>{lead.quotationRef ? `View Stamped PDF (${lead.quotationRef})` : 'Make Quotation'}</span>
+                                  </button>
+                                ) : (
+                                  <div
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold shadow-2xs"
+                                    title="Customer profile incomplete. Ask customer to complete profile on website."
+                                  >
+                                    <AlertCircle size={13} className="text-amber-600 shrink-0" />
+                                    <span>Ask customer to complete profile to generate quotation</span>
+                                  </div>
+                                )}
 
                                 {lead.phone && (
                                   <>
@@ -1545,8 +1556,8 @@ export default function AdminDashboardPage({ searchParams }) {
 
               {/* Top MongoDB Cluster Status Banner */}
               <div className={`p-6 rounded-3xl border shadow-xs transition flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${dbStatus.connected
-                  ? 'bg-emerald-50/70 border-emerald-200/80 text-emerald-950'
-                  : 'bg-amber-50/70 border-amber-200/80 text-amber-950'
+                ? 'bg-emerald-50/70 border-emerald-200/80 text-emerald-950'
+                : 'bg-amber-50/70 border-amber-200/80 text-amber-950'
                 }`}>
                 <div className="flex items-start sm:items-center gap-3.5">
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-xs shrink-0 ${dbStatus.connected ? 'bg-emerald-500' : 'bg-amber-500'
@@ -1727,8 +1738,8 @@ export default function AdminDashboardPage({ searchParams }) {
                   {/* Real-Time Test Feedback Banner */}
                   {mongoTestResult && (
                     <div className={`p-4 rounded-2xl border text-xs shadow-xs transition ${mongoTestResult.connected
-                        ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                        : 'bg-rose-50 border-rose-200 text-rose-900'
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                      : 'bg-rose-50 border-rose-200 text-rose-900'
                       }`}>
                       <div className="flex items-center gap-2 font-bold mb-1">
                         {mongoTestResult.connected ? (
@@ -1917,8 +1928,8 @@ export default function AdminDashboardPage({ searchParams }) {
                               type="button"
                               onClick={() => setSelectedCompanyId(company.id)}
                               className={`p-3.5 rounded-xl border transition text-left cursor-pointer flex flex-col justify-between ${isSelected
-                                  ? 'bg-sky-50 border-sky-500 ring-2 ring-sky-400/25 shadow-xs'
-                                  : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/60'
+                                ? 'bg-sky-50 border-sky-500 ring-2 ring-sky-400/25 shadow-xs'
+                                : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/60'
                                 }`}
                             >
                               <div>
@@ -1971,8 +1982,8 @@ export default function AdminDashboardPage({ searchParams }) {
                           type="button"
                           onClick={() => setTargetAudience('followup')}
                           className={`p-3 rounded-xl border transition text-left cursor-pointer flex flex-col justify-between ${targetAudience === 'followup'
-                              ? 'bg-amber-50/80 border-amber-400 font-semibold ring-2 ring-amber-300/30 shadow-xs'
-                              : 'bg-white border-slate-200 hover:bg-slate-50'
+                            ? 'bg-amber-50/80 border-amber-400 font-semibold ring-2 ring-amber-300/30 shadow-xs'
+                            : 'bg-white border-slate-200 hover:bg-slate-50'
                             }`}
                         >
                           <div className="flex items-center gap-1.5 text-xs text-amber-800">
@@ -1986,8 +1997,8 @@ export default function AdminDashboardPage({ searchParams }) {
                           type="button"
                           onClick={() => setTargetAudience('all')}
                           className={`p-3 rounded-xl border transition text-left cursor-pointer flex flex-col justify-between ${targetAudience === 'all'
-                              ? 'bg-sky-50/80 border-sky-400 font-semibold ring-2 ring-sky-300/30 shadow-xs'
-                              : 'bg-white border-slate-200 hover:bg-slate-50'
+                            ? 'bg-sky-50/80 border-sky-400 font-semibold ring-2 ring-sky-300/30 shadow-xs'
+                            : 'bg-white border-slate-200 hover:bg-slate-50'
                             }`}
                         >
                           <div className="flex items-center gap-1.5 text-xs text-sky-800">
@@ -2001,8 +2012,8 @@ export default function AdminDashboardPage({ searchParams }) {
                           type="button"
                           onClick={() => setTargetAudience('specific')}
                           className={`p-3 rounded-xl border transition text-left cursor-pointer flex flex-col justify-between ${targetAudience === 'specific'
-                              ? 'bg-indigo-50/80 border-indigo-400 font-semibold ring-2 ring-indigo-300/30 shadow-xs'
-                              : 'bg-white border-slate-200 hover:bg-slate-50'
+                            ? 'bg-indigo-50/80 border-indigo-400 font-semibold ring-2 ring-indigo-300/30 shadow-xs'
+                            : 'bg-white border-slate-200 hover:bg-slate-50'
                             }`}
                         >
                           <div className="flex items-center gap-1.5 text-xs text-indigo-800">
@@ -2016,8 +2027,8 @@ export default function AdminDashboardPage({ searchParams }) {
                           type="button"
                           onClick={() => setTargetAudience('new_sites')}
                           className={`p-3 rounded-xl border transition text-left cursor-pointer flex flex-col justify-between ${targetAudience === 'new_sites'
-                              ? 'bg-emerald-50/80 border-emerald-400 font-semibold ring-2 ring-emerald-300/30 shadow-xs'
-                              : 'bg-white border-slate-200 hover:bg-slate-50'
+                            ? 'bg-emerald-50/80 border-emerald-400 font-semibold ring-2 ring-emerald-300/30 shadow-xs'
+                            : 'bg-white border-slate-200 hover:bg-slate-50'
                             }`}
                         >
                           <div className="flex items-center gap-1.5 text-xs text-emerald-800">
@@ -2086,8 +2097,8 @@ export default function AdminDashboardPage({ searchParams }) {
                               type="button"
                               onClick={() => handleSelectTemplate(tpl.id)}
                               className={`px-3 py-1.5 rounded-xl border text-xs font-medium transition cursor-pointer ${selectedTemplateId === tpl.id
-                                  ? 'bg-sky-500 text-white border-sky-500 shadow-xs font-semibold'
-                                  : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                                ? 'bg-sky-500 text-white border-sky-500 shadow-xs font-semibold'
+                                : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
                                 }`}
                             >
                               {tpl.name}

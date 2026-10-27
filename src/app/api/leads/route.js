@@ -80,15 +80,33 @@ export async function GET() {
       const matched = customerByPhone.get(phoneClean) || customerByEmail.get(emailClean);
 
       if (matched) {
-        const hosp = (matched.hospitalName || '').trim();
-        const doc = (matched.fullName || '').trim();
-        const addr = (matched.address || '').trim();
-        const dist = (matched.district || '').trim();
+        const hosp = (matched.hospitalName || lead.hospital || '').trim();
+        const doc = (matched.fullName || lead.doctorName || '').trim();
+        const addr = (matched.address || lead.address || '').trim();
+        const dist = (matched.district || lead.city || '').trim();
+        const st = (matched.state || lead.state || '').trim();
+        const pin = (matched.pincode || lead.pincode || '').toString().trim();
+        const em = (matched.email || lead.email || '').trim();
+        const ph = (matched.phone || lead.phone || '').replace(/\D/g, '');
+
+        const isGeneric = !hosp || [
+          'clinic / hospital', 'healthcare facility', 'general hospital', 'hospital',
+          'customer hospital / lab', 'customer hospital / diagnostic lab'
+        ].some(g => hosp.toLowerCase() === g || hosp.toLowerCase().includes('healthcare institution'));
+
         const isComplete = Boolean(
+          !isGeneric &&
           hosp.length >= 3 &&
-          !['clinic / hospital', 'healthcare facility', 'general hospital', 'hospital'].some(g => hosp.toLowerCase() === g || hosp.toLowerCase().includes('healthcare institution')) &&
           doc.length >= 2 &&
-          (addr.length >= 3 || dist.length >= 3)
+          doc.toLowerCase() !== 'medical client' &&
+          ph.length >= 10 &&
+          em.length >= 5 &&
+          em.includes('@') &&
+          st.length >= 2 &&
+          dist.length >= 2 &&
+          dist.toLowerCase() !== 'india' &&
+          addr.length >= 3 &&
+          pin.length >= 4
         );
 
         if (isComplete) {
@@ -105,7 +123,28 @@ export async function GET() {
               hospitalName: hosp || lead.rawLeadData?.hospitalName,
               customerName: doc || lead.rawLeadData?.customerName,
               address: addr || lead.rawLeadData?.address,
-              district: dist || lead.rawLeadData?.district
+              district: dist || lead.rawLeadData?.district,
+              pincode: pin || lead.rawLeadData?.pincode,
+              state: st || lead.rawLeadData?.state
+            }
+          };
+        } else {
+          return {
+            ...lead,
+            isProfileComplete: false,
+            hospital: hosp || lead.hospital,
+            doctorName: doc || lead.doctorName,
+            address: addr || lead.address,
+            city: dist || lead.city,
+            rawLeadData: {
+              ...(lead.rawLeadData || {}),
+              isProfileComplete: false,
+              hospitalName: hosp || lead.rawLeadData?.hospitalName,
+              customerName: doc || lead.rawLeadData?.customerName,
+              address: addr || lead.rawLeadData?.address,
+              district: dist || lead.rawLeadData?.district,
+              pincode: pin || lead.rawLeadData?.pincode,
+              state: st || lead.rawLeadData?.state
             }
           };
         }
@@ -150,15 +189,33 @@ export async function GET() {
       const matched = customerByPhone.get(phoneClean) || customerByEmail.get(emailClean);
 
       if (matched) {
-        const hosp = (matched.hospitalName || '').trim();
-        const doc = (matched.fullName || '').trim();
-        const addr = (matched.address || '').trim();
-        const dist = (matched.district || '').trim();
+        const hosp = (matched.hospitalName || lead.hospital || '').trim();
+        const doc = (matched.fullName || lead.doctorName || '').trim();
+        const addr = (matched.address || lead.address || '').trim();
+        const dist = (matched.district || lead.city || '').trim();
+        const st = (matched.state || lead.state || '').trim();
+        const pin = (matched.pincode || lead.pincode || '').toString().trim();
+        const em = (matched.email || lead.email || '').trim();
+        const ph = (matched.phone || lead.phone || '').replace(/\D/g, '');
+
+        const isGeneric = !hosp || [
+          'clinic / hospital', 'healthcare facility', 'general hospital', 'hospital',
+          'customer hospital / lab', 'customer hospital / diagnostic lab'
+        ].some(g => hosp.toLowerCase() === g || hosp.toLowerCase().includes('healthcare institution'));
+
         const isComplete = Boolean(
+          !isGeneric &&
           hosp.length >= 3 &&
-          !['clinic / hospital', 'healthcare facility', 'general hospital', 'hospital'].some(g => hosp.toLowerCase() === g || hosp.toLowerCase().includes('healthcare institution')) &&
           doc.length >= 2 &&
-          (addr.length >= 3 || dist.length >= 3)
+          doc.toLowerCase() !== 'medical client' &&
+          ph.length >= 10 &&
+          em.length >= 5 &&
+          em.includes('@') &&
+          st.length >= 2 &&
+          dist.length >= 2 &&
+          dist.toLowerCase() !== 'india' &&
+          addr.length >= 3 &&
+          pin.length >= 4
         );
 
         if (isComplete) {
@@ -175,7 +232,28 @@ export async function GET() {
               hospitalName: hosp || lead.rawLeadData?.hospitalName,
               customerName: doc || lead.rawLeadData?.customerName,
               address: addr || lead.rawLeadData?.address,
-              district: dist || lead.rawLeadData?.district
+              district: dist || lead.rawLeadData?.district,
+              pincode: pin || lead.rawLeadData?.pincode,
+              state: st || lead.rawLeadData?.state
+            }
+          };
+        } else {
+          return {
+            ...lead,
+            isProfileComplete: false,
+            hospital: hosp || lead.hospital,
+            doctorName: doc || lead.doctorName,
+            address: addr || lead.address,
+            city: dist || lead.city,
+            rawLeadData: {
+              ...(lead.rawLeadData || {}),
+              isProfileComplete: false,
+              hospitalName: hosp || lead.rawLeadData?.hospitalName,
+              customerName: doc || lead.rawLeadData?.customerName,
+              address: addr || lead.rawLeadData?.address,
+              district: dist || lead.rawLeadData?.district,
+              pincode: pin || lead.rawLeadData?.pincode,
+              state: st || lead.rawLeadData?.state
             }
           };
         }
