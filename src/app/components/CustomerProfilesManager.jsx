@@ -33,8 +33,8 @@ export default function CustomerProfilesManager({ onRefreshNeeded }) {
   const [selectedAuditCustomer, setSelectedAuditCustomer] = useState(null);
   const [isDeletingId, setIsDeletingId] = useState(null);
 
-  const fetchCustomers = async () => {
-    setIsLoading(true);
+  const fetchCustomers = async (silent = false) => {
+    if (!silent) setIsLoading(true);
     try {
       const res = await fetch('/api/customers');
       const data = await res.json();
@@ -49,9 +49,9 @@ export default function CustomerProfilesManager({ onRefreshNeeded }) {
   };
 
   useEffect(() => {
-    fetchCustomers();
-    // Poll for new/edited profiles every 6 seconds
-    const interval = setInterval(fetchCustomers, 6000);
+    fetchCustomers(false);
+    // Poll for new/edited profiles every 6 seconds silently without flickering
+    const interval = setInterval(() => fetchCustomers(true), 6000);
     return () => clearInterval(interval);
   }, []);
 

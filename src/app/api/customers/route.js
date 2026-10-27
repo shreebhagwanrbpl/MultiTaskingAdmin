@@ -1,12 +1,49 @@
 import { NextResponse } from 'next/server';
 import { getDatabase } from '../../../lib/mongodb';
 import { ObjectId } from 'mongodb';
+import fs from 'fs';
+import path from 'path';
 
 export const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
 };
+
+const CUSTOMERS_FILE = path.join(process.cwd(), 'src', 'data', 'customers.json');
+
+function readLocalCustomers() {
+  try {
+    if (fs.existsSync(CUSTOMERS_FILE)) {
+      const content = fs.readFileSync(CUSTOMERS_FILE, 'utf-8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to read local customers file:', e.message);
+  }
+  return global._biomedical_customers && Array.isArray(global._biomedical_customers)
+    ? global._biomedical_customers
+    : [];
+}
+
+function writeLocalCustomers(list) {
+  try {
+    const dir = path.dirname(CUSTOMERS_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(CUSTOMERS_FILE, JSON.stringify(list, null, 2), 'utf-8');
+    global._biomedical_customers = list;
+    return true;
+  } catch (e) {
+    console.warn('Failed to write local customers file:', e.message);
+    global._biomedical_customers = list;
+    return false;
+  }
+}
 
 export async function OPTIONS() {
   return new NextResponse(null, {
@@ -16,11 +53,11 @@ export async function OPTIONS() {
 }
 
 export async function GET(request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const search = searchParams.get('search');
-    const district = searchParams.get('district');
+  const { searchParams } = new URL(request.url);
+  const search = searchParams.get('search');
+  const district = searchParams.get('district');
 
+  try {
     const db = await getDatabase();
     const collection = db.collection('customers');
 
@@ -42,52 +79,79 @@ export async function GET(request) {
 
     const customers = await collection.find(query).sort({ updatedAt: -1, createdAt: -1 }).toArray();
 
+    // Sync to local fallback
+    if (customers.length > 0) {
+      writeLocalCustomers(customers);
+    }
+
     return NextResponse.json({
       success: true,
       source: 'mongodb',
+      isDbConnected: true,
       count: customers.length,
       customers
     }, { headers: CORS_HEADERS });
   } catch (err) {
+    // MongoDB offline / standby mode -> return local persistent storage with status 200 (NO 500 error!)
+    let localCustomers = readLocalCustomers();
+
+    if (district && district !== 'all') {
+      localCustomers = localCustomers.filter(c =>
+        c.district && c.district.toLowerCase() === district.toLowerCase()
+      );
+    }
+
+    if (search && search.trim()) {
+      const s = search.trim().toLowerCase();
+      localCustomers = localCustomers.filter(c =>
+        (c.fullName && c.fullName.toLowerCase().includes(s)) ||
+        (c.hospitalName && c.hospitalName.toLowerCase().includes(s)) ||
+        (c.phone && c.phone.includes(s)) ||
+        (c.email && c.email.toLowerCase().includes(s)) ||
+        (c.district && c.district.toLowerCase().includes(s)) ||
+        (c.designation && c.designation.toLowerCase().includes(s))
+      );
+    }
+
     return NextResponse.json({
-      success: false,
-      error: err.message,
-      count: 0,
-      customers: []
-    }, { status: 500, headers: CORS_HEADERS });
+      success: true,
+      source: 'fallback',
+      isDbConnected: false,
+      count: localCustomers.length,
+      customers: localCustomers
+    }, { status: 200, headers: CORS_HEADERS });
   }
 }
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const db = await getDatabase();
-    const collection = db.collection('customers');
 
     const phone = (body.phone || '').trim();
     const email = (body.email || '').trim();
     const id = body.id || (phone ? `cust-${phone.replace(/\D/g, '').slice(-10)}` : `cust-${Date.now()}`);
 
-    // Check if customer already exists by phone, email, or id
-    const filterConditions = [];
-    if (phone) filterConditions.push({ phone });
-    if (email) filterConditions.push({ email });
-    if (id) filterConditions.push({ id });
-
-    let existing = null;
-    if (filterConditions.length > 0) {
-      existing = await collection.findOne({ $or: filterConditions });
-    }
-
     const now = new Date().toISOString();
+    let currentList = readLocalCustomers();
+
+    // Check if customer already exists in local storage
+    const cleanPhone = (phone || '').replace(/\D/g, '').slice(-10);
+    const cleanEmail = (email || '').trim().toLowerCase();
+
+    const existingIdx = currentList.findIndex(c => {
+      const cPhone = (c.phone || '').replace(/\D/g, '').slice(-10);
+      const cEmail = (c.email || '').trim().toLowerCase();
+      return (c.id && c.id === id) ||
+             (cleanPhone && cPhone && cleanPhone === cPhone) ||
+             (cleanEmail && cEmail && cleanEmail === cEmail);
+    });
+
     let resultRecord;
+    const incoming = body.profileDetails || body;
 
-    if (existing) {
+    if (existingIdx >= 0) {
       // Profile Edited
-      const prev = existing;
-      const incoming = body.profileDetails || body;
-
-      // Detect field-level changes
+      const prev = currentList[existingIdx];
       const trackedFields = [
         { key: 'fullName', label: 'Name' },
         { key: 'hospitalName', label: 'Hospital' },
@@ -118,25 +182,24 @@ export async function POST(request) {
         changes: detectedChanges
       };
 
-      const editHistory = Array.isArray(existing.editHistory) ? existing.editHistory : [];
+      const editHistory = Array.isArray(prev.editHistory) ? prev.editHistory : [];
       editHistory.unshift(auditEntry);
 
-      const updateData = {
+      resultRecord = {
+        ...prev,
         ...incoming,
-        id: existing.id || id,
+        id: prev.id || id,
         lastAction: 'Profile Edited',
         lastActionAt: now,
         updatedAt: now,
-        editCount: (existing.editCount || 0) + 1,
-        editHistory: editHistory.slice(0, 20) // Keep last 20 audit events
+        editCount: (prev.editCount || 0) + 1,
+        editHistory: editHistory.slice(0, 20)
       };
-      delete updateData._id;
+      delete resultRecord._id;
 
-      await collection.updateOne({ _id: existing._id }, { $set: updateData });
-      resultRecord = { ...existing, ...updateData };
+      currentList[existingIdx] = resultRecord;
     } else {
       // First Time Registration
-      const incoming = body.profileDetails || body;
       const initialEntry = {
         timestamp: now,
         action: 'Initial Profile Created',
@@ -144,7 +207,7 @@ export async function POST(request) {
         changes: []
       };
 
-      const newCustomer = {
+      resultRecord = {
         ...incoming,
         id,
         siteDomain: body.siteDomain || 'rajbiosis.com',
@@ -156,21 +219,47 @@ export async function POST(request) {
         editCount: 0,
         editHistory: [initialEntry]
       };
-      delete newCustomer._id;
+      delete resultRecord._id;
 
-      const insertResult = await collection.insertOne(newCustomer);
-      resultRecord = { ...newCustomer, _id: insertResult.insertedId };
+      currentList.unshift(resultRecord);
     }
 
-    // Auto-update all matching leads in the leads collection & memory when customer profile is saved/updated
+    // 1. Always save to local JSON file
+    writeLocalCustomers(currentList);
+
+    // 2. Try saving to MongoDB if available
+    let savedToMongo = false;
     try {
-      const cleanPhone = (phone || '').replace(/\D/g, '').slice(-10);
-      const cleanEmail = (email || '').trim().toLowerCase();
-      const incomingData = body.profileDetails || body;
-      const hosp = (incomingData.hospitalName || '').trim();
-      const doc = (incomingData.fullName || '').trim();
-      const addr = (incomingData.address || '').trim();
-      const dist = (incomingData.district || '').trim();
+      const db = await getDatabase();
+      const collection = db.collection('customers');
+      const filterConditions = [];
+      if (phone) filterConditions.push({ phone });
+      if (email) filterConditions.push({ email });
+      if (id) filterConditions.push({ id });
+
+      let existingDb = null;
+      if (filterConditions.length > 0) {
+        existingDb = await collection.findOne({ $or: filterConditions });
+      }
+
+      if (existingDb) {
+        await collection.updateOne({ _id: existingDb._id }, { $set: resultRecord });
+        resultRecord._id = existingDb._id;
+      } else {
+        const insertRes = await collection.insertOne(resultRecord);
+        resultRecord._id = insertRes.insertedId;
+      }
+      savedToMongo = true;
+    } catch (dbErr) {
+      // MongoDB offline - persistent local storage handled it safely!
+    }
+
+    // 3. Auto-update matching leads in memory & local storage
+    try {
+      const hosp = (incoming.hospitalName || '').trim();
+      const doc = (incoming.fullName || '').trim();
+      const addr = (incoming.address || '').trim();
+      const dist = (incoming.district || '').trim();
 
       const isComplete = Boolean(
         hosp.length >= 3 &&
@@ -179,81 +268,31 @@ export async function POST(request) {
         (addr.length >= 3 || dist.length >= 3)
       );
 
-      const leadsCollection = db.collection('leads');
-      const matchConditions = [];
-      if (cleanPhone) {
-        matchConditions.push({ phone: { $regex: cleanPhone } });
-        matchConditions.push({ 'rawLeadData.customerPhone': { $regex: cleanPhone } });
-        matchConditions.push({ 'rawLeadData.phone': { $regex: cleanPhone } });
+      // Auto update in-memory global leads
+      if (global._biomedical_leads && Array.isArray(global._biomedical_leads)) {
+        global._biomedical_leads = global._biomedical_leads.map(l => {
+          const lPhone = (l.phone || l.customerPhone || l.rawLeadData?.customerPhone || l.rawLeadData?.phone || '').replace(/\D/g, '').slice(-10);
+          const lEmail = (l.email || l.customerEmail || l.rawLeadData?.customerEmail || '').trim().toLowerCase();
+          if ((cleanPhone && lPhone.includes(cleanPhone)) || (cleanEmail && lEmail === cleanEmail)) {
+            return {
+              ...l,
+              isProfileComplete: isComplete,
+              hospital: hosp || l.hospital,
+              doctorName: doc || l.doctorName,
+              address: addr || l.address,
+              city: dist || l.city
+            };
+          }
+          return l;
+        });
       }
-      if (cleanEmail) {
-        matchConditions.push({ email: { $regex: `^${cleanEmail}$`, $options: 'i' } });
-        matchConditions.push({ 'rawLeadData.customerEmail': { $regex: `^${cleanEmail}$`, $options: 'i' } });
-      }
-
-      if (matchConditions.length > 0) {
-        const leadUpdateFields = {
-          updatedAt: now,
-          isProfileComplete: isComplete,
-          'rawLeadData.isProfileComplete': isComplete
-        };
-        if (hosp) {
-          leadUpdateFields.hospital = hosp;
-          leadUpdateFields['rawLeadData.hospitalName'] = hosp;
-        }
-        if (doc) {
-          leadUpdateFields.doctorName = doc;
-          leadUpdateFields['rawLeadData.customerName'] = doc;
-        }
-        if (addr) {
-          leadUpdateFields.address = addr;
-          leadUpdateFields['rawLeadData.address'] = addr;
-        }
-        if (dist) {
-          leadUpdateFields.city = dist;
-          leadUpdateFields['rawLeadData.district'] = dist;
-        }
-
-        await leadsCollection.updateMany(
-          { $or: matchConditions },
-          { $set: leadUpdateFields }
-        );
-
-        // Also update in-memory global leads fallback if present
-        if (global._biomedical_leads && Array.isArray(global._biomedical_leads)) {
-          global._biomedical_leads = global._biomedical_leads.map(l => {
-            const lPhone = (l.phone || l.customerPhone || l.rawLeadData?.customerPhone || l.rawLeadData?.phone || '').replace(/\D/g, '').slice(-10);
-            const lEmail = (l.email || l.customerEmail || l.rawLeadData?.customerEmail || '').trim().toLowerCase();
-            if ((cleanPhone && lPhone.includes(cleanPhone)) || (cleanEmail && lEmail === cleanEmail)) {
-              return {
-                ...l,
-                isProfileComplete: isComplete,
-                hospital: hosp || l.hospital,
-                doctorName: doc || l.doctorName,
-                address: addr || l.address,
-                city: dist || l.city,
-                rawLeadData: {
-                  ...(l.rawLeadData || {}),
-                  isProfileComplete: isComplete,
-                  hospitalName: hosp || l.rawLeadData?.hospitalName,
-                  customerName: doc || l.rawLeadData?.customerName,
-                  address: addr || l.rawLeadData?.address,
-                  district: dist || l.rawLeadData?.district
-                }
-              };
-            }
-            return l;
-          });
-        }
-      }
-    } catch (leadUpdateErr) {
-      console.warn('Auto-updating leads on customer profile save error:', leadUpdateErr);
-    }
+    } catch (e) {}
 
     return NextResponse.json({
       success: true,
-      message: existing ? 'Customer profile updated with change audit log' : 'Customer profile registered successfully',
-      isNew: !existing,
+      message: existingIdx >= 0 ? 'Customer profile updated with change audit log' : 'Customer profile registered successfully',
+      isNew: existingIdx < 0,
+      source: savedToMongo ? 'mongodb' : 'local',
       customer: resultRecord
     }, { headers: CORS_HEADERS });
   } catch (err) {
@@ -267,11 +306,14 @@ export async function DELETE(request) {
     const id = searchParams.get('id');
     const clearAll = searchParams.get('all') === 'true';
 
-    const db = await getDatabase();
-    const collection = db.collection('customers');
+    let currentList = readLocalCustomers();
 
     if (clearAll) {
-      await collection.deleteMany({});
+      writeLocalCustomers([]);
+      try {
+        const db = await getDatabase();
+        await db.collection('customers').deleteMany({});
+      } catch (e) {}
       return NextResponse.json({ success: true, cleared: true, count: 0 }, { headers: CORS_HEADERS });
     }
 
@@ -279,12 +321,19 @@ export async function DELETE(request) {
       return NextResponse.json({ success: false, error: 'Customer ID required' }, { status: 400, headers: CORS_HEADERS });
     }
 
-    let query = { id };
-    if (ObjectId.isValid(id)) {
-      query = { $or: [{ id }, { _id: new ObjectId(id) }] };
-    }
+    const filtered = currentList.filter(c => c.id !== id && c._id !== id);
+    writeLocalCustomers(filtered);
 
-    await collection.deleteOne(query);
+    try {
+      const db = await getDatabase();
+      const collection = db.collection('customers');
+      let query = { id };
+      if (ObjectId.isValid(id)) {
+        query = { $or: [{ id }, { _id: new ObjectId(id) }] };
+      }
+      await collection.deleteOne(query);
+    } catch (e) {}
+
     return NextResponse.json({ success: true, deletedId: id }, { headers: CORS_HEADERS });
   } catch (err) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500, headers: CORS_HEADERS });

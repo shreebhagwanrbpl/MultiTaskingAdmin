@@ -89,6 +89,12 @@ function writeLocalQuotations(list) {
   }
 }
 
+export const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+};
+
 export async function GET() {
   const localDocs = readLocalQuotations();
 
@@ -110,7 +116,7 @@ export async function GET() {
       count: normalized.length,
       quotations: normalized,
       storage: 'mongodb'
-    });
+    }, { headers: CORS_HEADERS });
   } catch (error) {
     // MongoDB is offline/standby -> return persistent local storage
     return NextResponse.json({
@@ -119,7 +125,7 @@ export async function GET() {
       quotations: localDocs,
       storage: 'local',
       fallback: true
-    });
+    }, { headers: CORS_HEADERS });
   }
 }
 
@@ -176,9 +182,9 @@ export async function POST(request) {
         : `Quotation saved successfully for "${newQuotation.customerName}"!`,
       storage: savedToMongo ? 'mongodb' : 'local',
       quotation: newQuotation
-    });
+    }, { headers: CORS_HEADERS });
   } catch (error) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message }, { status: 500, headers: CORS_HEADERS });
   }
 }
 
@@ -188,7 +194,7 @@ export async function DELETE(request) {
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json({ success: false, error: 'Quotation ID required' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Quotation ID required' }, { status: 400, headers: CORS_HEADERS });
     }
 
     // Always delete from persistent local storage
@@ -213,19 +219,16 @@ export async function DELETE(request) {
       success: true,
       message: 'Quotation deleted successfully',
       deletedId: id
-    });
+    }, { headers: CORS_HEADERS });
   } catch (error) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message }, { status: 500, headers: CORS_HEADERS });
   }
 }
 
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
-    },
+    headers: CORS_HEADERS,
   });
 }
+

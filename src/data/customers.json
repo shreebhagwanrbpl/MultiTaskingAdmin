@@ -1,0 +1,56 @@
+[
+  {
+    "id": "cust-9983333469",
+    "fullName": "Dr. Bhupender Raj",
+    "hospitalName": "Raj Biosis Medical & Research Institute",
+    "phone": "+91 998-3333-469",
+    "email": "bhupender@rajbiosis.com",
+    "district": "Jaipur",
+    "state": "Rajasthan",
+    "designation": "Chief Biomedical Consultant",
+    "address": "B-7, Aman Plaza, Plot No. 26, Heera Nagar-A, Chitrakoot",
+    "pincode": "302021",
+    "siteDomain": "rajbiosis.com",
+    "brandName": "Raj Biosis",
+    "lastAction": "Profile Registered",
+    "lastActionAt": "2026-10-27T06:00:00.000Z",
+    "createdAt": "2026-10-27T06:00:00.000Z",
+    "updatedAt": "2026-10-27T06:00:00.000Z",
+    "editCount": 0,
+    "editHistory": [
+      {
+        "timestamp": "2026-10-27T06:00:00.000Z",
+        "action": "Initial Profile Created",
+        "summary": "Account registered for Dr. Bhupender Raj (Raj Biosis Medical & Research Institute)",
+        "changes": []
+      }
+    ]
+  },
+  {
+    "id": "cust-8596457256",
+    "fullName": "Dr. Manish Kumawat",
+    "hospitalName": "Manish Kumawat's Medical Clinic",
+    "phone": "+91 8596457256",
+    "email": "manish@kumawatclinic.org",
+    "district": "Jaipur",
+    "state": "Rajasthan",
+    "designation": "Consultant Physician",
+    "address": "Opposite Civil Lines Hospital, Tonk Road",
+    "pincode": "302015",
+    "siteDomain": "rajbiosis.com",
+    "brandName": "Raj Biosis",
+    "lastAction": "Profile Registered",
+    "lastActionAt": "2026-10-27T06:38:00.000Z",
+    "createdAt": "2026-10-27T06:38:00.000Z",
+    "updatedAt": "2026-10-27T06:38:00.000Z",
+    "editCount": 0,
+    "editHistory": [
+      {
+        "timestamp": "2026-10-27T06:38:00.000Z",
+        "action": "Initial Profile Created",
+        "summary": "Account registered for Dr. Manish Kumawat (Manish Kumawat's Medical Clinic)",
+        "changes": []
+      }
+    ]
+  }
+]

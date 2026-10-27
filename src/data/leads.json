@@ -1,0 +1,25 @@
+[
+  {
+    "id": "lead-1729987100000",
+    "doctorName": "Dr. Manish Kumawat",
+    "hospital": "Manish Kumawat's Medical Clinic",
+    "city": "Jaipur",
+    "email": "manish@kumawatclinic.org",
+    "phone": "+91 8596457256",
+    "equipment": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "productName": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "productSku": "MED-MON-001",
+    "price": 68500,
+    "quoteAmount": "₹76,720",
+    "estimatedValue": 76720,
+    "sourceDomain": "rajbiosis.com",
+    "siteDomain": "rajbiosis.com",
+    "brandName": "Raj Biosis",
+    "status": "Quote Generated",
+    "quantity": "1 Unit",
+    "createdAt": "2026-10-27T06:38:27.959Z",
+    "date": "Today, 12:08 PM",
+    "isProfileComplete": true,
+    "address": "Opposite Civil Lines Hospital, Tonk Road"
+  }
+]

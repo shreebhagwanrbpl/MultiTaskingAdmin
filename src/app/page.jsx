@@ -1154,16 +1154,33 @@ export default function AdminDashboardPage({ searchParams }) {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto justify-end shrink-0">
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end shrink-0 flex-wrap">
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== 'undefined' && newLeadAlerts[0]) {
+                    try {
+                      localStorage.setItem('active_quotation_lead', JSON.stringify(newLeadAlerts[0]));
+                    } catch (e) {}
+                  }
+                  setActiveTab('quotation');
+                  setNewLeadAlerts([]);
+                }}
+                className="px-3.5 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <Sparkles size={13} className="text-amber-200" />
+                <span>Open Quotation Desk</span>
+                <ArrowRight size={13} />
+              </button>
               <button
                 type="button"
                 onClick={() => {
                   setActiveTab('leads');
                   setNewLeadAlerts([]);
                 }}
-                className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                className="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
               >
-                <span>View RFQ Inquiries</span>
+                <span>View Leads</span>
                 <ArrowRight size={13} />
               </button>
               <button
@@ -1431,26 +1448,23 @@ export default function AdminDashboardPage({ searchParams }) {
                             </td>
                             <td className="py-3 px-4 text-right">
                               <div className="flex items-center justify-end gap-1.5 flex-wrap">
-                                {/* Quotation Readiness Action */}
-                                {isLeadProfileComplete(lead) ? (
-                                  <button
-                                    type="button"
-                                    onClick={() => setActiveTab('quotation')}
-                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-xs cursor-pointer shrink-0"
-                                    title="Profile Complete: Click to generate official quotation"
-                                  >
-                                    <Sparkles size={11} className="text-amber-200" />
-                                    <span>Make Quotation</span>
-                                  </button>
-                                ) : (
-                                  <span
-                                    className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg shrink-0 text-left"
-                                    title="Customer profile incomplete. Ask customer to complete profile before generating quotation."
-                                  >
-                                    <AlertCircle size={11} className="text-amber-600 shrink-0" />
-                                    <span>Incomplete Profile: Ask customer to complete profile first</span>
-                                  </span>
-                                )}
+                                {/* Direct Quotation Action */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (typeof window !== 'undefined') {
+                                      try {
+                                        localStorage.setItem('active_quotation_lead', JSON.stringify(lead));
+                                      } catch (e) {}
+                                    }
+                                    setActiveTab('quotation');
+                                  }}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold transition shadow-xs cursor-pointer shrink-0 hover:scale-105 active:scale-95"
+                                  title="Click to view and edit 4-page official quotation PDF"
+                                >
+                                  <Sparkles size={12} className="text-amber-200" />
+                                  <span>{lead.quotationRef ? `View Stamped PDF (${lead.quotationRef})` : 'Open / Make Quotation'}</span>
+                                </button>
 
                                 {lead.phone && (
                                   <>

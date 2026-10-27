@@ -120,6 +120,7 @@ export default function WebQuotationManager({ products = [] }) {
   const [processedLeadIds, setProcessedLeadIds] = useState([]);
   const [hasNewLeadAlert, setHasNewLeadAlert] = useState(false);
   const [isLeadsModalOpen, setIsLeadsModalOpen] = useState(false);
+  const [incomingQuotationAlert, setIncomingQuotationAlert] = useState(null);
 
 
   // Filter for leads that need a quotation (status 'Pending RFQ' or 'new', and not processed this session)
@@ -192,12 +193,20 @@ export default function WebQuotationManager({ products = [] }) {
   }, []);
 
   // Fetch saved quotations
-  const fetchQuotations = async () => {
+  const fetchQuotations = async (silent = false) => {
     try {
       const res = await fetch('/api/quotations');
       const data = await res.json();
       if (data.success && Array.isArray(data.quotations)) {
-        setSavedQuotations(data.quotations);
+        setSavedQuotations(prev => {
+          const prevIds = new Set(prev.map(q => q.id || q._id || q.refNo));
+          const fresh = data.quotations.filter(q => !prevIds.has(q.id || q._id || q.refNo));
+          if (fresh.length > 0 && !silent && prev.length > 0) {
+            setIncomingQuotationAlert(fresh[0]);
+            playLeadNotificationSound();
+          }
+          return data.quotations;
+        });
       }
     } catch (err) {
       console.warn('Quotations fetch failed:', err);
@@ -306,6 +315,23 @@ export default function WebQuotationManager({ products = [] }) {
     } catch (e) {}
   };
 
+  // Helper to insert incoming web quotation immediately (0ms latency)
+  const insertIncomingQuotation = (quotation) => {
+    if (!quotation) return;
+    const qId = quotation.id || quotation._id;
+    setSavedQuotations(prev => {
+      const exists = prev.some(q => (q.id || q._id) === qId || (q.refNo && quotation.refNo && q.refNo === quotation.refNo));
+      if (exists) {
+        return prev.map(q => (q.id || q._id) === qId || (q.refNo && quotation.refNo && q.refNo === quotation.refNo) ? { ...q, ...quotation } : q);
+      }
+      return [quotation, ...prev];
+    });
+    setIncomingQuotationAlert(quotation);
+    playLeadNotificationSound();
+    const customer = quotation.customerName || 'Website Customer';
+    setSuccessToast(`⚡ Stamped Quotation received for ${customer}! (Ref: ${quotation.refNo || 'Generated'})`);
+  };
+
   // Helper to insert incoming web lead immediately (0ms latency)
   const insertIncomingLead = (freshLead) => {
     if (!freshLead) return;
@@ -352,24 +378,55 @@ export default function WebQuotationManager({ products = [] }) {
 
   useEffect(() => {
     fetchWebLeads(true);
+    fetchQuotations(true);
 
     // Fast polling every 1200ms so any web submission arrives in ~1 second even without local events
     const interval = setInterval(() => {
       fetchWebLeads(false);
       fetchCustomerProfiles();
+      fetchQuotations(false);
     }, 1200);
 
-    // 1. Initial check on mount from localStorage (only if fresh within last 10 seconds)
+    // Check for lead or quotation passed from dashboard or local storage
     try {
       if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem('latest_web_lead');
-        if (stored) {
-          const lead = JSON.parse(stored);
+        const activeLeadStr = localStorage.getItem('active_quotation_lead');
+        if (activeLeadStr) {
+          const parsedLead = JSON.parse(activeLeadStr);
+          if (parsedLead) {
+            handleMakeQuotationFromLead(parsedLead);
+            localStorage.removeItem('active_quotation_lead');
+          }
+        }
+        const activeQuotStr = localStorage.getItem('active_quotation');
+        if (activeQuotStr) {
+          const parsedQuot = JSON.parse(activeQuotStr);
+          if (parsedQuot) {
+            handleLoadSavedQuotation(parsedQuot);
+            localStorage.removeItem('active_quotation');
+          }
+        }
+
+        // 1. Initial check on mount from localStorage (only if fresh within last 15 seconds)
+        const storedLead = localStorage.getItem('latest_web_lead');
+        if (storedLead) {
+          const lead = JSON.parse(storedLead);
           const leadTs = lead?.ts || 0;
-          if (Date.now() - leadTs < 10 * 1000) {
+          if (Date.now() - leadTs < 15 * 1000) {
             insertIncomingLead(lead);
           } else {
             localStorage.removeItem('latest_web_lead');
+          }
+        }
+
+        const storedQuot = localStorage.getItem('latest_web_quotation');
+        if (storedQuot) {
+          const quot = JSON.parse(storedQuot);
+          const quotTs = quot?.ts || 0;
+          if (Date.now() - quotTs < 15 * 1000) {
+            insertIncomingQuotation(quot);
+          } else {
+            localStorage.removeItem('latest_web_quotation');
           }
         }
       }
@@ -381,6 +438,9 @@ export default function WebQuotationManager({ products = [] }) {
       if (typeof window !== 'undefined') {
         channel = new BroadcastChannel('biomedical_leads_channel');
         channel.onmessage = (event) => {
+          if (event.data?.type === 'NEW_WEB_QUOTATION' && event.data.quotation) {
+            insertIncomingQuotation(event.data.quotation);
+          }
           if (event.data?.type === 'NEW_WEB_LEAD' && event.data.lead) {
             insertIncomingLead(event.data.lead);
           }
@@ -390,6 +450,9 @@ export default function WebQuotationManager({ products = [] }) {
 
     // 3. Window postMessage listener (for iframes, child windows, and popups)
     const handleWindowMessage = (event) => {
+      if (event.data?.type === 'NEW_WEB_QUOTATION' && event.data.quotation) {
+        insertIncomingQuotation(event.data.quotation);
+      }
       if (event.data?.type === 'NEW_WEB_LEAD' && event.data.lead) {
         insertIncomingLead(event.data.lead);
       }
@@ -404,12 +467,24 @@ export default function WebQuotationManager({ products = [] }) {
         insertIncomingLead(event.detail);
       }
     };
+    const handleCustomQuotation = (event) => {
+      if (event.detail) {
+        insertIncomingQuotation(event.detail);
+      }
+    };
     if (typeof window !== 'undefined') {
       window.addEventListener('new_web_lead', handleCustomLead);
+      window.addEventListener('new_web_quotation', handleCustomQuotation);
     }
 
     // 5. LocalStorage storage event listener (cross-window fallback)
     const handleStorage = (e) => {
+      if (e.key === 'latest_web_quotation' && e.newValue) {
+        try {
+          const quot = JSON.parse(e.newValue);
+          if (quot) insertIncomingQuotation(quot);
+        } catch (err) {}
+      }
       if (e.key === 'latest_web_lead' && e.newValue) {
         try {
           const lead = JSON.parse(e.newValue);
@@ -429,6 +504,7 @@ export default function WebQuotationManager({ products = [] }) {
       if (typeof window !== 'undefined') {
         window.removeEventListener('message', handleWindowMessage);
         window.removeEventListener('new_web_lead', handleCustomLead);
+        window.removeEventListener('new_web_quotation', handleCustomQuotation);
         window.removeEventListener('storage', handleStorage);
       }
     };
@@ -1342,49 +1418,39 @@ export default function WebQuotationManager({ products = [] }) {
                         </div>
                       </div>
 
-                      {/* Right Column: Make Quotation Button OR Incomplete Profile Notice */}
-                      <div className="shrink-0 flex items-center justify-end">
-                        {complete ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              handleMakeQuotationFromLead(lead);
-                              setIsLeadsModalOpen(false);
-                            }}
-                            className="w-full md:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white text-xs font-extrabold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer hover:scale-105 active:scale-95 ring-2 ring-amber-400/40"
-                            title="Click to generate official quotation within 1 second"
+                      {/* Right Column: Make Quotation Button */}
+                      <div className="shrink-0 flex flex-col md:flex-row items-center gap-2 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleMakeQuotationFromLead(lead);
+                            setIsLeadsModalOpen(false);
+                          }}
+                          className="w-full md:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white text-xs font-extrabold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer hover:scale-105 active:scale-95 ring-2 ring-amber-400/40"
+                          title="Click to generate official quotation within 1 second"
+                        >
+                          <Sparkles size={14} className="text-amber-100" />
+                          <span>Make Quotation</span>
+                          <ArrowRight size={14} />
+                        </button>
+
+                        {!complete && lead.phone && (
+                          <a
+                            href={`https://wa.me/91${(lead.phone || '').replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Hello Dr. ${lead.doctorName || lead.customerName || ''}, regarding your quotation request for ${lead.equipment || 'medical equipment'} with Raj Biosis:`)}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-950 bg-amber-100 hover:bg-amber-200 px-3 py-2 rounded-xl transition border border-amber-200"
+                            title="Request additional profile info on WhatsApp"
                           >
-                            <Sparkles size={14} className="text-amber-100" />
-                            <span>Make Quotation</span>
-                            <ArrowRight size={14} />
-                          </button>
-                        ) : (
-                        <div className="w-full md:w-72 p-3 bg-amber-50/90 border border-amber-200 rounded-xl text-left space-y-1.5 shadow-2xs">
-                          <div className="flex items-center gap-1.5 text-amber-900 text-xs font-bold">
-                            <AlertCircle size={14} className="text-amber-600 shrink-0" />
-                            <span>Incomplete Customer Profile</span>
-                          </div>
-                          <p className="text-[11px] text-amber-800 font-semibold leading-tight">
-                            Please ask customer to complete profile first before generating quotation.
-                          </p>
-                          {lead.phone && (
-                            <a
-                              href={`https://wa.me/91${(lead.phone || '').replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Hello Dr. ${lead.doctorName || lead.customerName || ''}, please complete your hospital profile details on our website (hospital name & delivery address) so our biomedical engineering team can issue your official quotation.`)}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-950 bg-amber-200/80 hover:bg-amber-300 px-2.5 py-1 rounded-md transition"
-                            >
-                              <span>Request Profile on WhatsApp</span>
-                              <ArrowRight size={10} />
-                            </a>
-                          )}
-                        </div>
-                      )}
+                            <span>WhatsApp</span>
+                            <ArrowRight size={11} />
+                          </a>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })
-            )}
+                  );
+                })
+              )}
             </div>
 
             {/* Modal Footer */}
@@ -1401,6 +1467,63 @@ export default function WebQuotationManager({ products = [] }) {
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* REAL-TIME INCOMING WEBSITE QUOTATION BANNER */}
+      {incomingQuotationAlert && (
+        <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 text-white p-4 rounded-3xl shadow-lg border border-emerald-400/40 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in slide-in-from-top-4 duration-300">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center font-bold text-white shrink-0 shadow-inner">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-200 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+              </span>
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] uppercase tracking-wider font-extrabold bg-white/25 px-2 py-0.5 rounded-full">
+                  ⚡ Live Website Quotation
+                </span>
+                <span className="text-[11px] font-mono font-bold bg-black/20 px-2 py-0.5 rounded-md">
+                  Ref: {incomingQuotationAlert.refNo}
+                </span>
+                <span className="text-xs opacity-90">Just received from website</span>
+              </div>
+              <h3 className="text-sm md:text-base font-extrabold mt-0.5 flex items-center gap-2">
+                <span>{incomingQuotationAlert.customerName}</span>
+                <span className="font-mono font-bold text-amber-200 bg-black/20 px-2 py-0.5 rounded-lg text-xs md:text-sm">
+                  ₹{formatCurrency(incomingQuotationAlert.grandTotal || incomingQuotationAlert.subtotal)}
+                </span>
+              </h3>
+              <p className="text-xs text-emerald-100 truncate max-w-xl">
+                {incomingQuotationAlert.items?.map(i => i.title).join(', ') || incomingQuotationAlert.subjectQuotation}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-end md:self-center shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                handleLoadSavedQuotation(incomingQuotationAlert);
+                setIncomingQuotationAlert(null);
+              }}
+              className="px-4 py-2.5 rounded-xl bg-white text-emerald-900 font-extrabold text-xs shadow-md hover:bg-emerald-50 transition flex items-center gap-1.5 cursor-pointer hover:scale-105 active:scale-95"
+            >
+              <Sparkles size={14} className="text-amber-500" />
+              <span>Load in 4-Page PDF</span>
+              <ArrowRight size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setIncomingQuotationAlert(null)}
+              className="w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 text-white flex items-center justify-center transition cursor-pointer"
+              title="Dismiss notification"
+            >
+              <X size={15} />
+            </button>
           </div>
         </div>
       )}

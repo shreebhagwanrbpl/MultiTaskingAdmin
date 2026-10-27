@@ -15,6 +15,7 @@ import {
 import { PRODUCTS } from '../../../data/products';
 import { CATEGORIES } from '../../../data/categories';
 import { DEFAULT_HOMEPAGE_CONFIG } from '../../../data/defaultHomepage';
+import { numberToWordsIndian } from '../../../lib/numberToWords';
 
 const FALLBACK_SITES = [
   {
@@ -459,78 +460,204 @@ export default function WebsiteDomainPreviewPage(props) {
     setRfqSubmitting(true);
 
     const leadPrice = rfqProduct?.price || 150000;
+    const numQty = parseInt(String(rfqQuantity || '1').replace(/\D/g, ''), 10) || 1;
+    const itemTotal = leadPrice * numQty;
+
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+    const mon = today.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+    const yr = String(yyyy).slice(2);
+    const rand = Math.floor(100 + Math.random() * 900);
+    const refNo = `RBPL/Q${rand}${dd}${mon}${yr}`;
+    const quotationId = `quot-${Date.now()}`;
+    const leadId = `lead-${Date.now()}`;
+
+    // Extract product specs / bullets for 4-page quotation PDF
+    let bulletsList = [];
+    if (rfqProduct?.specs && typeof rfqProduct.specs === 'object') {
+      bulletsList = Object.entries(rfqProduct.specs).slice(0, 5).map(([k, v]) => `${k}: ${v}`);
+    } else if (rfqProduct?.features && Array.isArray(rfqProduct.features)) {
+      bulletsList = rfqProduct.features.slice(0, 5);
+    }
+    if (bulletsList.length === 0) {
+      bulletsList = [
+        'CDSCO Medical Device Rules 2017 & ISO 13485:2016 Certified Direct OEM Unit',
+        'Complete unboxing, hospital electrical grounding & on-site clinical commissioning',
+        'Includes 2-Year Comprehensive OEM Warranty & 24/7 on-call engineering breakdown response'
+      ];
+    }
+
+    const docName = (rfqDoctorName || '').trim() || 'Dr. Procurement Lead';
+    const hospName = (rfqHospital || '').trim() || 'Apollo Super Speciality Hospital';
+    const cityName = (rfqCity || site?.city || '').trim() || 'Jaipur, Rajasthan';
+    const prodTitle = rfqProduct?.name || 'Institutional Medical Devices & Equipment Batch';
+    const prodSku = rfqProduct?.sku || 'BATCH-INSTITUTIONAL';
+
+    // 1. Official Quotation Object
+    const quotationPayload = {
+      id: quotationId,
+      refNo,
+      date: `${dd}.${mm}.${yyyy}`,
+      customerName: hospName,
+      customerAddress1: [
+        `Attn: ${docName}`,
+        rfqPhone ? `Mob: ${rfqPhone}` : ''
+      ].filter(Boolean).join(', '),
+      customerAddress2: [
+        cityName,
+        rfqEmail ? `Email: ${rfqEmail}` : ''
+      ].filter(Boolean).join(' • '),
+      hospitalName: hospName,
+      doctorName: docName,
+      phone: rfqPhone || '',
+      email: rfqEmail || '',
+      city: cityName,
+      address: cityName,
+      subjectLetter: `Quotation purchase of ${prodTitle}`,
+      subjectQuotation: `Purchase of ${prodTitle}${prodSku ? `, Model: ${prodSku}` : ''}`,
+      signatory: {
+        name: 'Bhupender Raj',
+        role: 'Sales & Mkt. Head',
+        company: site?.brandName ? `${site.brandName} (Raj Biosis Pvt Ltd.)` : 'Raj Biosis Pvt Ltd.',
+        address1: 'B-7, Aman Plaza, Plot No. 26,',
+        address2: 'Heera Nagar-A, Chitrakoot',
+        city: 'Jaipur-302021 Rajasthan',
+        phone: '+91-998-3333-469'
+      },
+      items: [
+        {
+          id: `item-1`,
+          sr: 1,
+          itemCode: prodSku,
+          title: prodTitle,
+          bullets: bulletsList.join('\n'),
+          qty: numQty,
+          unitLabel: 'No',
+          unitPrice: leadPrice,
+          totalPrice: itemTotal
+        }
+      ],
+      subtotal: itemTotal,
+      taxMode: 'inclusive',
+      taxAmount: 0,
+      grandTotal: itemTotal,
+      amountInWords: numberToWordsIndian(itemTotal),
+      source: 'website_rfq',
+      sourceDomain: site.domain,
+      brandName: site.brandName,
+      leadId: leadId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // 2. Central Lead Object
     const leadPayload = {
-      id: `lead-${Date.now()}`,
-      doctorName: rfqDoctorName || 'Dr. Procurement Lead',
-      hospital: rfqHospital || 'Apollo Super Speciality Hospital',
-      city: rfqCity || site.city || 'Bengaluru',
+      id: leadId,
+      doctorName: docName,
+      hospital: hospName,
+      city: cityName,
+      address: cityName,
       email: rfqEmail || 'doctor@hospital.org',
       phone: rfqPhone || '+91 98000 00000',
-      equipment: rfqProduct?.name || 'Institutional Medical Devices & Equipment Batch',
-      productName: rfqProduct?.name || 'Institutional Medical Devices & Equipment Batch',
-      productSku: rfqProduct?.sku || 'BATCH-INSTITUTIONAL',
+      equipment: prodTitle,
+      productName: prodTitle,
+      productSku: prodSku,
       productId: rfqProduct?.id || null,
       productImage: rfqProduct?.image || null,
       specs: rfqProduct?.specs || null,
       features: rfqProduct?.features || null,
       price: leadPrice,
-      quoteAmount: `₹${leadPrice.toLocaleString('en-IN')}`,
-      estimatedValue: leadPrice,
+      quoteAmount: `₹${itemTotal.toLocaleString('en-IN')}`,
+      estimatedValue: itemTotal,
       sourceDomain: site.domain,
       siteDomain: site.domain,
       brandName: site.brandName,
-      status: 'Pending RFQ',
-      quantity: rfqQuantity || '1 Unit',
+      status: 'Quote Generated',
+      quotationId: quotationId,
+      quotationRef: refNo,
+      isProfileComplete: true,
+      quantity: `${numQty} Unit${numQty > 1 ? 's' : ''}`,
       createdAt: new Date().toISOString(),
       date: 'Just now'
     };
 
-    // 1. INSTANT ZERO-LATENCY BROADCAST TO ADMIN WEB QUOTATION DESK (Fired immediately in 0ms)
+    // 3. Customer Profile Payload
+    const customerPayload = {
+      fullName: docName,
+      hospitalName: hospName,
+      phone: rfqPhone || '',
+      email: rfqEmail || '',
+      district: cityName,
+      address: cityName,
+      state: 'Rajasthan',
+      siteDomain: site.domain,
+      brandName: site.brandName
+    };
+
+    // 4. INSTANT ZERO-LATENCY BROADCAST TO ADMIN DESK (Fired immediately in 0ms)
     try {
       if (typeof window !== 'undefined') {
-        // BroadcastChannel across tabs (keep alive - do NOT close immediately!)
+        // BroadcastChannel across tabs
         try {
           const channel = new BroadcastChannel('biomedical_leads_channel');
-          channel.postMessage({ type: 'NEW_WEB_LEAD', lead: leadPayload });
-          // Graceful close after 15 seconds to ensure delivery across slow render loops
+          channel.postMessage({ type: 'NEW_WEB_QUOTATION', quotation: quotationPayload, lead: leadPayload });
+          channel.postMessage({ type: 'NEW_WEB_LEAD', lead: leadPayload, quotation: quotationPayload });
           setTimeout(() => { try { channel.close(); } catch(e){} }, 15000);
         } catch(bcErr) {}
 
-        // LocalStorage for cross-window sync
+        // LocalStorage for cross-window and hard reload sync
         try {
+          localStorage.setItem('latest_web_quotation', JSON.stringify({ ...quotationPayload, ts: Date.now() }));
           localStorage.setItem('latest_web_lead', JSON.stringify({ ...leadPayload, ts: Date.now() }));
         } catch(lsErr) {}
 
         // Iframe parent communication
         try {
           if (window.parent && window.parent !== window) {
-            window.parent.postMessage({ type: 'NEW_WEB_LEAD', lead: leadPayload }, '*');
+            window.parent.postMessage({ type: 'NEW_WEB_QUOTATION', quotation: quotationPayload, lead: leadPayload }, '*');
+            window.parent.postMessage({ type: 'NEW_WEB_LEAD', lead: leadPayload, quotation: quotationPayload }, '*');
           }
         } catch(ipErr) {}
 
         // Window opener communication (if opened in separate tab)
         try {
           if (window.opener) {
-            window.opener.postMessage({ type: 'NEW_WEB_LEAD', lead: leadPayload }, '*');
+            window.opener.postMessage({ type: 'NEW_WEB_QUOTATION', quotation: quotationPayload, lead: leadPayload }, '*');
+            window.opener.postMessage({ type: 'NEW_WEB_LEAD', lead: leadPayload, quotation: quotationPayload }, '*');
           }
         } catch(opErr) {}
 
         // Same-window CustomEvent dispatch
         try {
+          window.dispatchEvent(new CustomEvent('new_web_quotation', { detail: quotationPayload }));
           window.dispatchEvent(new CustomEvent('new_web_lead', { detail: leadPayload }));
         } catch(ceErr) {}
       }
     } catch (instantErr) {
-      console.warn('Instant lead broadcast error:', instantErr);
+      console.warn('Instant quotation broadcast error:', instantErr);
     }
 
-    // 2. Persist to MongoDB API in background
+    // 5. Persist to API endpoints in background (Quotations + Leads + Customers)
     try {
-      await fetch('/api/leads', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(leadPayload)
-      });
+      await Promise.allSettled([
+        fetch('/api/quotations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(quotationPayload)
+        }),
+        fetch('/api/leads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(leadPayload)
+        }),
+        fetch('/api/customers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(customerPayload)
+        })
+      ]);
       setRfqSuccess(true);
     } catch (err) {
       setRfqSuccess(true);

@@ -1,12 +1,59 @@
 import { NextResponse } from 'next/server';
 import { getDatabase } from '../../../lib/mongodb';
+import fs from 'fs';
+import path from 'path';
 
-// Blank initial leads - start completely fresh
-const INITIAL_LEADS = [];
+export const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+};
 
-global._biomedical_leads = [];
+const LEADS_FILE = path.join(process.cwd(), 'src', 'data', 'leads.json');
+
+function readLocalLeads() {
+  try {
+    if (fs.existsSync(LEADS_FILE)) {
+      const content = fs.readFileSync(LEADS_FILE, 'utf-8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to read local leads file:', e.message);
+  }
+  return global._biomedical_leads && Array.isArray(global._biomedical_leads)
+    ? global._biomedical_leads
+    : [];
+}
+
+function writeLocalLeads(list) {
+  try {
+    const dir = path.dirname(LEADS_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(LEADS_FILE, JSON.stringify(list, null, 2), 'utf-8');
+    global._biomedical_leads = list;
+    return true;
+  } catch (e) {
+    console.warn('Failed to write local leads file:', e.message);
+    global._biomedical_leads = list;
+    return false;
+  }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: CORS_HEADERS,
+  });
+}
 
 export async function GET() {
+  const localLeads = readLocalLeads();
+
   try {
     const db = await getDatabase();
     const collection = db.collection('leads');
@@ -66,18 +113,28 @@ export async function GET() {
       return lead;
     });
 
+    if (enrichedLeads.length > 0) {
+      writeLocalLeads(enrichedLeads);
+    }
+
     return NextResponse.json({
       success: true,
       source: 'mongodb',
       isDbConnected: true,
       count: enrichedLeads.length,
       leads: enrichedLeads || []
-    });
+    }, { headers: CORS_HEADERS });
   } catch (err) {
-    if (!global._biomedical_leads) {
-      global._biomedical_leads = [];
+    let memCustomers = [];
+    try {
+      const custFile = path.join(process.cwd(), 'src', 'data', 'customers.json');
+      if (fs.existsSync(custFile)) {
+        memCustomers = JSON.parse(fs.readFileSync(custFile, 'utf-8'));
+      }
+    } catch (e) {
+      memCustomers = global._biomedical_customers || [];
     }
-    const memCustomers = global._biomedical_customers || [];
+
     const customerByPhone = new Map();
     const customerByEmail = new Map();
     memCustomers.forEach(c => {
@@ -87,7 +144,7 @@ export async function GET() {
       if (e) customerByEmail.set(e, c);
     });
 
-    const enrichedMemLeads = (global._biomedical_leads || []).map(lead => {
+    const enrichedMemLeads = (localLeads || []).map(lead => {
       const phoneClean = (lead.phone || lead.customerPhone || lead.rawLeadData?.customerPhone || lead.rawLeadData?.phone || '').replace(/\D/g, '').slice(-10);
       const emailClean = (lead.email || lead.customerEmail || lead.rawLeadData?.customerEmail || '').trim().toLowerCase();
       const matched = customerByPhone.get(phoneClean) || customerByEmail.get(emailClean);
@@ -133,7 +190,7 @@ export async function GET() {
       error: err.message,
       count: enrichedMemLeads.length,
       leads: enrichedMemLeads
-    });
+    }, { headers: CORS_HEADERS });
   }
 }
 
@@ -150,16 +207,23 @@ export async function POST(request) {
       status: body.status || 'Pending RFQ'
     };
 
-    if (!global._biomedical_leads) {
-      global._biomedical_leads = [];
+    // 1. Always update local JSON file & memory
+    const currentList = readLocalLeads();
+    const existingIdx = currentList.findIndex(l => l.id === leadId);
+    let updatedList;
+    if (existingIdx >= 0) {
+      updatedList = [...currentList];
+      updatedList[existingIdx] = { ...updatedList[existingIdx], ...newLead };
+    } else {
+      updatedList = [newLead, ...currentList];
     }
-    global._biomedical_leads.unshift(newLead);
+    writeLocalLeads(updatedList);
 
+    // 2. Also try MongoDB
     try {
       const db = await getDatabase();
       const collection = db.collection('leads');
 
-      // Check if lead already exists by ID OR (same phone + same equipment on this site domain)
       const orConditions = [{ id: leadId }];
       if (body.phone && body.equipment) {
         orConditions.push({
@@ -187,7 +251,7 @@ export async function POST(request) {
           source: 'mongodb',
           updated: true,
           lead: { ...existing, ...newLead }
-        });
+        }, { headers: CORS_HEADERS });
       }
 
       const result = await collection.insertOne(newLead);
@@ -195,16 +259,16 @@ export async function POST(request) {
         success: true,
         source: 'mongodb',
         lead: { ...newLead, _id: result.insertedId }
-      });
+      }, { headers: CORS_HEADERS });
     } catch (dbErr) {
       return NextResponse.json({
         success: true,
         source: 'fallback',
         lead: newLead
-      });
+      }, { headers: CORS_HEADERS });
     }
   } catch (err) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: err.message }, { status: 500, headers: CORS_HEADERS });
   }
 }
 
@@ -214,48 +278,64 @@ export async function DELETE(request) {
     const id = searchParams.get('id');
     const deleteTest = searchParams.get('deleteTest');
     const clearAll = searchParams.get('all') === 'true' || searchParams.get('clearAll') === 'true';
-    const db = await getDatabase();
-    const collection = db.collection('leads');
 
-    if (global._biomedical_leads) {
-      global._biomedical_leads = [];
-    }
+    let currentList = readLocalLeads();
 
     if (clearAll) {
-      await collection.deleteMany({});
-      return NextResponse.json({ success: true, count: 0, cleared: true, source: 'mongodb' });
+      writeLocalLeads([]);
+      try {
+        const db = await getDatabase();
+        await db.collection('leads').deleteMany({});
+      } catch (e) {}
+      return NextResponse.json({ success: true, count: 0, cleared: true, source: 'local' }, { headers: CORS_HEADERS });
     }
 
     if (deleteTest === 'true') {
-      await collection.deleteMany({
-        $or: [
-          { id: { $regex: 'test', $options: 'i' } },
-          { doctorName: { $regex: 'test', $options: 'i' } },
-          { id: { $regex: '^cust-', $options: 'i' } },
-          { equipment: { $regex: '^Profile Registration', $options: 'i' } }
-        ]
+      currentList = currentList.filter(l => {
+        const str = JSON.stringify(l).toLowerCase();
+        return !str.includes('test') && !l.id?.startsWith('cust-') && !l.equipment?.startsWith('Profile Registration');
       });
-      return NextResponse.json({ success: true, message: 'Deleted test and profile registration entries' });
+      writeLocalLeads(currentList);
+      try {
+        const db = await getDatabase();
+        await db.collection('leads').deleteMany({
+          $or: [
+            { id: { $regex: 'test', $options: 'i' } },
+            { doctorName: { $regex: 'test', $options: 'i' } },
+            { id: { $regex: '^cust-', $options: 'i' } },
+            { equipment: { $regex: '^Profile Registration', $options: 'i' } }
+          ]
+        });
+      } catch (e) {}
+      return NextResponse.json({ success: true, message: 'Deleted test entries' }, { headers: CORS_HEADERS });
     }
 
     if (!id) {
-      // If neither id nor specific action provided, clear all
-      await collection.deleteMany({});
-      return NextResponse.json({ success: true, count: 0, cleared: true, source: 'mongodb' });
+      writeLocalLeads([]);
+      try {
+        const db = await getDatabase();
+        await db.collection('leads').deleteMany({});
+      } catch (e) {}
+      return NextResponse.json({ success: true, count: 0, cleared: true, source: 'local' }, { headers: CORS_HEADERS });
     }
 
-    let query = { id };
+    const filtered = currentList.filter(l => l.id !== id && l._id !== id);
+    writeLocalLeads(filtered);
+
     try {
+      const db = await getDatabase();
+      const collection = db.collection('leads');
       const { ObjectId } = await import('mongodb');
+      let query = { id };
       if (ObjectId.isValid(id)) {
         query = { $or: [{ id }, { _id: new ObjectId(id) }] };
       }
-    } catch (e) { }
+      await collection.deleteOne(query);
+    } catch (e) {}
 
-    await collection.deleteOne(query);
-    return NextResponse.json({ success: true, deletedId: id });
+    return NextResponse.json({ success: true, deletedId: id }, { headers: CORS_HEADERS });
   } catch (err) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: err.message }, { status: 500, headers: CORS_HEADERS });
   }
 }
 
@@ -264,12 +344,12 @@ export async function PUT(request) {
     const body = await request.json();
     const { id, _id, status } = body;
 
-    if (!global._biomedical_leads) {
-      global._biomedical_leads = [];
-    }
-    const found = global._biomedical_leads.find(l => (id && l.id === id) || (_id && (l._id === _id || String(l._id) === String(_id))));
-    if (found) {
-      found.status = status || 'Quote Generated';
+    const currentList = readLocalLeads();
+    const foundIdx = currentList.findIndex(l => (id && l.id === id) || (_id && (l._id === _id || String(l._id) === String(_id))));
+    if (foundIdx >= 0) {
+      currentList[foundIdx].status = status || 'Quote Generated';
+      currentList[foundIdx].updatedAt = new Date().toISOString();
+      writeLocalLeads(currentList);
     }
 
     try {
@@ -290,22 +370,11 @@ export async function PUT(request) {
           updatedAt: new Date().toISOString()
         }
       });
-      return NextResponse.json({ success: true, updated: true, source: 'mongodb' });
+      return NextResponse.json({ success: true, updated: true, source: 'mongodb' }, { headers: CORS_HEADERS });
     } catch (dbErr) {
-      return NextResponse.json({ success: true, updated: true, source: 'fallback' });
+      return NextResponse.json({ success: true, updated: true, source: 'fallback' }, { headers: CORS_HEADERS });
     }
   } catch (err) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: err.message }, { status: 500, headers: CORS_HEADERS });
   }
-}
-
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
-    },
-  });
 }
