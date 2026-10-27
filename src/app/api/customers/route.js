@@ -30,19 +30,9 @@ function readLocalCustomers() {
 }
 
 function writeLocalCustomers(list) {
-  try {
-    const dir = path.dirname(CUSTOMERS_FILE);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(CUSTOMERS_FILE, JSON.stringify(list, null, 2), 'utf-8');
-    global._biomedical_customers = list;
-    return true;
-  } catch (e) {
-    console.warn('Failed to write local customers file:', e.message);
-    global._biomedical_customers = list;
-    return false;
-  }
+  // Purely in-memory cache, DO NOT write to src/data/customers.json on disk
+  global._biomedical_customers = list;
+  return true;
 }
 
 export async function OPTIONS() {

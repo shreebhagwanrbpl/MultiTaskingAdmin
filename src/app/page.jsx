@@ -1405,8 +1405,8 @@ export default function AdminDashboardPage({ searchParams }) {
                                   </span>
                                 )}
                               </div>
-                              <span className="text-[10px] text-slate-400">
-                                {lead.createdAt ? new Date(lead.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }) : (lead.date || 'Recent')}
+                              <span className="text-[10px] text-slate-500 font-mono block mt-0.5">
+                                {lead.dateTime || (lead.createdAt ? new Date(lead.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : (lead.date || 'Recent'))}
                               </span>
                             </td>
                             <td className="py-3 px-4">

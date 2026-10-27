@@ -29,19 +29,9 @@ function readLocalLeads() {
 }
 
 function writeLocalLeads(list) {
-  try {
-    const dir = path.dirname(LEADS_FILE);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(LEADS_FILE, JSON.stringify(list, null, 2), 'utf-8');
-    global._biomedical_leads = list;
-    return true;
-  } catch (e) {
-    console.warn('Failed to write local leads file:', e.message);
-    global._biomedical_leads = list;
-    return false;
-  }
+  // Purely in-memory cache, DO NOT write to src/data/leads.json on disk
+  global._biomedical_leads = list;
+  return true;
 }
 
 export async function OPTIONS() {
@@ -152,16 +142,26 @@ export async function GET() {
       return lead;
     });
 
-    if (enrichedLeads.length > 0) {
-      writeLocalLeads(enrichedLeads);
+    // Deduplicate leads by id so that no duplicate entries appear
+    const seenLeadIds = new Set();
+    const uniqueLeads = [];
+    for (const lead of enrichedLeads) {
+      const cleanId = lead.id || String(lead._id);
+      if (seenLeadIds.has(cleanId)) continue;
+      seenLeadIds.add(cleanId);
+      uniqueLeads.push(lead);
+    }
+
+    if (uniqueLeads.length > 0) {
+      writeLocalLeads(uniqueLeads);
     }
 
     return NextResponse.json({
       success: true,
       source: 'mongodb',
       isDbConnected: true,
-      count: enrichedLeads.length,
-      leads: enrichedLeads || []
+      count: uniqueLeads.length,
+      leads: uniqueLeads
     }, { headers: CORS_HEADERS });
   } catch (err) {
     let memCustomers = [];
@@ -261,13 +261,22 @@ export async function GET() {
       return lead;
     });
 
+    const seenMemIds = new Set();
+    const uniqueMemLeads = [];
+    for (const lead of enrichedMemLeads) {
+      const cleanId = lead.id || String(lead._id);
+      if (seenMemIds.has(cleanId)) continue;
+      seenMemIds.add(cleanId);
+      uniqueMemLeads.push(lead);
+    }
+
     return NextResponse.json({
       success: true,
       source: 'fallback',
       isDbConnected: false,
       error: err.message,
-      count: enrichedMemLeads.length,
-      leads: enrichedMemLeads
+      count: uniqueMemLeads.length,
+      leads: uniqueMemLeads
     }, { headers: CORS_HEADERS });
   }
 }
@@ -276,12 +285,20 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const leadId = body.id || ('lead-' + Date.now());
+    const now = new Date();
+    const nowIso = now.toISOString();
+    const formattedDate = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    const formattedTime = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const formattedDateTime = `${formattedDate}, ${formattedTime}`;
+
     const newLead = {
       ...body,
       id: leadId,
-      createdAt: body.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      date: body.date || 'Just now',
+      date: body.date && body.date !== 'Just now' ? body.date : formattedDate,
+      time: body.time || formattedTime,
+      dateTime: body.dateTime || formattedDateTime,
+      createdAt: body.createdAt || nowIso,
+      updatedAt: nowIso,
       status: body.status || 'Pending RFQ'
     };
 
@@ -297,51 +314,39 @@ export async function POST(request) {
     }
     writeLocalLeads(updatedList);
 
-    // 2. Also try MongoDB
+    // 2. Also try MongoDB with ATOMIC UPSERT (no race conditions)
     try {
       const db = await getDatabase();
       const collection = db.collection('leads');
 
-      const orConditions = [{ id: leadId }];
-      if (body.phone && body.equipment) {
-        orConditions.push({
-          phone: body.phone,
-          equipment: body.equipment,
-          siteDomain: body.siteDomain || 'rajbiosis.com'
-        });
-      }
-
-      const existing = await collection.findOne({ $or: orConditions });
-      if (existing) {
-        await collection.updateOne(
-          { _id: existing._id },
-          {
-            $set: {
-              ...newLead,
-              id: existing.id || leadId,
-              createdAt: existing.createdAt || newLead.createdAt,
-              updatedAt: new Date().toISOString()
-            }
+      const query = { id: leadId };
+      const { createdAt, _id, ...fieldsToSet } = newLead;
+      const updateResult = await collection.updateOne(
+        query,
+        {
+          $set: {
+            ...fieldsToSet,
+            updatedAt: new Date().toISOString()
+          },
+          $setOnInsert: {
+            createdAt: createdAt || new Date().toISOString()
           }
-        );
-        return NextResponse.json({
-          success: true,
-          source: 'mongodb',
-          updated: true,
-          lead: { ...existing, ...newLead }
-        }, { headers: CORS_HEADERS });
-      }
+        },
+        { upsert: true }
+      );
 
-      const result = await collection.insertOne(newLead);
       return NextResponse.json({
         success: true,
         source: 'mongodb',
-        lead: { ...newLead, _id: result.insertedId }
+        updated: Boolean(updateResult.matchedCount > 0),
+        lead: newLead
       }, { headers: CORS_HEADERS });
     } catch (dbErr) {
+      console.warn('[MongoDB save error in /api/leads]:', dbErr);
       return NextResponse.json({
         success: true,
         source: 'fallback',
+        dbError: dbErr.message,
         lead: newLead
       }, { headers: CORS_HEADERS });
     }

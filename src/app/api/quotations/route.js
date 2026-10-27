@@ -76,17 +76,9 @@ function readLocalQuotations() {
 }
 
 function writeLocalQuotations(list) {
-  try {
-    const dir = path.dirname(QUOTATIONS_FILE);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(QUOTATIONS_FILE, JSON.stringify(list, null, 2), 'utf-8');
-    return true;
-  } catch (e) {
-    console.warn('Failed to write local quotations file:', e.message);
-    return false;
-  }
+  // Purely in-memory cache, DO NOT write to src/data/quotations.json on disk
+  global._biomedical_quotations = list;
+  return true;
 }
 
 export const CORS_HEADERS = {

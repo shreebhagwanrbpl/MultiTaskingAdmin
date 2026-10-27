@@ -1393,9 +1393,11 @@ export default function WebQuotationManager({ products = [] }) {
                               </span>
                             )}
 
-                            <span className="text-xs text-slate-400 font-mono font-medium flex items-center gap-1">
-                              <Clock size={11} className="text-slate-400" />
-                              <span>{lead.date || 'Just now'}</span>
+                            <span className="text-xs text-slate-500 font-mono font-medium flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/80">
+                              <Clock size={12} className="text-slate-400" />
+                              <span>
+                                {lead.dateTime || (lead.createdAt ? new Date(lead.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : (lead.date || 'Just now'))}
+                              </span>
                             </span>
                           </div>
 
