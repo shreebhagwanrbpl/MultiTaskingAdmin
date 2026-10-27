@@ -1,5 +1,137 @@
 [
   {
+    "_id": "6ae0655054a0d9d3da74f0c2",
+    "createdAt": "2026-10-27T08:48:16.700Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 7485965874",
+    "customerName": "Om Medical",
+    "date": "27/10/2026",
+    "grandTotal": 76720,
+    "id": "RFQ-895977",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+        "qty": 1,
+        "unitPrice": 68500,
+        "totalPrice": 76720
+      }
+    ],
+    "refNo": "RB-QT-2026-8179",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "updatedAt": "2026-10-27T08:48:16.700Z"
+  },
+  {
+    "_id": "6ae0655054a0d9d3da74f0c1",
+    "createdAt": "2026-10-27T08:48:16.698Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 7485965874",
+    "customerName": "Om Medical",
+    "date": "27/10/2026",
+    "grandTotal": 76720,
+    "id": "RFQ-895974",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+        "qty": 1,
+        "unitPrice": 68500,
+        "totalPrice": 76720
+      }
+    ],
+    "refNo": "RB-QT-2026-7995",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "updatedAt": "2026-10-27T08:48:16.698Z"
+  },
+  {
+    "_id": "6ae064e954a0d9d3da74f0bf",
+    "createdAt": "2026-10-27T08:46:33.519Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 7485965874",
+    "customerName": "Mukesh Kumar's Medical Clinic",
+    "date": "27/10/2026",
+    "grandTotal": 76720,
+    "id": "RFQ-793293",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+        "qty": 1,
+        "unitPrice": 68500,
+        "totalPrice": 76720
+      }
+    ],
+    "refNo": "RB-QT-2026-4860",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "updatedAt": "2026-10-27T08:46:33.519Z"
+  },
+  {
+    "_id": "6ae0647054a0d9d3da74f0bb",
+    "createdAt": "2026-10-27T08:44:36.751Z",
+    "customerAddress1": "Jaipur, Rajasthan",
+    "customerAddress2": "Contact: +91 7485965874",
+    "customerName": "Mukesh Kumar's Medical Clinic",
+    "date": "27/10/2026",
+    "grandTotal": 58240,
+    "id": "RFQ-672502",
+    "items": [
+      {
+        "id": "item-1",
+        "sr": 1,
+        "title": "CardioTrace 12-Channel Diagnostic Resting ECG Machine",
+        "qty": 1,
+        "unitPrice": 52000,
+        "totalPrice": 58240
+      }
+    ],
+    "refNo": "RB-QT-2026-7835",
+    "signatory": {
+      "name": "Bhupender Raj",
+      "role": "Sales & Mkt. Head",
+      "company": "Raj Biosis Pvt Ltd.",
+      "address1": "B-7, Aman Plaza, Plot No. 26,",
+      "address2": "Heera Nagar-A, Chitrakoot",
+      "city": "Jaipur-302021 Rajasthan",
+      "phone": "+91-998-3333-469"
+    },
+    "subjectLetter": "Quotation purchase of CardioTrace 12-Channel Diagnostic Resting ECG Machine",
+    "subjectQuotation": "Purchase of CardioTrace 12-Channel Diagnostic Resting ECG Machine",
+    "updatedAt": "2026-10-27T08:44:36.751Z"
+  },
+  {
     "_id": "6ae0498a54a0d9d3da74ec02",
     "createdAt": "2026-10-27T06:49:46.251Z",
     "customerAddress1": "Jaipur, Rajasthan",

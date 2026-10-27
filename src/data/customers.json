@@ -1,30 +1,92 @@
 [
   {
-    "_id": "6ae0498af7b9da115c706a77",
-    "fullName": "Mukesh Kumar",
-    "hospitalName": "",
+    "_id": "6ae064702be65b994f91525a",
+    "fullName": "Omprkash",
+    "hospitalName": "Om Medical",
     "countryCode": "+91",
-    "phone": "8547896589",
-    "email": "mukeshkumar@gmail.com",
+    "phone": "+91 7485965874",
+    "email": "omprkash@gmail.com",
     "district": "Jaipur",
-    "address": "",
+    "address": "200ft Bypass",
     "isOtpVerified": true,
     "isLoggedIn": true,
-    "updatedAt": "2026-10-27T06:49:46.388Z",
-    "id": "cust-8547896589",
+    "updatedAt": "2026-10-27T08:48:16.018Z",
+    "id": "cust-7485965874",
     "siteDomain": "rajbiosis.com",
     "brandName": "Raj Biosis",
-    "lastAction": "New Profile Created",
-    "lastActionAt": "2026-10-27T06:49:46.388Z",
-    "createdAt": "2026-10-27T06:49:46.388Z",
-    "editCount": 0,
+    "lastAction": "Profile Edited",
+    "lastActionAt": "2026-10-27T08:48:14.609Z",
+    "createdAt": "2026-10-27T08:44:32.871Z",
+    "editCount": 2,
     "editHistory": [
       {
-        "timestamp": "2026-10-27T06:49:46.388Z",
+        "timestamp": "2026-10-27T08:48:14.609Z",
+        "action": "Profile Updated",
+        "summary": "Changed Hospital: \"Mukesh Kumar's Medical Clinic\" → \"Om Medical\", State: \"(empty)\" → \"Rajasthan\", Address: \"(empty)\" → \"200ft Bypass\", Pincode: \"(empty)\" → \"854796\"",
+        "changes": [
+          {
+            "field": "hospitalName",
+            "label": "Hospital",
+            "oldValue": "Mukesh Kumar's Medical Clinic",
+            "newValue": "Om Medical"
+          },
+          {
+            "field": "state",
+            "label": "State",
+            "oldValue": "(empty)",
+            "newValue": "Rajasthan"
+          },
+          {
+            "field": "address",
+            "label": "Address",
+            "oldValue": "(empty)",
+            "newValue": "200ft Bypass"
+          },
+          {
+            "field": "pincode",
+            "label": "Pincode",
+            "oldValue": "(empty)",
+            "newValue": "854796"
+          }
+        ]
+      },
+      {
+        "timestamp": "2026-10-27T08:46:33.497Z",
+        "action": "Profile Updated",
+        "summary": "Changed Name: \"Pankaj\" → \"Omprkash\", Phone: \"+91 7485965874\" → \"7485965874\", Email: \"pankajsingh@gmail.com\" → \"omprkash@gmail.com\"",
+        "changes": [
+          {
+            "field": "fullName",
+            "label": "Name",
+            "oldValue": "Pankaj",
+            "newValue": "Omprkash"
+          },
+          {
+            "field": "phone",
+            "label": "Phone",
+            "oldValue": "+91 7485965874",
+            "newValue": "7485965874"
+          },
+          {
+            "field": "email",
+            "label": "Email",
+            "oldValue": "pankajsingh@gmail.com",
+            "newValue": "omprkash@gmail.com"
+          }
+        ]
+      },
+      {
+        "timestamp": "2026-10-27T08:44:32.871Z",
         "action": "Initial Profile Created",
-        "summary": "Account registered for Mukesh Kumar (Clinic)",
+        "summary": "Account registered for Pankaj (Mukesh Kumar's Medical Clinic)",
         "changes": []
       }
-    ]
+    ],
+    "accountType": "customer",
+    "avatar": null,
+    "designation": "",
+    "photo": null,
+    "pincode": "854796",
+    "state": "Rajasthan"
   }
 ]
