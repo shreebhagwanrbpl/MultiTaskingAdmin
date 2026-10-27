@@ -101,8 +101,8 @@ export default function WebQuotationManager({ products = [] }) {
   const [newUnitPrice, setNewUnitPrice] = useState(50000);
   const [selectedCatalogId, setSelectedCatalogId] = useState('');
 
-  // Tax & Commercials Controls
-  const [taxMode, setTaxMode] = useState('inclusive'); // 'inclusive' | 'none' | '5' | '12' | '18' | '28'
+  // Tax & Commercials Controls (Default to 12% GST Extra for Medical Equipment)
+  const [taxMode, setTaxMode] = useState('12'); // '12' | '18' | '5' | '28' | 'inclusive' | 'none'
   const [discountPercent, setDiscountPercent] = useState(0);
 
   // Preview Page Switcher: 'all' | '1' | '2' | '3' | '4'
@@ -632,8 +632,13 @@ export default function WebQuotationManager({ products = [] }) {
     setSubjectQuotation(`Purchase of ${itemTitle}${itemCode ? `, Model: ${itemCode}` : ''}`);
     setIsCustomSubject(false);
 
-    // 5. Commercials
-    setTaxMode('inclusive');
+    // 5. Commercials & Taxes (Include GST % as requested)
+    const extractedGst = String(
+      lead.gstRate ||
+      lead.rawLeadData?.gstRate ||
+      (matched?.category === 'radiology-imaging' ? '18' : '12')
+    ).replace(/[^0-9]/g, '');
+    setTaxMode(extractedGst || '12');
     setDiscountPercent(0);
 
     // 6. Mark Lead as Processed
@@ -1116,7 +1121,22 @@ export default function WebQuotationManager({ products = [] }) {
     setSubjectLetter(q.subjectLetter || 'Quotation purchase of Lab Equipments');
     setSubjectQuotation(q.subjectQuotation || '');
     setIsCustomSubject(true);
-    if (q.taxMode) setTaxMode(q.taxMode);
+    if (q.taxMode && q.taxMode !== 'inclusive' && q.taxMode !== 'none') {
+      setTaxMode(q.taxMode);
+    } else if (q.gstRate) {
+      setTaxMode(String(q.gstRate).replace(/[^0-9]/g, '') || '12');
+    } else if (q.grandTotal && q.items?.[0]?.unitPrice) {
+      const unitP = Number(q.items[0].unitPrice);
+      const diff = Number(q.grandTotal) - unitP;
+      if (diff > 0) {
+        const inferredRate = Math.round((diff / unitP) * 100);
+        setTaxMode(String(inferredRate || '12'));
+      } else {
+        setTaxMode('12');
+      }
+    } else {
+      setTaxMode('12');
+    }
     if (q.discountPercent !== undefined) setDiscountPercent(q.discountPercent);
 
     if (q.signatory) {
@@ -2292,12 +2312,12 @@ export default function WebQuotationManager({ products = [] }) {
                       onChange={(e) => setTaxMode(e.target.value)}
                       className="text-xs bg-slate-800 text-white border border-slate-700 rounded-xl px-3 py-1.5 font-semibold outline-none"
                     >
+                      <option value="12">+12% GST Extra (Standard Medical Equipment)</option>
+                      <option value="18">+18% GST Extra (Radiology & Diagnostic Devices)</option>
+                      <option value="5">+5% GST Extra</option>
+                      <option value="28">+28% GST Extra</option>
                       <option value="inclusive">GST Inclusive (100% Final Price)</option>
                       <option value="none">No Tax (0% Exempt)</option>
-                      <option value="5">+5% GST Extra</option>
-                      <option value="12">+12% GST Extra</option>
-                      <option value="18">+18% GST Extra (Medical Devices)</option>
-                      <option value="28">+28% GST Extra</option>
                     </select>
                   </div>
                 </div>
@@ -2618,7 +2638,7 @@ export default function WebQuotationManager({ products = [] }) {
                         {taxAmount > 0 && (
                           <tr className="border-b border-black font-semibold text-slate-800 text-[11px]">
                             <td colSpan={4} className="border-r border-black p-2 text-right bg-white">
-                              GST (+{taxMode}% Extra):
+                              Add: GST @ {taxMode}%:
                             </td>
                             <td colSpan={2} className="p-2 text-right font-mono font-bold bg-white">
                               +{formatCurrency(taxAmount)}
@@ -2995,7 +3015,7 @@ export default function WebQuotationManager({ products = [] }) {
                 {taxAmount > 0 && (
                   <tr className="border-b border-black font-semibold text-slate-800 text-[11px]">
                     <td colSpan={4} className="border-r border-black p-2 text-right bg-white">
-                      GST (+{taxMode}% Extra):
+                      Add: GST @ {taxMode}%:
                     </td>
                     <td colSpan={2} className="p-2 text-right font-mono font-bold bg-white">
                       +{formatCurrency(taxAmount)}
