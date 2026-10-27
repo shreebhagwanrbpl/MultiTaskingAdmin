@@ -1,7 +1,7 @@
 import { MongoClient } from 'mongodb';
 
-const DEFAULT_URI = 'mongodb://127.0.0.1:27017/biomedical_network';
-const DEFAULT_DB = 'biomedical_network';
+const DEFAULT_URI = 'mongodb://127.0.0.1:27017/Website_Management';
+const DEFAULT_DB = 'Website_Management';
 
 let client;
 let clientPromise;
@@ -12,17 +12,24 @@ function getClientPromise(customUri) {
   if (process.env.NODE_ENV === 'development') {
     if (!global._mongoClientPromise || global._mongoClientUri !== uri) {
       client = new MongoClient(uri, {
-        serverSelectionTimeoutMS: 4000,
-        connectTimeoutMS: 5000,
+        serverSelectionTimeoutMS: 15000,
+        connectTimeoutMS: 15000,
+        socketTimeoutMS: 45000,
+        maxPoolSize: 20
       });
       global._mongoClientUri = uri;
-      global._mongoClientPromise = client.connect();
+      global._mongoClientPromise = client.connect().catch((err) => {
+        global._mongoClientPromise = null;
+        throw err;
+      });
     }
     return global._mongoClientPromise;
   } else {
     client = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 15000,
+      connectTimeoutMS: 15000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 20
     });
     return client.connect();
   }
@@ -41,8 +48,8 @@ export async function testMongoConnection(uriToTest) {
   const uri = uriToTest || process.env.MONGODB_URI || DEFAULT_URI;
   const startTime = Date.now();
   const testClient = new MongoClient(uri, {
-    serverSelectionTimeoutMS: 4000,
-    connectTimeoutMS: 5000,
+    serverSelectionTimeoutMS: 15000,
+    connectTimeoutMS: 15000,
   });
 
   try {
