@@ -101,12 +101,39 @@ export async function GET() {
       id: d.id || (d._id ? d._id.toString() : `quot-${Date.now()}`)
     }));
 
-    writeLocalQuotations(normalized);
+    // Deduplicate quotations: prioritize completed customer hospital names and newest records
+    const seenQuoteIds = new Set();
+    const seenCustSubject = new Set();
+    const uniqueQuotations = [];
+
+    const sortedNormalized = [...normalized].sort((a, b) => {
+      const isAGeneric = (a.customerName || '').toLowerCase().includes('healthcare institution');
+      const isBGeneric = (b.customerName || '').toLowerCase().includes('healthcare institution');
+      if (!isAGeneric && isBGeneric) return -1;
+      if (isAGeneric && !isBGeneric) return 1;
+      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
+
+    for (const q of sortedNormalized) {
+      const qId = q.id || String(q._id);
+      const cleanPhone = (q.customerAddress2 || '').replace(/\D/g, '').slice(-10);
+      const cleanSubj = (q.subjectQuotation || q.subjectLetter || '').trim().toLowerCase();
+      const quoteKey = cleanPhone && cleanSubj ? `${cleanPhone}::${cleanSubj}` : null;
+
+      if (seenQuoteIds.has(qId)) continue;
+      if (quoteKey && seenCustSubject.has(quoteKey)) continue;
+
+      seenQuoteIds.add(qId);
+      if (quoteKey) seenCustSubject.add(quoteKey);
+      uniqueQuotations.push(q);
+    }
+
+    writeLocalQuotations(uniqueQuotations);
 
     return NextResponse.json({
       success: true,
-      count: normalized.length,
-      quotations: normalized,
+      count: uniqueQuotations.length,
+      quotations: uniqueQuotations,
       storage: 'mongodb'
     }, { headers: CORS_HEADERS });
   } catch (error) {
@@ -153,8 +180,27 @@ export async function POST(request) {
     try {
       const db = await getDatabase();
       const collection = db.collection('quotations');
+
+      const cleanCustomerPhone = (newQuotation.customerAddress2 || '').replace(/\D/g, '').slice(-10);
+      const subject = (newQuotation.subjectQuotation || '').trim();
+
+      // Look up existing quotation by id, refNo, or customer phone + subject
+      const existingMatch = await collection.findOne({
+        $or: [
+          { id: newQuotation.id },
+          ...(newQuotation.refNo ? [{ refNo: newQuotation.refNo }] : []),
+          ...(cleanCustomerPhone && subject ? [{
+            customerAddress2: { $regex: cleanCustomerPhone + '$' },
+            subjectQuotation: subject
+          }] : [])
+        ]
+      });
+
+      const targetId = existingMatch ? existingMatch.id : newQuotation.id;
+      newQuotation.id = targetId;
+
       const result = await collection.updateOne(
-        { $or: [{ id: newQuotation.id }, { refNo: newQuotation.refNo }] },
+        { id: targetId },
         { $set: newQuotation },
         { upsert: true }
       );

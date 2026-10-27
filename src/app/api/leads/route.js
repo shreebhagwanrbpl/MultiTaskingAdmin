@@ -142,13 +142,28 @@ export async function GET() {
       return lead;
     });
 
-    // Deduplicate leads by id so that no duplicate entries appear
+    // Deduplicate leads: prioritize complete profile leads and newest records
+    const sortedEnriched = [...enrichedLeads].sort((a, b) => {
+      if (a.isProfileComplete && !b.isProfileComplete) return -1;
+      if (!a.isProfileComplete && b.isProfileComplete) return 1;
+      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
+
     const seenLeadIds = new Set();
+    const seenCustomerEquipment = new Set();
     const uniqueLeads = [];
-    for (const lead of enrichedLeads) {
+
+    for (const lead of sortedEnriched) {
       const cleanId = lead.id || String(lead._id);
+      const cleanPhone = (lead.phone || lead.customerPhone || lead.rawLeadData?.customerPhone || '').replace(/\D/g, '').slice(-10);
+      const cleanEquip = (lead.equipment || lead.productName || lead.rawLeadData?.productName || '').trim().toLowerCase();
+      const custEquipKey = cleanPhone && cleanEquip ? `${cleanPhone}::${cleanEquip}` : null;
+
       if (seenLeadIds.has(cleanId)) continue;
+      if (custEquipKey && seenCustomerEquipment.has(custEquipKey)) continue;
+
       seenLeadIds.add(cleanId);
+      if (custEquipKey) seenCustomerEquipment.add(custEquipKey);
       uniqueLeads.push(lead);
     }
 
@@ -261,12 +276,27 @@ export async function GET() {
       return lead;
     });
 
+    const sortedMemEnriched = [...enrichedMemLeads].sort((a, b) => {
+      if (a.isProfileComplete && !b.isProfileComplete) return -1;
+      if (!a.isProfileComplete && b.isProfileComplete) return 1;
+      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
+
     const seenMemIds = new Set();
+    const seenMemCustomerEquipment = new Set();
     const uniqueMemLeads = [];
-    for (const lead of enrichedMemLeads) {
+
+    for (const lead of sortedMemEnriched) {
       const cleanId = lead.id || String(lead._id);
+      const cleanPhone = (lead.phone || lead.customerPhone || lead.rawLeadData?.customerPhone || '').replace(/\D/g, '').slice(-10);
+      const cleanEquip = (lead.equipment || lead.productName || lead.rawLeadData?.productName || '').trim().toLowerCase();
+      const custEquipKey = cleanPhone && cleanEquip ? `${cleanPhone}::${cleanEquip}` : null;
+
       if (seenMemIds.has(cleanId)) continue;
+      if (custEquipKey && seenMemCustomerEquipment.has(custEquipKey)) continue;
+
       seenMemIds.add(cleanId);
+      if (custEquipKey) seenMemCustomerEquipment.add(custEquipKey);
       uniqueMemLeads.push(lead);
     }
 
@@ -319,7 +349,27 @@ export async function POST(request) {
       const db = await getDatabase();
       const collection = db.collection('leads');
 
-      const query = { id: leadId };
+      const cleanPhone = (newLead.phone || newLead.customerPhone || '').replace(/\D/g, '').slice(-10);
+      let targetLeadId = leadId;
+
+      // Check if an existing lead exists for this customer (by phone) and same equipment
+      if (cleanPhone && newLead.equipment) {
+        const existingDoc = await collection.findOne({
+          $or: [
+            { id: leadId },
+            {
+              phone: { $regex: cleanPhone + '$' },
+              equipment: newLead.equipment
+            }
+          ]
+        });
+        if (existingDoc && existingDoc.id) {
+          targetLeadId = existingDoc.id;
+          newLead.id = existingDoc.id;
+        }
+      }
+
+      const query = { id: targetLeadId };
       const { createdAt, _id, ...fieldsToSet } = newLead;
       const updateResult = await collection.updateOne(
         query,

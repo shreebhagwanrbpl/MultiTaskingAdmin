@@ -451,11 +451,39 @@ export default function AdminDashboardPage({ searchParams }) {
   const [leads, setLeads] = useState([]);
   const [customerProfilesCount, setCustomerProfilesCount] = useState(0);
 
-  // Persistent New Lead Alert System (Does NOT auto-hide as requested)
+  // New Lead Alert System with 4-second Auto-Dismiss Timer
   const [newLeadAlerts, setNewLeadAlerts] = useState([]);
+  const [alertCountdown, setAlertCountdown] = useState(4);
+  const alertTimerRef = React.useRef(null);
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const knownLeadIdsRef = React.useRef(new Set());
   const isInitialLeadFetchRef = React.useRef(true);
+
+  // 4-second countdown auto-dismiss effect for top lead alert banner
+  useEffect(() => {
+    if (newLeadAlerts.length === 0) {
+      if (alertTimerRef.current) clearInterval(alertTimerRef.current);
+      return;
+    }
+
+    setAlertCountdown(4);
+    if (alertTimerRef.current) clearInterval(alertTimerRef.current);
+
+    alertTimerRef.current = setInterval(() => {
+      setAlertCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(alertTimerRef.current);
+          setNewLeadAlerts([]);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (alertTimerRef.current) clearInterval(alertTimerRef.current);
+    };
+  }, [newLeadAlerts.length]);
 
   // Synthesized Web Audio API Chime for New Incoming Leads
   const playLeadAlertSound = () => {
@@ -1133,7 +1161,9 @@ export default function AdminDashboardPage({ searchParams }) {
                   <span>•</span>
                   <span>Source: <strong className="font-mono text-sky-700">{newLeadAlerts[0].siteDomain || 'rajbiosis.com'}</strong></span>
                   <span>•</span>
-                  <span className="text-rose-700 font-bold">📌 Alert will remain open until reviewed</span>
+                  <span className="text-rose-700 font-bold inline-flex items-center gap-1 font-mono">
+                    ⏱️ Closing in {alertCountdown}s
+                  </span>
                 </div>
               </div>
             </div>
@@ -1177,7 +1207,7 @@ export default function AdminDashboardPage({ searchParams }) {
               </button>
               <button
                 type="button"
-                onClick={() => setNewLeadAlerts(prev => prev.slice(1))}
+                onClick={() => setNewLeadAlerts([])}
                 className="p-2 text-slate-400 hover:text-slate-700 hover:bg-white rounded-xl transition cursor-pointer border border-slate-200/60"
                 title="Dismiss this notification"
               >
