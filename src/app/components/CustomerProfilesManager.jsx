@@ -22,8 +22,10 @@ import {
   ChevronRight,
   RefreshCw,
   AlertCircle,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Package
 } from 'lucide-react';
+import CustomerProductDetailView from './CustomerProductDetailView';
 
 export default function CustomerProfilesManager({ onRefreshNeeded }) {
   const [customers, setCustomers] = useState([]);
@@ -32,6 +34,11 @@ export default function CustomerProfilesManager({ onRefreshNeeded }) {
   const [districtFilter, setDistrictFilter] = useState('all');
   const [selectedAuditCustomer, setSelectedAuditCustomer] = useState(null);
   const [isDeletingId, setIsDeletingId] = useState(null);
+
+  // Active customer whose products & quotations page is open (null = show all customers table)
+  const [activeCustomerView, setActiveCustomerView] = useState(null);
+  const [allQuotations, setAllQuotations] = useState([]);
+  const [allLeads, setAllLeads] = useState([]);
 
   const fetchCustomers = async (silent = false) => {
     if (!silent) setIsLoading(true);
@@ -48,10 +55,33 @@ export default function CustomerProfilesManager({ onRefreshNeeded }) {
     }
   };
 
+  const fetchRelatedData = async () => {
+    try {
+      const [qRes, lRes] = await Promise.all([
+        fetch('/api/quotations').catch(() => null),
+        fetch('/api/leads').catch(() => null)
+      ]);
+      if (qRes) {
+        const qData = await qRes.json();
+        if (qData.success && Array.isArray(qData.quotations)) setAllQuotations(qData.quotations);
+      }
+      if (lRes) {
+        const lData = await lRes.json();
+        if (lData.success && Array.isArray(lData.leads)) setAllLeads(lData.leads);
+      }
+    } catch (err) {
+      console.warn('Failed to fetch quotations/leads:', err);
+    }
+  };
+
   useEffect(() => {
     fetchCustomers(false);
+    fetchRelatedData();
     // Poll for new/edited profiles every 6 seconds silently without flickering
-    const interval = setInterval(() => fetchCustomers(true), 6000);
+    const interval = setInterval(() => {
+      fetchCustomers(true);
+      fetchRelatedData();
+    }, 6000);
     return () => clearInterval(interval);
   }, []);
 
@@ -145,10 +175,61 @@ export default function CustomerProfilesManager({ onRefreshNeeded }) {
     document.body.removeChild(link);
   };
 
+  // Helper to count how many products match a customer
+  const getCustomerProductCount = (cust) => {
+    const custPhone = (cust.phone || '').replace(/\D/g, '').slice(-10);
+    const custEmail = (cust.email || '').toLowerCase().trim();
+    const custHosp = (cust.hospitalName || '').toLowerCase().trim();
+    const custDoc = (cust.fullName || '').toLowerCase().trim();
+
+    const prods = new Set();
+    (allQuotations || []).forEach(q => {
+      const qPhone = (q.customerAddress2 || q.phone || '').replace(/\D/g, '').slice(-10);
+      const qName = (q.customerName || '').toLowerCase().trim();
+      const match = (custPhone && qPhone && (qPhone.includes(custPhone) || custPhone.includes(qPhone))) ||
+                    (custHosp && qName && (qName.includes(custHosp) || custHosp.includes(qName))) ||
+                    (custDoc && qName && (qName.includes(custDoc) || custDoc.includes(qName)));
+      if (match) {
+        (q.items || []).forEach(item => {
+          if (item.title) prods.add(item.title.trim().toLowerCase());
+        });
+      }
+    });
+
+    (allLeads || []).forEach(l => {
+      const lPhone = (l.phone || l.customerPhone || l.rawLeadData?.customerPhone || '').replace(/\D/g, '').slice(-10);
+      const lEmail = (l.email || l.customerEmail || l.rawLeadData?.customerEmail || '').toLowerCase().trim();
+      const lHosp = (l.hospital || l.hospitalName || l.rawLeadData?.hospitalName || '').toLowerCase().trim();
+      const match = (custPhone && lPhone && (lPhone.includes(custPhone) || custPhone.includes(lPhone))) ||
+                    (custEmail && lEmail && lEmail === custEmail) ||
+                    (custHosp && lHosp && (lHosp.includes(custHosp) || custHosp.includes(lHosp)));
+      if (match) {
+        const title = l.equipment || l.productName || l.rawLeadData?.productName;
+        if (title) prods.add(title.trim().toLowerCase());
+      }
+    });
+
+    return prods.size;
+  };
+
   return (
     <div className="space-y-5">
-      {/* Top Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {activeCustomerView ? (
+        <CustomerProductDetailView
+          customer={activeCustomerView}
+          onBack={() => setActiveCustomerView(null)}
+          allQuotations={allQuotations}
+          allLeads={allLeads}
+          onOpenAudit={(cust) => setSelectedAuditCustomer(cust)}
+          onRefresh={() => {
+            fetchCustomers(true);
+            fetchRelatedData();
+          }}
+        />
+      ) : (
+        <>
+          {/* Top Metric Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Total Registered Accounts</span>
@@ -261,17 +342,18 @@ export default function CustomerProfilesManager({ onRefreshNeeded }) {
               <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wider text-[10px] bg-slate-50/50">
                 <th className="py-3 px-4">Doctor / Representative</th>
                 <th className="py-3 px-4">Hospital / Entity</th>
+                <th className="py-3 px-4">Products & PI</th>
                 <th className="py-3 px-4">Contact</th>
                 <th className="py-3 px-4">Location</th>
                 <th className="py-3 px-4">Profile Status</th>
                 <th className="py-3 px-4">Last Activity</th>
-                <th className="py-3 px-4 text-right">Audit & Actions</th>
+                <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100/70 font-medium text-slate-600">
               {filteredCustomers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-14 text-center">
+                  <td colSpan={8} className="py-14 text-center">
                     <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center mx-auto mb-3">
                       <Users size={22} />
                     </div>
@@ -284,14 +366,16 @@ export default function CustomerProfilesManager({ onRefreshNeeded }) {
               ) : (
                 filteredCustomers.map((cust) => {
                   const hasEdits = (cust.editCount || 0) > 0 || cust.lastAction === 'Profile Edited';
+                  const prodCount = getCustomerProductCount(cust);
                   return (
                     <tr
                       key={cust.id || cust._id}
-                      onClick={() => setSelectedAuditCustomer(cust)}
+                      onClick={() => setActiveCustomerView(cust)}
                       className="hover:bg-slate-50/80 transition cursor-pointer group"
+                      title="Click to view all products and download Proforma Invoices (PI)"
                     >
                       <td className="py-3.5 px-4">
-                        <div className="font-bold text-slate-800 text-xs flex items-center gap-2">
+                        <div className="font-bold text-slate-800 text-xs flex items-center gap-2 group-hover:text-sky-600 transition">
                           <span>{cust.fullName || 'Medical Client'}</span>
                         </div>
                         <span className="text-[11px] text-slate-500 font-medium block">
@@ -304,6 +388,23 @@ export default function CustomerProfilesManager({ onRefreshNeeded }) {
                           <Building2 size={13} className="text-slate-400 shrink-0" />
                           <span>{cust.hospitalName || 'Clinic / Hospital'}</span>
                         </div>
+                      </td>
+
+                      {/* Products & Quotes Count Badge */}
+                      <td className="py-3.5 px-4">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveCustomerView(cust);
+                          }}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200/90 text-xs font-bold transition group-hover:border-sky-300 shadow-2xs"
+                          title="Open products list & quotations"
+                        >
+                          <Package size={13} className="text-sky-600" />
+                          <span>{prodCount} {prodCount === 1 ? 'Product' : 'Products'}</span>
+                          <ChevronRight size={12} className="text-sky-500" />
+                        </button>
                       </td>
 
                       <td className="py-3.5 px-4">
@@ -345,8 +446,9 @@ export default function CustomerProfilesManager({ onRefreshNeeded }) {
                       <td className="py-3.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1.5">
                           <button
+                            type="button"
                             onClick={() => setSelectedAuditCustomer(cust)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition border border-indigo-100/80"
                             title="View Profile Details & Edit Changes"
                           >
                             <History size={12} />
@@ -364,6 +466,7 @@ export default function CustomerProfilesManager({ onRefreshNeeded }) {
                           )}
 
                           <button
+                            type="button"
                             onClick={(e) => handleDeleteCustomer(cust.id || cust._id, e)}
                             disabled={isDeletingId === (cust.id || cust._id)}
                             className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition"
@@ -381,6 +484,8 @@ export default function CustomerProfilesManager({ onRefreshNeeded }) {
           </table>
         </div>
       </div>
+        </>
+      )}
 
       {/* =====================================================================
           CUSTOMER PROFILE AUDIT & FIELD CHANGE DRAWER / MODAL

@@ -88,6 +88,9 @@ export default function WebQuotationManager({ products = [] }) {
   const [signatoryCity, setSignatoryCity] = useState('Jaipur-302021 Rajasthan');
   const [signatoryPhone, setSignatoryPhone] = useState('Mob: +91-998-3333-469');
 
+  // Terms & Conditions - Jurisdiction clause (Configurable)
+  const [jurisdictionText, setJurisdictionText] = useState('All goods sold are subject to Jaipur Jurisdiction.');
+
   // Quotation Line Items (100% Dynamic)
   const [items, setItems] = useState([]);
 
@@ -2395,6 +2398,33 @@ export default function WebQuotationManager({ products = [] }) {
                   />
                 </div>
               </div>
+
+              {/* Jurisdiction Clause Customizer */}
+              <div className="pt-3 border-t border-slate-100">
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  6. Legal Jurisdiction Clause
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={jurisdictionText}
+                    onChange={(e) => setJurisdictionText(e.target.value)}
+                    placeholder="All goods sold are subject to Jaipur Jurisdiction."
+                    className="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium outline-none focus:bg-white focus:border-sky-500 transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setJurisdictionText('All goods sold are subject to Jaipur Jurisdiction.')}
+                    className="px-3 py-2 text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold rounded-xl transition"
+                    title="Reset to default Jaipur Jurisdiction"
+                  >
+                    Reset
+                  </button>
+                </div>
+                <span className="text-[10px] text-slate-400 mt-1 block">
+                  This clause appears on Page 4 (Section 6: Jurisdiction) of the official 4-Page Quotation PDF.
+                </span>
+              </div>
             </div>
 
           </div>
@@ -2834,7 +2864,7 @@ export default function WebQuotationManager({ products = [] }) {
                     <div className="space-y-1">
                       <div className="font-bold text-slate-900">6. JURISDICTION</div>
                       <p className="pl-3">
-                        All goods sold are subject to Jaipur Jurisdiction.
+                        {jurisdictionText || 'All goods sold are subject to Jaipur Jurisdiction.'}
                       </p>
                     </div>
 
@@ -3168,7 +3198,7 @@ export default function WebQuotationManager({ products = [] }) {
             </div>
             <div className="space-y-1">
               <div className="font-bold text-slate-900">6. JURISDICTION</div>
-              <p className="pl-3">All goods sold are subject to Jaipur Jurisdiction.</p>
+              <p className="pl-3">{jurisdictionText || 'All goods sold are subject to Jaipur Jurisdiction.'}</p>
             </div>
             <div className="space-y-1">
               <div className="font-bold text-slate-900">7. FORCE MAJEURE</div>
