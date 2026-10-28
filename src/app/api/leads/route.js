@@ -452,18 +452,18 @@ export async function DELETE(request) {
       return NextResponse.json({ success: true, count: 0, cleared: true, source: 'local' }, { headers: CORS_HEADERS });
     }
 
-    const filtered = currentList.filter(l => l.id !== id && l._id !== id);
+    const filtered = currentList.filter(l => l.id !== id && l._id !== id && String(l._id) !== id);
     writeLocalLeads(filtered);
 
     try {
       const db = await getDatabase();
       const collection = db.collection('leads');
       const { ObjectId } = await import('mongodb');
-      let query = { id };
+      const orConditions = [{ id: id }, { _id: id }];
       if (ObjectId.isValid(id)) {
-        query = { $or: [{ id }, { _id: new ObjectId(id) }] };
+        orConditions.push({ _id: new ObjectId(id) });
       }
-      await collection.deleteOne(query);
+      await collection.deleteMany({ $or: orConditions });
     } catch (e) {}
 
     return NextResponse.json({ success: true, deletedId: id }, { headers: CORS_HEADERS });
@@ -511,3 +511,4 @@ export async function PUT(request) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500, headers: CORS_HEADERS });
   }
 }
+

@@ -155,47 +155,71 @@ export default function WebsiteHomepageManager() {
     reader.readAsDataURL(file);
   };
 
+  const persistConfig = async (newConfig, successMessage) => {
+    try {
+      const res = await fetch('/api/website/homepage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newConfig)
+      });
+      const json = await res.json();
+      if (json.success) {
+        setDbStatus({
+          connected: !!json.savedToMongo,
+          source: json.source
+        });
+        if (successMessage) {
+          showToast('success', successMessage);
+        }
+      } else {
+        showToast('error', 'Save error: ' + (json.error || 'Failed'));
+      }
+    } catch (e) {
+      showToast('error', 'Error: ' + e.message);
+    }
+  };
+
   // Offers
   const handleSaveOffer = (data) => {
+    let newOffers;
     if (editingOffer && editingOffer.id) {
-      setConfig(prev => ({
-        ...prev,
-        offers: prev.offers.map(o => o.id === editingOffer.id ? { ...o, ...data } : o)
-      }));
+      newOffers = (config.offers || []).map(o => o.id === editingOffer.id ? { ...o, ...data } : o);
     } else {
-      setConfig(prev => ({
-        ...prev,
-        offers: [...(prev.offers || []), { id: 'off-' + Date.now(), active: true, ...data }]
-      }));
+      newOffers = [...(config.offers || []), { id: 'off-' + Date.now(), active: true, ...data }];
     }
+    const newConfig = { ...config, offers: newOffers };
+    setConfig(newConfig);
     setOfferModalOpen(false);
     setEditingOffer(null);
+    persistConfig(newConfig, 'Offer saved to MongoDB');
   };
 
   const handleDeleteOffer = (id) => {
     if (confirm('Delete this offer banner?')) {
-      setConfig(prev => ({
-        ...prev,
-        offers: prev.offers.filter(o => o.id !== id)
-      }));
+      const updated = (config.offers || []).filter(o => o.id !== id);
+      const newConfig = { ...config, offers: updated };
+      setConfig(newConfig);
+      persistConfig(newConfig, 'Offer deleted from MongoDB');
     }
   };
 
   const handleToggleOffer = (id) => {
-    setConfig(prev => ({
-      ...prev,
-      offers: prev.offers.map(o => o.id === id ? { ...o, active: !o.active } : o)
-    }));
+    const updated = (config.offers || []).map(o => o.id === id ? { ...o, active: !o.active } : o);
+    const newConfig = { ...config, offers: updated };
+    setConfig(newConfig);
+    persistConfig(newConfig, 'Offer status updated');
   };
 
   const handleMoveOffer = (idx, dir) => {
-    const list = [...config.offers];
+    const list = [...(config.offers || [])];
     const target = idx + dir;
     if (target < 0 || target >= list.length) return;
     const temp = list[idx];
     list[idx] = list[target];
     list[target] = temp;
-    setConfig(prev => ({ ...prev, offers: list }));
+    const newConfig = { ...config, offers: list };
+    setConfig(newConfig);
+    persistConfig(newConfig, 'Offer position saved');
   };
 
   // Carousel
@@ -226,11 +250,11 @@ export default function WebsiteHomepageManager() {
       secondaryBtnLink: '#rfq',
       active: true
     };
-    setConfig(prev => ({
-      ...prev,
-      carousel: [...(prev.carousel || []), newSlide]
-    }));
-    setActiveSlideIndex((config.carousel || []).length);
+    const updated = [...(config.carousel || []), newSlide];
+    const newConfig = { ...config, carousel: updated };
+    setConfig(newConfig);
+    setActiveSlideIndex(updated.length - 1);
+    persistConfig(newConfig, 'New slide added and saved');
   };
 
   const handleDeleteSlide = (idx) => {
@@ -239,68 +263,66 @@ export default function WebsiteHomepageManager() {
       return;
     }
     if (confirm('Remove this slide from hero carousel?')) {
-      const updated = config.carousel.filter((_, i) => i !== idx);
-      setConfig(prev => ({ ...prev, carousel: updated }));
+      const updated = (config.carousel || []).filter((_, i) => i !== idx);
+      const newConfig = { ...config, carousel: updated };
+      setConfig(newConfig);
       setActiveSlideIndex(Math.max(0, idx - 1));
+      persistConfig(newConfig, 'Slide removed from MongoDB');
     }
   };
 
   // Categories
   const handleSaveCategory = (data) => {
+    let updated;
     if (editingCategory && editingCategory.id) {
-      setConfig(prev => ({
-        ...prev,
-        categories: prev.categories.map(c => c.id === editingCategory.id ? { ...c, ...data } : c)
-      }));
+      updated = (config.categories || []).map(c => c.id === editingCategory.id ? { ...c, ...data } : c);
     } else {
-      setConfig(prev => ({
-        ...prev,
-        categories: [...(prev.categories || []), { id: 'cat-' + Date.now(), active: true, ...data }]
-      }));
+      updated = [...(config.categories || []), { id: 'cat-' + Date.now(), active: true, ...data }];
     }
+    const newConfig = { ...config, categories: updated };
+    setConfig(newConfig);
     setCategoryModalOpen(false);
     setEditingCategory(null);
+    persistConfig(newConfig, 'Category saved to MongoDB');
   };
 
   const handleDeleteCategory = (id) => {
     if (confirm('Delete this equipment category?')) {
-      setConfig(prev => ({
-        ...prev,
-        categories: prev.categories.filter(c => c.id !== id)
-      }));
+      const updated = (config.categories || []).filter(c => c.id !== id);
+      const newConfig = { ...config, categories: updated };
+      setConfig(newConfig);
+      persistConfig(newConfig, 'Category deleted from MongoDB');
     }
   };
 
   // Brands
   const handleSaveBrand = (data) => {
+    let updated;
     if (editingBrand && editingBrand.id) {
-      setConfig(prev => ({
-        ...prev,
-        brands: prev.brands.map(b => b.id === editingBrand.id ? { ...b, ...data } : b)
-      }));
+      updated = (config.brands || []).map(b => b.id === editingBrand.id ? { ...b, ...data } : b);
     } else {
-      setConfig(prev => ({
-        ...prev,
-        brands: [...(prev.brands || []), { id: 'brand-' + Date.now(), active: true, ...data }]
-      }));
+      updated = [...(config.brands || []), { id: 'brand-' + Date.now(), active: true, ...data }];
     }
+    const newConfig = { ...config, brands: updated };
+    setConfig(newConfig);
     setBrandModalOpen(false);
     setEditingBrand(null);
+    persistConfig(newConfig, 'Brand saved to MongoDB');
   };
 
   const handleDeleteBrand = (id) => {
     if (confirm('Remove this partner brand?')) {
-      setConfig(prev => ({
-        ...prev,
-        brands: prev.brands.filter(b => b.id !== id)
-      }));
+      const updated = (config.brands || []).filter(b => b.id !== id);
+      const newConfig = { ...config, brands: updated };
+      setConfig(newConfig);
+      persistConfig(newConfig, 'Brand removed from MongoDB');
     }
   };
 
   const currentSlide = config.carousel?.[activeSlideIndex] || config.carousel?.[0];
 
   return (
-    <div className="bg-slate-50 min-h-screen pb-16 text-slate-800">
+    <div className="space-y-6 text-slate-800">
       {/* Toast Notification */}
       {toast && (
         <div className={`fixed bottom-5 right-5 z-50 px-4 py-2.5 rounded shadow-md border text-xs font-medium flex items-center gap-2 ${
@@ -314,8 +336,8 @@ export default function WebsiteHomepageManager() {
       )}
 
       {/* ZOHO STYLE TOP ACTION BAR */}
-      <div className="bg-white border-b border-slate-200 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
               <span>Storefront</span>
@@ -365,7 +387,7 @@ export default function WebsiteHomepageManager() {
         </div>
 
         {/* ZOHO HORIZONTAL UNDERLINE TAB BAR */}
-        <div className="max-w-7xl mx-auto mt-4 pt-1 flex items-center gap-6 border-t border-slate-100 overflow-x-auto text-xs">
+        <div className="mt-4 pt-3 flex items-center gap-6 border-t border-slate-100 overflow-x-auto text-xs">
           {[
             { id: 'offers', label: 'Top Offers & Announcement Bar', count: (config.offers || []).length },
             { id: 'carousel', label: 'Hero Banner Slider (5 Slides)', count: (config.carousel || []).length },
@@ -378,7 +400,7 @@ export default function WebsiteHomepageManager() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-3 font-semibold transition border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                className={`py-2 font-semibold transition border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                   isActive 
                     ? 'border-[#E42528] text-[#E42528]' 
                     : 'border-transparent text-slate-600 hover:text-slate-900'
@@ -398,7 +420,7 @@ export default function WebsiteHomepageManager() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 pt-6 space-y-6">
+      <div className="space-y-6">
 
         {/* ========================================================================= */}
         {/* TAB 1: TOP OFFERS & ANNOUNCEMENT BAR */}

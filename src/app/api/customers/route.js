@@ -311,17 +311,17 @@ export async function DELETE(request) {
       return NextResponse.json({ success: false, error: 'Customer ID required' }, { status: 400, headers: CORS_HEADERS });
     }
 
-    const filtered = currentList.filter(c => c.id !== id && c._id !== id);
+    const filtered = currentList.filter(c => c.id !== id && c._id !== id && String(c._id) !== id);
     writeLocalCustomers(filtered);
 
     try {
       const db = await getDatabase();
       const collection = db.collection('customers');
-      let query = { id };
+      const orConditions = [{ id: id }, { _id: id }];
       if (ObjectId.isValid(id)) {
-        query = { $or: [{ id }, { _id: new ObjectId(id) }] };
+        orConditions.push({ _id: new ObjectId(id) });
       }
-      await collection.deleteOne(query);
+      await collection.deleteMany({ $or: orConditions });
     } catch (e) {}
 
     return NextResponse.json({ success: true, deletedId: id }, { headers: CORS_HEADERS });
