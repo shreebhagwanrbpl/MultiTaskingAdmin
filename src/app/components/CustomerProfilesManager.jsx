@@ -77,12 +77,54 @@ export default function CustomerProfilesManager({ onRefreshNeeded }) {
   useEffect(() => {
     fetchCustomers(false);
     fetchRelatedData();
-    // Poll for new/edited profiles every 6 seconds silently without flickering
+
+    // 1. Instant zero-latency broadcast listener across tabs/iframes
+    let channel = null;
+    try {
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        channel = new BroadcastChannel('biomedical_leads_channel');
+        channel.onmessage = (event) => {
+          if (event.data?.type === 'NEW_WEB_LEAD' || event.data?.type === 'NEW_WEB_QUOTATION') {
+            fetchCustomers(true);
+            fetchRelatedData();
+            onRefreshNeeded?.();
+          }
+        };
+      }
+    } catch (e) {}
+
+    // 2. PostMessage listener for iframe / parent communication
+    const handlePostMessage = (e) => {
+      if (e.data?.type === 'NEW_WEB_LEAD' || e.data?.type === 'NEW_WEB_QUOTATION') {
+        fetchCustomers(true);
+        fetchRelatedData();
+        onRefreshNeeded?.();
+      }
+    };
+    window.addEventListener('message', handlePostMessage);
+
+    // 3. Storage event listener for hard reload / cross-tab sync
+    const handleStorage = (e) => {
+      if (e.key === 'latest_web_lead' || e.key === 'latest_web_quotation') {
+        fetchCustomers(true);
+        fetchRelatedData();
+        onRefreshNeeded?.();
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    // 4. Poll for new/edited profiles every 4 seconds silently without flickering
     const interval = setInterval(() => {
       fetchCustomers(true);
       fetchRelatedData();
-    }, 6000);
-    return () => clearInterval(interval);
+    }, 4000);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('message', handlePostMessage);
+      window.removeEventListener('storage', handleStorage);
+      try { channel?.close(); } catch (e) {}
+    };
   }, []);
 
   // Filtered customer profiles (sorted newest / most recently updated first)
@@ -175,37 +217,129 @@ export default function CustomerProfilesManager({ onRefreshNeeded }) {
     document.body.removeChild(link);
   };
 
-  // Helper to count how many products match a customer
-  const getCustomerProductCount = (cust) => {
-    const custPhone = (cust.phone || '').replace(/\D/g, '').slice(-10);
-    const custEmail = (cust.email || '').toLowerCase().trim();
-    const custHosp = (cust.hospitalName || '').toLowerCase().trim();
-    const custDoc = (cust.fullName || '').toLowerCase().trim();
+  // Robust extraction helpers to cleanly identify phone & email across quotes and leads
+  const extractQuotePhone = (q) => {
+    if (!q) return '';
+    const direct = q.phone || q.customerPhone || q.doctorPhone || q.rawLeadData?.customerPhone || q.rawLeadData?.phone;
+    if (direct) {
+      const digits = String(direct).replace(/\D/g, '');
+      if (digits.length >= 10) return digits.slice(-10);
+    }
+    const combined = `${q.customerAddress1 || ''} ${q.customerAddress2 || ''}`;
+    const phoneMatch = combined.match(/(?:\+91|91|0)?[6-9]\d{9}/);
+    if (phoneMatch) return phoneMatch[0].replace(/\D/g, '').slice(-10);
+    const anyDigits = combined.replace(/\D/g, '');
+    if (anyDigits.length >= 10) return anyDigits.slice(-10);
+    return '';
+  };
 
+  const extractQuoteEmail = (q) => {
+    if (!q) return '';
+    const direct = q.email || q.customerEmail || q.doctorEmail || q.rawLeadData?.customerEmail;
+    if (direct && typeof direct === 'string' && direct.includes('@')) return direct.trim().toLowerCase();
+    const combined = `${q.customerAddress1 || ''} ${q.customerAddress2 || ''}`;
+    const emailMatch = combined.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+    if (emailMatch) return emailMatch[0].trim().toLowerCase();
+    return '';
+  };
+
+  const extractLeadPhone = (lead) => {
+    if (!lead) return '';
+    const raw = lead.rawLeadData || {};
+    const direct = lead.phone || lead.customerPhone || lead.doctorPhone || raw.customerPhone || raw.phone;
+    if (direct) {
+      const digits = String(direct).replace(/\D/g, '');
+      if (digits.length >= 10) return digits.slice(-10);
+    }
+    const combined = `${lead.address || ''} ${raw.address || ''}`;
+    const phoneMatch = combined.match(/(?:\+91|91|0)?[6-9]\d{9}/);
+    if (phoneMatch) return phoneMatch[0].replace(/\D/g, '').slice(-10);
+    return '';
+  };
+
+  const extractLeadEmail = (lead) => {
+    if (!lead) return '';
+    const raw = lead.rawLeadData || {};
+    const direct = lead.email || lead.customerEmail || raw.customerEmail || raw.email;
+    if (direct && typeof direct === 'string' && direct.includes('@')) return direct.trim().toLowerCase();
+    return '';
+  };
+
+  const isMatchForCustomer = (cust, itemPhone, itemEmail, itemHospital, itemDoctor) => {
+    if (!cust) return false;
+    const custPhone = (cust.phone || '').replace(/\D/g, '').slice(-10);
+    const custEmail = (cust.email || '').trim().toLowerCase();
+
+    // 1. Phone number is primary and definitive (unique identifier per customer account)
+    if (custPhone && itemPhone) {
+      return custPhone === itemPhone;
+    }
+    // If both have phone numbers but they do not match, NEVER conflate them
+    if (custPhone && itemPhone && custPhone !== itemPhone) {
+      return false;
+    }
+
+    // 2. Email matching when phone is absent on one side
+    if (custEmail && itemEmail) {
+      return custEmail === itemEmail;
+    }
+    if (custEmail && itemEmail && custEmail !== itemEmail) {
+      return false;
+    }
+
+    // 3. Fallback ONLY when NEITHER side has phone nor email (legacy records without contact details)
+    if (!itemPhone && !itemEmail && cust.fullName && cust.hospitalName && itemHospital && itemDoctor) {
+      const hosp = itemHospital.trim().toLowerCase();
+      const doc = itemDoctor.trim().toLowerCase();
+      const cHosp = cust.hospitalName.trim().toLowerCase();
+      const cDoc = cust.fullName.trim().toLowerCase();
+      const isGenericHosp = ['hospital', 'clinic', 'clinic / hospital', 'healthcare institution', 'healthcare facility', 'general hospital'].includes(hosp);
+      if (!isGenericHosp && hosp === cHosp && doc.includes(cDoc)) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  // Helper to count how many unique products match this specific customer
+  const getCustomerProductCount = (cust) => {
     const prods = new Set();
+    const seenQuoteIds = new Set();
+    const seenRefNos = new Set();
+
     (allQuotations || []).forEach(q => {
-      const qPhone = (q.customerAddress2 || q.phone || '').replace(/\D/g, '').slice(-10);
-      const qName = (q.customerName || '').toLowerCase().trim();
-      const match = (custPhone && qPhone && (qPhone.includes(custPhone) || custPhone.includes(qPhone))) ||
-                    (custHosp && qName && (qName.includes(custHosp) || custHosp.includes(qName))) ||
-                    (custDoc && qName && (qName.includes(custDoc) || custDoc.includes(qName)));
+      const qPhone = extractQuotePhone(q);
+      const qEmail = extractQuoteEmail(q);
+      const match = isMatchForCustomer(cust, qPhone, qEmail, q.customerName, q.doctorName);
       if (match) {
+        if (q.id) seenQuoteIds.add(String(q.id).toLowerCase());
+        if (q.refNo) seenRefNos.add(String(q.refNo).toLowerCase());
         (q.items || []).forEach(item => {
-          if (item.title) prods.add(item.title.trim().toLowerCase());
+          const title = item.title || 'Biomedical Equipment';
+          const refNo = q.refNo || q.id || '';
+          prods.add(`${title.toLowerCase()}__${refNo.toLowerCase()}`);
         });
       }
     });
 
     (allLeads || []).forEach(l => {
-      const lPhone = (l.phone || l.customerPhone || l.rawLeadData?.customerPhone || '').replace(/\D/g, '').slice(-10);
-      const lEmail = (l.email || l.customerEmail || l.rawLeadData?.customerEmail || '').toLowerCase().trim();
-      const lHosp = (l.hospital || l.hospitalName || l.rawLeadData?.hospitalName || '').toLowerCase().trim();
-      const match = (custPhone && lPhone && (lPhone.includes(custPhone) || custPhone.includes(lPhone))) ||
-                    (custEmail && lEmail && lEmail === custEmail) ||
-                    (custHosp && lHosp && (lHosp.includes(custHosp) || custHosp.includes(lHosp)));
+      const lPhone = extractLeadPhone(l);
+      const lEmail = extractLeadEmail(l);
+      const raw = l.rawLeadData || {};
+      const match = isMatchForCustomer(cust, lPhone, lEmail, l.hospital || raw.hospitalName, l.doctorName || raw.customerName);
       if (match) {
-        const title = l.equipment || l.productName || l.rawLeadData?.productName;
-        if (title) prods.add(title.trim().toLowerCase());
+        const quoteNum = raw.quoteNumber || l.quotationRef || '';
+        const qId = l.quotationId || l.id || '';
+        if (
+          (quoteNum && seenRefNos.has(String(quoteNum).toLowerCase())) ||
+          (qId && seenQuoteIds.has(String(qId).toLowerCase()))
+        ) {
+          return;
+        }
+        const title = l.equipment || l.productName || raw.productName || 'Biomedical Equipment';
+        const refNo = quoteNum || l.id || '';
+        prods.add(`${title.toLowerCase()}__${refNo.toLowerCase()}`);
       }
     });
 

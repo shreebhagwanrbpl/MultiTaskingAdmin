@@ -64,32 +64,113 @@ export default function CustomerProductDetailView({
     return num.toLocaleString('en-IN');
   };
 
+  // Robust extraction helpers to cleanly identify phone & email across quotes and leads
+  const extractQuotePhone = (q) => {
+    if (!q) return '';
+    const direct = q.phone || q.customerPhone || q.doctorPhone || q.rawLeadData?.customerPhone || q.rawLeadData?.phone;
+    if (direct) {
+      const digits = String(direct).replace(/\D/g, '');
+      if (digits.length >= 10) return digits.slice(-10);
+    }
+    const combined = `${q.customerAddress1 || ''} ${q.customerAddress2 || ''}`;
+    const phoneMatch = combined.match(/(?:\+91|91|0)?[6-9]\d{9}/);
+    if (phoneMatch) return phoneMatch[0].replace(/\D/g, '').slice(-10);
+    const anyDigits = combined.replace(/\D/g, '');
+    if (anyDigits.length >= 10) return anyDigits.slice(-10);
+    return '';
+  };
+
+  const extractQuoteEmail = (q) => {
+    if (!q) return '';
+    const direct = q.email || q.customerEmail || q.doctorEmail || q.rawLeadData?.customerEmail;
+    if (direct && typeof direct === 'string' && direct.includes('@')) return direct.trim().toLowerCase();
+    const combined = `${q.customerAddress1 || ''} ${q.customerAddress2 || ''}`;
+    const emailMatch = combined.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+    if (emailMatch) return emailMatch[0].trim().toLowerCase();
+    return '';
+  };
+
+  const extractLeadPhone = (lead) => {
+    if (!lead) return '';
+    const raw = lead.rawLeadData || {};
+    const direct = lead.phone || lead.customerPhone || lead.doctorPhone || raw.customerPhone || raw.phone;
+    if (direct) {
+      const digits = String(direct).replace(/\D/g, '');
+      if (digits.length >= 10) return digits.slice(-10);
+    }
+    const combined = `${lead.address || ''} ${raw.address || ''}`;
+    const phoneMatch = combined.match(/(?:\+91|91|0)?[6-9]\d{9}/);
+    if (phoneMatch) return phoneMatch[0].replace(/\D/g, '').slice(-10);
+    return '';
+  };
+
+  const extractLeadEmail = (lead) => {
+    if (!lead) return '';
+    const raw = lead.rawLeadData || {};
+    const direct = lead.email || lead.customerEmail || raw.customerEmail || raw.email;
+    if (direct && typeof direct === 'string' && direct.includes('@')) return direct.trim().toLowerCase();
+    return '';
+  };
+
+  const isMatchForCustomer = (cust, itemPhone, itemEmail, itemHospital, itemDoctor) => {
+    if (!cust) return false;
+    const custPhone = (cust.phone || '').replace(/\D/g, '').slice(-10);
+    const custEmail = (cust.email || '').trim().toLowerCase();
+
+    // 1. Phone number is primary and definitive (unique identifier per customer account)
+    if (custPhone && itemPhone) {
+      return custPhone === itemPhone;
+    }
+    // If both have phone numbers but they do not match, NEVER conflate them
+    if (custPhone && itemPhone && custPhone !== itemPhone) {
+      return false;
+    }
+
+    // 2. Email matching when phone is absent on one side
+    if (custEmail && itemEmail) {
+      return custEmail === itemEmail;
+    }
+    if (custEmail && itemEmail && custEmail !== itemEmail) {
+      return false;
+    }
+
+    // 3. Fallback ONLY when NEITHER side has phone nor email (legacy records without contact details)
+    if (!itemPhone && !itemEmail && cust.fullName && cust.hospitalName && itemHospital && itemDoctor) {
+      const hosp = itemHospital.trim().toLowerCase();
+      const doc = itemDoctor.trim().toLowerCase();
+      const cHosp = cust.hospitalName.trim().toLowerCase();
+      const cDoc = cust.fullName.trim().toLowerCase();
+      const isGenericHosp = ['hospital', 'clinic', 'clinic / hospital', 'healthcare institution', 'healthcare facility', 'general hospital'].includes(hosp);
+      if (!isGenericHosp && hosp === cHosp && doc.includes(cDoc)) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
   // Aggregate all products belonging to this customer from quotations & leads
   const customerProducts = useMemo(() => {
     if (!customer) return [];
 
-    const custPhone = (customer.phone || '').replace(/\D/g, '').slice(-10);
-    const custEmail = (customer.email || '').toLowerCase().trim();
-    const custHosp = (customer.hospitalName || '').toLowerCase().trim();
-    const custDoc = (customer.fullName || '').toLowerCase().trim();
-
     const productMap = new Map();
+    const seenQuoteIds = new Set();
+    const seenRefNos = new Set();
 
     // 1. Process from quotations list
     (allQuotations || []).forEach((q) => {
-      const qPhone = (q.customerAddress2 || q.phone || '').replace(/\D/g, '').slice(-10);
-      const qName = (q.customerName || '').toLowerCase().trim();
+      const qPhone = extractQuotePhone(q);
+      const qEmail = extractQuoteEmail(q);
+      const match = isMatchForCustomer(customer, qPhone, qEmail, q.customerName, q.doctorName);
 
-      const phoneMatch = custPhone && qPhone && (qPhone.includes(custPhone) || custPhone.includes(qPhone));
-      const emailMatch = false; // quotations usually don't have separate email
-      const hospMatch = custHosp && qName && (qName.includes(custHosp) || custHosp.includes(qName));
-      const docMatch = custDoc && qName && (qName.includes(custDoc) || custDoc.includes(qName));
+      if (match) {
+        if (q.id) seenQuoteIds.add(String(q.id).toLowerCase());
+        if (q.refNo) seenRefNos.add(String(q.refNo).toLowerCase());
 
-      if (phoneMatch || hospMatch || docMatch) {
         (q.items || []).forEach((item, itemIdx) => {
           const title = (item.title || 'Biomedical Equipment').trim();
           const refNo = q.refNo || q.id || 'RB-QT-2026';
-          const key = `${title.toLowerCase()}__${refNo}`;
+          const key = `${title.toLowerCase()}__${refNo.toLowerCase()}`;
 
           if (!productMap.has(key)) {
             // Find match in catalog for rich specifications and photo
@@ -129,21 +210,25 @@ export default function CustomerProductDetailView({
 
     // 2. Process from central leads list
     (allLeads || []).forEach((lead) => {
-      const lPhone = (lead.phone || lead.customerPhone || lead.rawLeadData?.customerPhone || '').replace(/\D/g, '').slice(-10);
-      const lEmail = (lead.email || lead.customerEmail || lead.rawLeadData?.customerEmail || '').toLowerCase().trim();
-      const lHosp = (lead.hospital || lead.hospitalName || lead.rawLeadData?.hospitalName || '').toLowerCase().trim();
-      const lDoc = (lead.doctorName || lead.customerName || lead.rawLeadData?.customerName || '').toLowerCase().trim();
+      const lPhone = extractLeadPhone(lead);
+      const lEmail = extractLeadEmail(lead);
+      const raw = lead.rawLeadData || {};
+      const match = isMatchForCustomer(customer, lPhone, lEmail, lead.hospital || raw.hospitalName, lead.doctorName || raw.customerName);
 
-      const phoneMatch = custPhone && lPhone && (lPhone.includes(custPhone) || custPhone.includes(lPhone));
-      const emailMatch = custEmail && lEmail && (lEmail === custEmail);
-      const hospMatch = custHosp && lHosp && (lHosp.includes(custHosp) || custHosp.includes(lHosp));
-      const docMatch = custDoc && lDoc && (lDoc.includes(custDoc) || custDoc.includes(lDoc));
+      if (match) {
+        // Skip if this lead corresponds to an already processed quotation
+        const quoteNum = raw.quoteNumber || lead.quotationRef || '';
+        const qId = lead.quotationId || lead.id || '';
+        if (
+          (quoteNum && seenRefNos.has(String(quoteNum).toLowerCase())) ||
+          (qId && seenQuoteIds.has(String(qId).toLowerCase()))
+        ) {
+          return;
+        }
 
-      if (phoneMatch || emailMatch || hospMatch || docMatch) {
-        const raw = lead.rawLeadData || {};
         const title = (lead.equipment || lead.productName || raw.productName || 'Biomedical Equipment').trim();
-        const refNo = raw.quoteNumber || lead.id || 'RB-QT-2026';
-        const key = `${title.toLowerCase()}__${refNo}`;
+        const refNo = quoteNum || lead.id || 'RB-QT-2026';
+        const key = `${title.toLowerCase()}__${refNo.toLowerCase()}`;
 
         if (!productMap.has(key)) {
           const catMatch = PRODUCTS.find((p) =>
@@ -163,7 +248,7 @@ export default function CustomerProductDetailView({
             date: lead.date || (lead.createdAt ? new Date(lead.createdAt).toLocaleDateString('en-IN') : 'Recent'),
             customerName: customer.hospitalName || lead.hospital || 'Healthcare Institution',
             customerAddress1: `${customer.district || lead.city || 'Jaipur'}, ${customer.state || 'Rajasthan'}`,
-            customerAddress2: `Contact: +91 ${custPhone || lead.phone || ''}`,
+            customerAddress2: `Contact: +91 ${customer.phone || lead.phone || ''}`,
             subjectLetter: `Quotation purchase of ${title}`,
             subjectQuotation: `Purchase of ${title}`,
             items: [
