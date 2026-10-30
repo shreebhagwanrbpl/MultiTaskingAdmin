@@ -694,6 +694,7 @@ export default function AdminDashboardPage({ searchParams }) {
     loadLeadsFromDb();
     loadCampaignsFromDb();
     loadCustomerProfilesCount();
+    loadQuotations();
 
     // Periodic 2-second polling to capture incoming leads and customer profile edits
     const pollTimer = setInterval(() => {
@@ -780,6 +781,30 @@ export default function AdminDashboardPage({ searchParams }) {
     } catch (e) {
       console.warn('MongoDB leads fallback:', e);
     }
+  };
+
+  const [quotationsList, setQuotationsList] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('rbpl_cached_quotations');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) {}
+    }
+    return [];
+  });
+
+  const loadQuotations = async () => {
+    try {
+      const res = await fetch('/api/quotations');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.quotations)) {
+        setQuotationsList(data.quotations);
+        try { localStorage.setItem('rbpl_cached_quotations', JSON.stringify(data.quotations)); } catch (e) {}
+      }
+    } catch (e) {}
   };
 
   const [customersList, setCustomersList] = useState(() => {
@@ -1997,7 +2022,7 @@ export default function AdminDashboardPage({ searchParams }) {
               TAB: WEB QUOTATION DESK & 4-PAGE OFFICIAL RAJ BIOSIS PDF GENERATOR
               ========================================================================= */}
           {activeTab === 'quotation' && (
-            <WebQuotationManager products={PRODUCTS} />
+            <WebQuotationManager products={PRODUCTS} initialLeads={leads} initialQuotations={quotationsList} initialCustomers={customersList} />
           )}
 
 

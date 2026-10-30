@@ -595,8 +595,8 @@ export default function WebsiteDomainPreviewPage(props) {
       siteDomain: site.domain,
       brandName: site.brandName,
       status: isPriceNegotiated ? 'Pending Price Approval' : 'Quote Generated',
-      quotationId: quotationId,
-      quotationRef: refNo,
+      quotationId: isPriceNegotiated ? null : quotationId,
+      quotationRef: isPriceNegotiated ? null : refNo,
       isProfileComplete: true,
       quantity: `${numQty} Unit${numQty > 1 ? 's' : ''}`,
       customerNote: rfqCustomerNote || '',
@@ -662,12 +662,7 @@ export default function WebsiteDomainPreviewPage(props) {
 
     // 5. Persist to API endpoints in background (Quotations + Leads + Customers)
     try {
-      await Promise.allSettled([
-        fetch('/api/quotations', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(quotationPayload)
-        }),
+      const promises = [
         fetch('/api/leads', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -678,7 +673,19 @@ export default function WebsiteDomainPreviewPage(props) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(customerPayload)
         })
-      ]);
+      ];
+      // Only persist to /api/quotations if price is standard catalog (NOT negotiated).
+      // If price is negotiated, wait until Admin approves and sales employee clicks 'Make Quotation'!
+      if (!isPriceNegotiated) {
+        promises.push(
+          fetch('/api/quotations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(quotationPayload)
+          })
+        );
+      }
+      await Promise.allSettled(promises);
       setRfqSuccess(true);
     } catch (err) {
       setRfqSuccess(true);

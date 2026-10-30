@@ -51,7 +51,12 @@ import {
 import { numberToWordsIndian } from '../../lib/numberToWords';
 import { useAuth } from '../../lib/AuthContext';
 
-export default function WebQuotationManager({ products = [] }) {
+export default function WebQuotationManager({
+  products = [],
+  initialLeads = [],
+  initialQuotations = [],
+  initialCustomers = []
+}) {
   const authContext = useAuth();
   const user = authContext?.user || null;
   const isAdmin = authContext?.isAdmin || user?.role === 'admin' || user?.role === 'super_admin';
@@ -70,17 +75,17 @@ export default function WebQuotationManager({ products = [] }) {
   const isLeadNegotiablePending = (lead) => {
     if (!lead) return false;
     if (lead.negotiationStatus === 'approved' || lead.negotiationStatus === 'counter_offered') {
-      return false;
+      return false; // Approved or countered - employee can make quotation!
     }
     if (lead.negotiationStatus === 'pending_approval') {
       return true;
     }
-    if (lead.isPriceNegotiated) {
+    if (lead.isPriceNegotiated && !lead.approvedPrice) {
       return true;
     }
     const exp = parseFloat(lead.expectedPrice || 0);
     const act = parseFloat(lead.actualPrice || lead.price || 0);
-    if (exp > 0 && act > 0 && exp < act) {
+    if (exp > 0 && act > 0 && exp < act && !lead.approvedPrice && lead.negotiationStatus !== 'approved') {
       return true;
     }
     return false;
@@ -300,12 +305,37 @@ export default function WebQuotationManager({ products = [] }) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isSavingDb, setIsSavingDb] = useState(false);
   const [successToast, setSuccessToast] = useState(null);
-  const [savedQuotations, setSavedQuotations] = useState([]);
+  const [savedQuotations, setSavedQuotations] = useState(() => {
+    if (initialQuotations && initialQuotations.length > 0) return initialQuotations;
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('rbpl_cached_quotations');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) {}
+    }
+    return [];
+  });
   const [isHistoryDrawerOpen, setIsHistoryDrawerOpen] = useState(false);
   const [lastActionTimestamp, setLastActionTimestamp] = useState(Date.now());
 
-  // Web Leads State (Live from MongoDB Atlas & Website Storefronts)
-  const [webLeads, setWebLeads] = useState([]);
+  // Web Leads State (Instant zero-latency from initialLeads & cache)
+  const [webLeads, setWebLeads] = useState(() => {
+    if (initialLeads && initialLeads.length > 0) return initialLeads;
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('rbpl_cached_leads');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) {}
+    }
+    return [];
+  });
+  const [isLeadsLoading, setIsLeadsLoading] = useState(() => webLeads.length === 0);
   const [selectedLeadIdx, setSelectedLeadIdx] = useState(0);
   const [isProcessingLeadQuote, setIsProcessingLeadQuote] = useState(false);
   const [processedLeadIds, setProcessedLeadIds] = useState([]);
@@ -339,16 +369,19 @@ export default function WebQuotationManager({ products = [] }) {
       const st = (lead.status || '').toLowerCase();
       if (st.includes('quotation dispatched') || st.includes('completed quote')) continue;
 
-      // Keep: 'pending', 'new', 'rfq', 'approved', 'counter', or any lead with negotiation status
+      // Keep: 'pending', 'new', 'rfq', 'approved', 'counter', 'quote generated', or any inquiry
       const isEligible =
         st.includes('pending') ||
         st.includes('new') ||
         st.includes('rfq') ||
         st.includes('approved') ||
         st.includes('counter') ||
+        st.includes('quote generated') ||
+        st.includes('quotation sent') ||
         lead.negotiationStatus === 'approved' ||
         lead.negotiationStatus === 'counter_offered' ||
         lead.negotiationStatus === 'pending_approval' ||
+        Boolean(lead.approvedPrice) ||
         Boolean(lead.isPriceNegotiated);
 
       if (!isEligible) continue;
@@ -415,6 +448,29 @@ export default function WebQuotationManager({ products = [] }) {
     };
   }, [activeLayout]);
 
+  // Sync initialLeads, initialQuotations, initialCustomers from parent
+  useEffect(() => {
+    if (initialLeads && initialLeads.length > 0) {
+      setWebLeads(initialLeads);
+      setIsLeadsLoading(false);
+      try { localStorage.setItem('rbpl_cached_leads', JSON.stringify(initialLeads)); } catch (e) {}
+    }
+  }, [initialLeads]);
+
+  useEffect(() => {
+    if (initialQuotations && initialQuotations.length > 0) {
+      setSavedQuotations(initialQuotations);
+      try { localStorage.setItem('rbpl_cached_quotations', JSON.stringify(initialQuotations)); } catch (e) {}
+    }
+  }, [initialQuotations]);
+
+  useEffect(() => {
+    if (initialCustomers && initialCustomers.length > 0) {
+      setCustomersList(initialCustomers);
+      try { localStorage.setItem('rbpl_cached_customers', JSON.stringify(initialCustomers)); } catch (e) {}
+    }
+  }, [initialCustomers]);
+
   // Fetch live products from MongoDB Atlas
   useEffect(() => {
     fetch('/api/products')
@@ -433,6 +489,7 @@ export default function WebQuotationManager({ products = [] }) {
       const res = await fetch('/api/quotations');
       const data = await res.json();
       if (data.success && Array.isArray(data.quotations)) {
+        try { localStorage.setItem('rbpl_cached_quotations', JSON.stringify(data.quotations)); } catch (e) {}
         setSavedQuotations(prev => {
           const prevIds = new Set(prev.map(q => q.id || q._id || q.refNo));
           const fresh = data.quotations.filter(q => !prevIds.has(q.id || q._id || q.refNo));
@@ -448,8 +505,20 @@ export default function WebQuotationManager({ products = [] }) {
     }
   };
 
-  // Registered customer accounts (for cross-checking profile completeness)
-  const [customersList, setCustomersList] = useState([]);
+  // Registered customer accounts (Instant zero-latency directory)
+  const [customersList, setCustomersList] = useState(() => {
+    if (initialCustomers && initialCustomers.length > 0) return initialCustomers;
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('rbpl_cached_customers');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) {}
+    }
+    return [];
+  });
 
   const fetchCustomerProfiles = async () => {
     try {
@@ -593,6 +662,8 @@ export default function WebQuotationManager({ products = [] }) {
       const res = await fetch('/api/leads');
       const data = await res.json();
       if (data.success && Array.isArray(data.leads)) {
+        setIsLeadsLoading(false);
+        try { localStorage.setItem('rbpl_cached_leads', JSON.stringify(data.leads)); } catch (e) {}
         setWebLeads(prev => {
           const prevIds = new Set(prev.map(l => l.id || l._id));
           const hasNew = data.leads.some(l => !prevIds.has(l.id || l._id));
@@ -2145,7 +2216,15 @@ export default function WebQuotationManager({ products = [] }) {
         <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden transition-all duration-300 animate-in fade-in">
           {/* Lead Cards List */}
           <div className="p-4 sm:p-5 bg-slate-50/50 space-y-3.5 max-h-[650px] overflow-y-auto custom-scrollbar">
-            {pendingWebLeads.length === 0 ? (
+            {isLeadsLoading && pendingWebLeads.length === 0 ? (
+              <div className="py-16 text-center space-y-3 bg-white rounded-3xl border border-dashed border-slate-200 p-8 shadow-xs">
+                <div className="w-9 h-9 border-3 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                <h4 className="text-sm font-bold text-slate-800">Loading Web Leads & Pricing Requests...</h4>
+                <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                  Syncing live customer hospital inquiries directly from MongoDB...
+                </p>
+              </div>
+            ) : pendingWebLeads.length === 0 ? (
               <div className="py-16 text-center space-y-3 bg-white rounded-2xl border border-dashed border-slate-300 p-8 shadow-xs">
                 <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
                   <Sparkles size={28} />
@@ -2332,10 +2411,22 @@ export default function WebQuotationManager({ products = [] }) {
                               <button
                                 type="button"
                                 onClick={() => handleMakeQuotationFromLead(lead)}
-                                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white text-xs font-black shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 ring-2 ring-amber-400/30 uppercase tracking-wide"
+                                className={`px-5 py-2.5 rounded-xl font-black text-xs shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 uppercase tracking-wide ${
+                                  lead.negotiationStatus === 'approved'
+                                    ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 hover:from-emerald-700 hover:to-sky-700 text-white ring-2 ring-emerald-400/30'
+                                    : lead.negotiationStatus === 'counter_offered'
+                                    ? 'bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white ring-2 ring-indigo-400/30'
+                                    : 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white ring-2 ring-amber-400/30'
+                                }`}
                               >
-                                <Sparkles size={14} className="text-amber-100" />
-                                <span>Make Quotation</span>
+                                <Sparkles size={14} className="text-white" />
+                                <span>
+                                  {lead.negotiationStatus === 'approved'
+                                    ? `Make Quotation (Approved: ₹${Number(lead.approvedPrice || lead.price || 0).toLocaleString('en-IN')})`
+                                    : lead.negotiationStatus === 'counter_offered'
+                                    ? `Make Quotation (Counter: ₹${Number(lead.adminCounterPrice || lead.price || 0).toLocaleString('en-IN')})`
+                                    : 'Make Quotation'}
+                                </span>
                                 <ArrowRight size={13} />
                               </button>
                               {isAdmin && (lead.isPriceNegotiated || lead.approvedPrice) && (
