@@ -55,13 +55,21 @@ import {
   Bell,
   Volume2,
   VolumeX,
-  MessageCircle
+  MessageCircle,
+  LogOut,
+  MapPin,
+  UserCheck,
+  Lock
 } from 'lucide-react';
 import { PRODUCTS } from '../data/products';
 import ProductCatalogManager from './components/ProductCatalogManager';
 import WebsiteHomepageManager from './components/WebsiteHomepageManager';
 import WebQuotationManager from './components/WebQuotationManager';
 import CustomerProfilesManager from './components/CustomerProfilesManager';
+import UserRoleManager from './components/UserRoleManager';
+import AuthScreen from './components/AuthScreen';
+import { useAuth } from '../lib/AuthContext';
+import { ALL_INDIAN_STATES, POPULAR_DISTRICT_HUBS } from '../data/indianDistricts';
 
 // ============================================================================
 // 3 SENDER BIOMEDICAL COMPANIES (Raj Biosis, Human Biomedicals, Global Biomedical)
@@ -219,7 +227,7 @@ export default function AdminDashboardPage({ searchParams }) {
   // Determine initial tab safely across SSR and Client Hydration
   const resolveInitialTab = () => {
     // 1. Check server-provided searchParams
-    if (searchParams?.tab && ['leads', 'customers', 'website', 'products', 'quotation', 'vps', 'marketing'].includes(searchParams.tab)) {
+    if (searchParams?.tab && ['leads', 'customers', 'website', 'products', 'quotation', 'vps', 'marketing', 'users'].includes(searchParams.tab)) {
       return searchParams.tab;
     }
     // 2. Check window location or localStorage on client
@@ -229,7 +237,7 @@ export default function AdminDashboardPage({ searchParams }) {
         const urlTab = urlParams.get('tab');
         const storedTab = window.localStorage.getItem('admin_active_tab');
         const chosen = urlTab || storedTab;
-        if (chosen && ['leads', 'customers', 'website', 'products', 'quotation', 'vps', 'marketing'].includes(chosen)) {
+        if (chosen && ['leads', 'customers', 'website', 'products', 'quotation', 'vps', 'marketing', 'users'].includes(chosen)) {
           return chosen;
         }
       } catch (e) { }
@@ -240,6 +248,156 @@ export default function AdminDashboardPage({ searchParams }) {
   const [activeTab, setActiveTabRaw] = useState(resolveInitialTab);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [leadFilterDomain, setLeadFilterDomain] = useState('all');
+  const {
+    user,
+    loading: authLoading,
+    logout,
+    activeDistrictFilter,
+    setDistrictFilter,
+    isAdmin,
+    isSales,
+    isSuperAdmin,
+    isDistrictManager,
+    isSalesExecutive,
+    isHospitalRep,
+    canAccessTab
+  } = useAuth();
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+
+  // Price Negotiation State & Actions for Leads
+  const [negotiationModalLead, setNegotiationModalLead] = useState(null);
+  const [counterPriceInput, setCounterPriceInput] = useState('');
+  const [counterNoteInput, setCounterNoteInput] = useState('');
+  const [negotiationSubmitting, setNegotiationSubmitting] = useState(false);
+  const [toastNotification, setToastNotification] = useState(null);
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (!toastNotification) return;
+    const timer = setTimeout(() => setToastNotification(null), 5000);
+    return () => clearTimeout(timer);
+  }, [toastNotification]);
+
+  const openNegotiationModal = (lead) => {
+    if (!lead) return;
+    setNegotiationModalLead(lead);
+    const actual = lead.actualPrice || 150000;
+    const expected = lead.expectedPrice || lead.price || 120000;
+    const midpoint = Math.round((actual + expected) / 2);
+    setCounterPriceInput(lead.adminCounterPrice ? String(lead.adminCounterPrice) : String(midpoint));
+    setCounterNoteInput(lead.adminNote || 'Approved in-between institutional offer with warranty.');
+  };
+
+  const handleApproveCustomerPrice = async (lead) => {
+    if (!lead) return;
+    setNegotiationSubmitting(true);
+    try {
+      const approvedAmount = lead.expectedPrice || lead.price || 150000;
+      const numQty = parseInt(String(lead.quantity || '1').replace(/\D/g, ''), 10) || 1;
+      const totalAmount = approvedAmount * numQty;
+
+      const updateData = {
+        id: lead.id,
+        _id: lead._id,
+        isPriceNegotiated: true,
+        negotiationStatus: 'approved',
+        approvedPrice: approvedAmount,
+        price: approvedAmount,
+        quoteAmount: `₹${totalAmount.toLocaleString('en-IN')}`,
+        estimatedValue: totalAmount,
+        adminNote: 'Customer target price approved by Admin for institutional purchase.',
+        approvedBy: user?.name || user?.email || 'Admin',
+        approvedAt: new Date().toISOString(),
+        status: 'Price Approved'
+      };
+
+      await fetch('/api/leads', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData)
+      });
+
+      setLeads(prev => prev.map(l => (l.id === lead.id || (lead._id && l._id === lead._id)) ? { ...l, ...updateData } : l));
+
+      try {
+        const channel = new BroadcastChannel('biomedical_leads_channel');
+        channel.postMessage({ type: 'LEAD_PRICE_UPDATED', lead: { ...lead, ...updateData } });
+        setTimeout(() => { try { channel.close(); } catch(e){} }, 5000);
+      } catch(e){}
+
+      setToastNotification({
+        title: 'Price Approved Successfully!',
+        message: `₹${approvedAmount.toLocaleString('en-IN')} approved for ${lead.hospital || lead.equipment}. Sales employees can now make the quotation.`
+      });
+      setNegotiationModalLead(null);
+    } catch (err) {
+      console.error('Approve price error:', err);
+      alert('Error approving price: ' + err.message);
+    } finally {
+      setNegotiationSubmitting(false);
+    }
+  };
+
+  const handleCounterOfferPrice = async (lead, counterPrice, adminNote) => {
+    if (!lead) return;
+    const numPrice = parseFloat(String(counterPrice).replace(/[^0-9.]/g, ''));
+    if (!numPrice || numPrice <= 0) {
+      alert('Please enter a valid counter price');
+      return;
+    }
+    setNegotiationSubmitting(true);
+    try {
+      const numQty = parseInt(String(lead.quantity || '1').replace(/\D/g, ''), 10) || 1;
+      const totalAmount = numPrice * numQty;
+
+      const updateData = {
+        id: lead.id,
+        _id: lead._id,
+        isPriceNegotiated: true,
+        negotiationStatus: 'counter_offered',
+        adminCounterPrice: numPrice,
+        price: numPrice,
+        quoteAmount: `₹${totalAmount.toLocaleString('en-IN')}`,
+        estimatedValue: totalAmount,
+        adminNote: adminNote || 'In-between institutional price offered by Admin.',
+        approvedBy: user?.name || user?.email || 'Admin',
+        approvedAt: new Date().toISOString(),
+        status: 'Counter Offered'
+      };
+
+      await fetch('/api/leads', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData)
+      });
+
+      setLeads(prev => prev.map(l => (l.id === lead.id || (lead._id && l._id === lead._id)) ? { ...l, ...updateData } : l));
+
+      try {
+        const channel = new BroadcastChannel('biomedical_leads_channel');
+        channel.postMessage({ type: 'LEAD_PRICE_UPDATED', lead: { ...lead, ...updateData } });
+        setTimeout(() => { try { channel.close(); } catch(e){} }, 5000);
+      } catch(e){}
+
+      setToastNotification({
+        title: 'Counter Offer Set!',
+        message: `In-between rate ₹${numPrice.toLocaleString('en-IN')} set for ${lead.hospital || lead.equipment}. Sales employees can now proceed with quotation.`
+      });
+      setNegotiationModalLead(null);
+    } catch (err) {
+      console.error('Counter price error:', err);
+      alert('Error setting counter price: ' + err.message);
+    } finally {
+      setNegotiationSubmitting(false);
+    }
+  };
+
+  const handleRequestAdminApproval = (lead) => {
+    setToastNotification({
+      title: 'Admin Approval Request Submitted',
+      message: `Price approval request sent to Admin for ₹${(lead.expectedPrice || lead.price || 0).toLocaleString('en-IN')}. The Make Quotation button will unlock upon authorization.`
+    });
+  };
 
   const setActiveTab = (tab) => {
     setActiveTabRaw(tab);
@@ -260,7 +418,7 @@ export default function AdminDashboardPage({ searchParams }) {
         const urlTab = urlParams.get('tab');
         const storedTab = window.localStorage.getItem('admin_active_tab');
         const chosen = urlTab || (searchParams?.tab) || storedTab;
-        if (chosen && ['leads', 'customers', 'website', 'products', 'quotation', 'vps', 'marketing'].includes(chosen)) {
+        if (chosen && ['leads', 'customers', 'website', 'products', 'quotation', 'vps', 'marketing', 'users'].includes(chosen)) {
           setActiveTabRaw(chosen);
           // Sync URL if tab parameter was missing so hard refresh always stays here
           const url = new URL(window.location.href);
@@ -278,7 +436,7 @@ export default function AdminDashboardPage({ searchParams }) {
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const urlTab = urlParams.get('tab');
-        if (urlTab && ['leads', 'customers', 'website', 'products', 'quotation', 'vps', 'marketing'].includes(urlTab)) {
+        if (urlTab && ['leads', 'customers', 'website', 'products', 'quotation', 'vps', 'marketing', 'users'].includes(urlTab)) {
           setActiveTabRaw(urlTab);
         }
       } catch (e) { }
@@ -796,20 +954,40 @@ export default function AdminDashboardPage({ searchParams }) {
     new Set([...leads.map(l => l.siteDomain), ...sites.map(s => s.domain)].filter(Boolean))
   );
 
-  const filteredLeads = [...leads]
+  const rawFilteredLeads = [...leads]
     .filter(l => {
-      if (leadFilterDomain !== 'all') {
-        return l.siteDomain === leadFilterDomain;
+      if (leadFilterDomain !== 'all' && l.siteDomain !== leadFilterDomain) {
+        return false;
+      }
+      if (activeDistrictFilter && activeDistrictFilter !== 'all' && activeDistrictFilter !== 'All Districts / Pan-India HQ') {
+        const d = activeDistrictFilter.toLowerCase();
+        const loc = `${l.district || ''} ${l.city || ''} ${l.hospital || ''} ${l.address || ''}`.toLowerCase();
+        if (!loc.includes(d)) return false;
       }
       return true;
     })
     .sort((a, b) => {
-      // Guarantee newest leads are ALWAYS on top
       const timeA = new Date(a.createdAt || a.timestamp || 0).getTime();
       const timeB = new Date(b.createdAt || b.timestamp || 0).getTime();
       if (timeB !== timeA) return timeB - timeA;
       return String(b.id || '').localeCompare(String(a.id || ''));
     });
+
+  // Strict Deduplication: Same customer phone + equipment only displays ONCE (latest entry)
+  const seenTableCustEquip = new Set();
+  const seenTableIds = new Set();
+  const filteredLeads = [];
+  for (const l of rawFilteredLeads) {
+    const id = l.id || l._id;
+    if (!id || seenTableIds.has(id)) continue;
+    const p = (l.phone || l.customerPhone || l.rawLeadData?.customerPhone || '').replace(/\D/g, '').slice(-10);
+    const eq = (l.equipment || l.productName || l.rawLeadData?.productName || '').trim().toLowerCase();
+    const key = p && eq ? `${p}::${eq}` : id;
+    if (seenTableCustEquip.has(key)) continue;
+    seenTableIds.add(id);
+    seenTableCustEquip.add(key);
+    filteredLeads.push(l);
+  }
 
   const totalPipelineVal = filteredLeads.reduce((acc, l) => {
     const num = parseInt((l.amount || l.quoteAmount || '0').replace(/[^0-9]/g, '')) || 0;
@@ -818,6 +996,19 @@ export default function AdminDashboardPage({ searchParams }) {
   const formattedPipeline = totalPipelineVal > 0
     ? `₹${(totalPipelineVal >= 10000000 ? (totalPipelineVal / 10000000).toFixed(2) + ' Cr' : (totalPipelineVal / 100000).toFixed(2) + ' L')}`
     : '₹0.00';
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-slate-700 space-y-4">
+        <div className="w-10 h-10 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="text-sm font-semibold tracking-wide text-slate-600">Authenticating Raj Biosis Portal...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthScreen initialMode="login" redirectTo="/" />;
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50/60 text-slate-700 font-sans">
@@ -989,7 +1180,42 @@ export default function AdminDashboardPage({ searchParams }) {
         </div>
 
         {/* Bottom User / Return */}
-        <div className={`p-3 border-t border-slate-100 ${isSidebarCollapsed ? 'flex flex-col items-center space-y-2' : 'space-y-3'}`}>
+                {/* Active User Session Pill in Sidebar */}
+        {user && (
+          <div className="p-2.5 mx-2.5 mb-2 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-2xs">
+            <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'justify-between'} gap-2`}>
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-sm shadow-2xs shrink-0">
+                  {user.avatar || '👑'}
+                </div>
+                {!isSidebarCollapsed && (
+                  <div className="min-w-0 text-left">
+                    <div className="text-xs font-bold text-slate-800 truncate leading-tight">
+                      {user.fullName}
+                    </div>
+                    <div className="text-[10px] text-sky-600 font-semibold truncate flex items-center gap-1">
+                      <span>{user.roleBadge || user.role}</span>
+                      <span>•</span>
+                      <span className="text-slate-500 flex items-center gap-0.5"><MapPin size={9} />{user.state || user.district || "Rajasthan"}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {!isSidebarCollapsed && (
+                <button
+                  type="button"
+                  onClick={logout}
+                  title="Sign Out of Portal"
+                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition cursor-pointer shrink-0"
+                >
+                  <LogOut size={13} />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+<div className={`p-3 border-t border-slate-100 ${isSidebarCollapsed ? 'flex flex-col items-center space-y-2' : 'space-y-3'}`}>
           <Link
             href="/"
             target="_blank"
@@ -1047,6 +1273,14 @@ export default function AdminDashboardPage({ searchParams }) {
             </button>
 
             <h1 className="text-base font-bold text-slate-800 flex items-center gap-2">
+              {activeTab === 'users' && (
+                <>
+                  <span>Biomedical Team & Sales Territory Roles</span>
+                  <span className="text-xs px-2 py-0.5 rounded-md font-mono bg-purple-50 text-purple-700 border border-purple-200">
+                    Active Directory
+                  </span>
+                </>
+              )}
               {activeTab === 'leads' && (
                 <>
                   <span>Central Hospital Inquiries & Quotation Desk</span>
@@ -1055,7 +1289,9 @@ export default function AdminDashboardPage({ searchParams }) {
                   </span>
                 </>
               )}
-              {activeTab === 'customers' && (
+
+
+          {activeTab === 'customers' && (
                 <>
                   <span>Registered Customer Profiles & Hospital Directory</span>
                   <span className="text-xs px-2 py-0.5 rounded-md font-mono bg-indigo-50 text-indigo-700 border border-indigo-200">
@@ -1124,6 +1360,104 @@ export default function AdminDashboardPage({ searchParams }) {
             </button>
 
 
+            {/* Global District & Territory Filter Selector */}
+            <div className="hidden md:flex items-center gap-1.5 bg-slate-50 border border-slate-200/90 px-2.5 py-1.5 rounded-xl shadow-2xs">
+              <MapPin size={13} className="text-rose-500 shrink-0" />
+              <span className="text-[11px] font-bold text-slate-500">State:</span>
+              <select
+                value={activeDistrictFilter}
+                onChange={(e) => setDistrictFilter(e.target.value)}
+                className="bg-transparent text-xs font-bold text-slate-800 focus:outline-hidden cursor-pointer"
+              >
+                <option value="all">All India (National HQ)</option>
+                {user?.state && user.state !== 'All India (HQ)' && user.state !== 'All India (Pan-India HQ)' && (
+                  <option value={user.state}>⭐ My State ({user.state})</option>
+                )}
+                <option disabled>──────────</option>
+                {ALL_INDIAN_STATES.map((st) => (
+                  <option key={st} value={st}>
+                    {st}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* User Profile Pill & Dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowUserDropdown(!showUserDropdown)}
+                className="flex items-center gap-2 p-1.5 pr-2.5 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200/90 transition cursor-pointer shadow-2xs"
+              >
+                <span className="text-base w-7 h-7 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-2xs">
+                  {user?.avatar || '👑'}
+                </span>
+                <div className="text-left hidden lg:block">
+                  <div className="text-xs font-bold text-slate-800 leading-tight truncate max-w-[110px]">
+                    {user?.fullName?.split(' ')[0] || 'User'}
+                  </div>
+                  <div className="text-[10px] text-sky-600 font-semibold leading-none truncate">
+                    {user?.roleBadge || user?.role || 'Staff'}
+                  </div>
+                </div>
+                <ChevronRight size={12} className={`text-slate-400 transition-transform ${showUserDropdown ? 'rotate-90' : ''}`} />
+              </button>
+
+              {/* Dropdown Menu */}
+              {showUserDropdown && (
+                <div className="absolute right-0 mt-2 w-72 rounded-3xl bg-white border border-slate-200 shadow-2xl p-4 z-50 text-xs space-y-3">
+                  <div className="flex items-start gap-3 pb-3 border-b border-slate-100">
+                    <span className="text-2xl p-1 bg-slate-100 rounded-2xl">{user?.avatar || '👑'}</span>
+                    <div className="min-w-0">
+                      <div className="font-bold text-slate-900 truncate">{user?.fullName}</div>
+                      <div className="text-[11px] text-slate-400 truncate">{user?.email}</div>
+                      <div className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">
+                        <ShieldCheck size={11} /> {user?.roleBadge || user?.role}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 text-slate-600">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-slate-400">Assigned State:</span>
+                      <span className="font-bold text-slate-800 flex items-center gap-1">
+                        <MapPin size={11} className="text-rose-500" /> {user?.state || user?.district || "Rajasthan"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-slate-400">Mobile:</span>
+                      <span className="font-semibold text-slate-700">+91 {user?.phone}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-slate-400">Organization:</span>
+                      <span className="font-semibold text-slate-700 truncate max-w-[130px]">{user?.organization}</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowUserDropdown(false);
+                        setActiveTab('users');
+                      }}
+                      className="text-[11px] font-semibold text-sky-600 hover:underline cursor-pointer"
+                    >
+                      Manage Team Roles
+                    </button>
+                    <button
+                      type="button"
+                      onClick={logout}
+                      className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] transition flex items-center gap-1 cursor-pointer"
+                    >
+                      <LogOut size={12} />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="text-xs text-slate-500 font-mono bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/80">
               Host: <span className="text-slate-700 font-semibold">rajbiosis.com</span>
             </div>
@@ -1132,7 +1466,7 @@ export default function AdminDashboardPage({ searchParams }) {
 
         {/* Persistent New Lead Notification Alert (DOES NOT AUTO-HIDE AS REQUESTED) */}
         {newLeadAlerts.length > 0 && (
-          <div className="mx-6 mt-4 p-4 rounded-2xl bg-linear-to-r from-rose-50 via-amber-50 to-orange-50 border-2 border-rose-300 shadow-md shadow-rose-100/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="mx-6 mt-4 p-4 rounded-2xl bg-gradient-to-r from-rose-50 via-amber-50 to-orange-50 border-2 border-rose-300 shadow-md shadow-rose-100/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-start sm:items-center gap-3.5">
               <div className="w-11 h-11 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-md animate-pulse">
                 <AlertCircle size={22} />
@@ -1169,30 +1503,54 @@ export default function AdminDashboardPage({ searchParams }) {
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto justify-end shrink-0 flex-wrap">
-              {!isLeadProfileComplete(newLeadAlerts[0]) && (
-                <div className="px-3 py-1.5 rounded-xl bg-amber-100 border border-amber-300 text-amber-950 text-xs font-bold flex items-center gap-1.5 shadow-2xs">
-                  <AlertCircle size={13} className="text-amber-700 shrink-0" />
-                  <span>Ask customer to complete profile to generate quotation</span>
-                </div>
-              )}
-              {isLeadProfileComplete(newLeadAlerts[0]) && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (typeof window !== 'undefined' && newLeadAlerts[0]) {
-                      try {
-                        localStorage.setItem('active_quotation_lead', JSON.stringify(newLeadAlerts[0]));
-                      } catch (e) { }
-                    }
-                    setActiveTab('quotation');
-                    setNewLeadAlerts([]);
-                  }}
-                  className="px-3.5 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Sparkles size={13} className="text-amber-200" />
-                  <span>Make Quotation</span>
-                  <ArrowRight size={13} />
-                </button>
+              {newLeadAlerts[0]?.isPriceNegotiated && newLeadAlerts[0]?.negotiationStatus === 'pending_approval' ? (
+                !isAdmin ? (
+                  <button
+                    type="button"
+                    onClick={() => handleRequestAdminApproval(newLeadAlerts[0])}
+                    className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                    title="Price discount requires Admin approval"
+                  >
+                    <Lock size={13} className="text-amber-100" />
+                    <span>Request Admin Approval</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => openNegotiationModal(newLeadAlerts[0])}
+                    className="px-3.5 py-2 bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-700 hover:to-rose-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer animate-pulse"
+                    title="Review & Approve Price"
+                  >
+                    <ShieldCheck size={13} className="text-amber-200" />
+                    <span>Review & Approve Price</span>
+                  </button>
+                )
+              ) : (
+                isLeadProfileComplete(newLeadAlerts[0]) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof window !== 'undefined' && newLeadAlerts[0]) {
+                        try {
+                          localStorage.setItem('active_quotation_lead', JSON.stringify(newLeadAlerts[0]));
+                        } catch (e) { }
+                      }
+                      setActiveTab('quotation');
+                      setNewLeadAlerts([]);
+                    }}
+                    className="px-3.5 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Sparkles size={13} className="text-amber-200" />
+                    <span>
+                      {newLeadAlerts[0]?.negotiationStatus === 'approved'
+                        ? `Make Quotation (Approved: ₹${(newLeadAlerts[0].approvedPrice || newLeadAlerts[0].price)?.toLocaleString('en-IN')})`
+                        : newLeadAlerts[0]?.negotiationStatus === 'counter_offered'
+                        ? `Make Quotation (Counter: ₹${(newLeadAlerts[0].adminCounterPrice || newLeadAlerts[0].price)?.toLocaleString('en-IN')})`
+                        : 'Make Quotation'}
+                    </span>
+                    <ArrowRight size={13} />
+                  </button>
+                )
               )}
               <button
                 type="button"
@@ -1468,35 +1826,127 @@ export default function AdminDashboardPage({ searchParams }) {
                               </span>
                             </td>
                             <td className="py-3 px-4">
-                              <span className="text-emerald-600 font-bold text-sm font-mono">
-                                {lead.quoteAmount || lead.amount || '₹0'}
-                              </span>
+                              {lead.isPriceNegotiated ? (
+                                <div>
+                                  {lead.negotiationStatus === 'approved' ? (
+                                    <div>
+                                      <span className="text-emerald-700 font-bold text-sm font-mono block">
+                                        ₹{(lead.approvedPrice || lead.price || 0).toLocaleString('en-IN')}
+                                      </span>
+                                      <span className="text-[10px] text-slate-400 line-through font-mono block">
+                                        GeM: ₹{(lead.actualPrice || 150000).toLocaleString('en-IN')}
+                                      </span>
+                                    </div>
+                                  ) : lead.negotiationStatus === 'counter_offered' ? (
+                                    <div>
+                                      <span className="text-indigo-700 font-bold text-sm font-mono block">
+                                        ₹{(lead.adminCounterPrice || lead.price || 0).toLocaleString('en-IN')}
+                                      </span>
+                                      <span className="text-[10px] text-slate-500 font-mono block">
+                                        Offered: ₹{(lead.expectedPrice || lead.price || 0).toLocaleString('en-IN')}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <div>
+                                      <span className="text-amber-700 font-bold text-sm font-mono block">
+                                        ₹{(lead.expectedPrice || lead.price || 0).toLocaleString('en-IN')}
+                                      </span>
+                                      <span className="text-[10px] text-slate-400 font-mono block">
+                                        GeM MRP: ₹{(lead.actualPrice || 150000).toLocaleString('en-IN')}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-emerald-600 font-bold text-sm font-mono">
+                                  {lead.quoteAmount || lead.amount || '₹0'}
+                                </span>
+                              )}
                             </td>
                             <td className="py-3 px-4">
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/70">
-                                {lead.status || 'Pending RFQ'}
-                              </span>
+                              {lead.isPriceNegotiated ? (
+                                lead.negotiationStatus === 'approved' ? (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 flex items-center gap-1 w-fit">
+                                    <CheckCircle2 size={10} className="text-emerald-600" />
+                                    <span>Price Approved</span>
+                                  </span>
+                                ) : lead.negotiationStatus === 'counter_offered' ? (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-800 border border-indigo-300 flex items-center gap-1 w-fit">
+                                    <span>🤝 Counter Offered</span>
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300 flex items-center gap-1 w-fit animate-pulse">
+                                    <Clock size={10} className="text-amber-600" />
+                                    <span>Awaiting Approval</span>
+                                  </span>
+                                )
+                              ) : (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/70">
+                                  {lead.status || 'Pending RFQ'}
+                                </span>
+                              )}
                             </td>
                             <td className="py-3 px-4 text-right">
                               <div className="flex items-center justify-end gap-1.5 flex-wrap">
-                                {/* Direct Quotation Action or Incomplete Profile Notice */}
-                                {isLeadProfileComplete(lead) || lead.quotationRef ? (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      if (typeof window !== 'undefined') {
-                                        try {
-                                          localStorage.setItem('active_quotation_lead', JSON.stringify(lead));
-                                        } catch (e) { }
-                                      }
-                                      setActiveTab('quotation');
-                                    }}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold transition shadow-xs cursor-pointer shrink-0 hover:scale-105 active:scale-95"
-                                    title="Click to view and edit 4-page official quotation PDF"
-                                  >
-                                    <Sparkles size={12} className="text-amber-200" />
-                                    <span>{lead.quotationRef ? `View Stamped PDF (${lead.quotationRef})` : 'Make Quotation'}</span>
-                                  </button>
+                                {lead.isPriceNegotiated && lead.negotiationStatus === 'pending_approval' ? (
+                                  !isAdmin ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRequestAdminApproval(lead)}
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition shadow-xs cursor-pointer shrink-0 hover:scale-105 active:scale-95"
+                                      title="Negotiated price requires Admin approval"
+                                    >
+                                      <Lock size={12} className="text-amber-100" />
+                                      <span>Request Admin Approval</span>
+                                    </button>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => openNegotiationModal(lead)}
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-700 hover:to-rose-700 text-white text-xs font-bold transition shadow-xs cursor-pointer shrink-0 animate-pulse hover:scale-105 active:scale-95"
+                                      title="Review Customer Expected Price vs Actual MRP and Approve or Counter"
+                                    >
+                                      <ShieldCheck size={12} className="text-amber-200" />
+                                      <span>Review & Approve Price</span>
+                                    </button>
+                                  )
+                                ) : isLeadProfileComplete(lead) || lead.quotationRef ? (
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (typeof window !== 'undefined') {
+                                          try {
+                                            localStorage.setItem('active_quotation_lead', JSON.stringify(lead));
+                                          } catch (e) { }
+                                        }
+                                        setActiveTab('quotation');
+                                      }}
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold transition shadow-xs cursor-pointer shrink-0 hover:scale-105 active:scale-95"
+                                      title="Click to view and edit 4-page official quotation PDF"
+                                    >
+                                      <Sparkles size={12} className="text-amber-200" />
+                                      <span>
+                                        {lead.negotiationStatus === 'approved'
+                                          ? `Make Quotation (Approved: ₹${(lead.approvedPrice || lead.price)?.toLocaleString('en-IN')})`
+                                          : lead.negotiationStatus === 'counter_offered'
+                                          ? `Make Quotation (Counter: ₹${(lead.adminCounterPrice || lead.price)?.toLocaleString('en-IN')})`
+                                          : lead.quotationRef
+                                          ? `View Stamped PDF (${lead.quotationRef})`
+                                          : 'Make Quotation'}
+                                      </span>
+                                    </button>
+                                    {isAdmin && lead.isPriceNegotiated && (
+                                      <button
+                                        type="button"
+                                        onClick={() => openNegotiationModal(lead)}
+                                        className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                                        title="Adjust price approval or counter offer"
+                                      >
+                                        <Edit3 size={13} />
+                                      </button>
+                                    )}
+                                  </div>
                                 ) : (
                                   <div
                                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold shadow-2xs"
@@ -1530,14 +1980,6 @@ export default function AdminDashboardPage({ searchParams }) {
                                     )}
                                   </>
                                 )}
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteLead(lead.id)}
-                                  className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition cursor-pointer"
-                                  title="Delete / Dismiss Inquiry"
-                                >
-                                  <Trash2 size={13} />
-                                </button>
                               </div>
                             </td>
                           </tr>
@@ -1553,6 +1995,13 @@ export default function AdminDashboardPage({ searchParams }) {
           {/* =========================================================================
               TAB: REGISTERED CUSTOMER PROFILES & HOSPITAL DIRECTORY
               ========================================================================= */}
+          {/* =========================================================================
+              TAB: TEAM & SALES TERRITORY ROLES (RBAC)
+              ========================================================================= */}
+          {activeTab === 'users' && (
+            <UserRoleManager />
+          )}
+
           {activeTab === 'customers' && (
             <CustomerProfilesManager onRefreshNeeded={loadCustomerProfilesCount} />
           )}
@@ -2470,6 +2919,202 @@ export default function AdminDashboardPage({ searchParams }) {
 
             </div>
           )}
+        {/* Price Negotiation Review Modal for Admin */}
+        {negotiationModalLead && (
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-xl w-full p-6 space-y-5 text-slate-800 animate-in fade-in zoom-in-95">
+              
+              {/* Modal Header */}
+              <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center font-bold text-lg">
+                    ⚖️
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-base text-slate-900">
+                      Biomedical Equipment Price Approval Desk
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      Institutional review of customer expected purchase rate
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setNegotiationModalLead(null)}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-sm transition cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Customer & Product Information Card */}
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
+                <div className="flex items-center justify-between font-medium">
+                  <span className="text-slate-500">Hospital / Institution:</span>
+                  <strong className="text-slate-900 font-bold">{negotiationModalLead.hospital || negotiationModalLead.hospitalName || 'Healthcare Facility'}</strong>
+                </div>
+                <div className="flex items-center justify-between font-medium">
+                  <span className="text-slate-500">Procurement Contact:</span>
+                  <span className="text-slate-800">{negotiationModalLead.doctorName || negotiationModalLead.customerName || 'Procurement Lead'} ({negotiationModalLead.phone || '-'})</span>
+                </div>
+                <div className="flex items-center justify-between font-medium">
+                  <span className="text-slate-500">Equipment Requested:</span>
+                  <strong className="text-slate-900 font-bold">{negotiationModalLead.equipment || negotiationModalLead.productName || 'Biomedical System'}</strong>
+                </div>
+                <div className="flex items-center justify-between font-medium">
+                  <span className="text-slate-500">Quantity:</span>
+                  <span className="font-mono font-bold text-slate-800">{negotiationModalLead.quantity || '1 Unit'}</span>
+                </div>
+              </div>
+
+              {/* Side-by-Side Price Comparison */}
+              {(() => {
+                const actualPrice = negotiationModalLead.actualPrice || 150000;
+                const expectedPrice = negotiationModalLead.expectedPrice || negotiationModalLead.price || 120000;
+                const diff = actualPrice - expectedPrice;
+                const discountPct = Math.round((diff / actualPrice) * 100);
+
+                return (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Actual Catalog / GeM Price */}
+                      <div className="p-3.5 rounded-xl border border-slate-200 bg-white space-y-1">
+                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                          1. Product Actual Price (GeM)
+                        </span>
+                        <div className="text-xl font-black font-mono text-slate-900">
+                          ₹{actualPrice.toLocaleString('en-IN')}
+                        </div>
+                        <span className="text-[10px] text-slate-500 block">
+                          Official registered catalog MRP per unit
+                        </span>
+                      </div>
+
+                      {/* Customer Expected Price */}
+                      <div className="p-3.5 rounded-xl border-2 border-amber-300 bg-amber-50/50 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">
+                            2. Customer Expected Price
+                          </span>
+                          {diff > 0 && (
+                            <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-1.5 py-0.2 rounded">
+                              -{discountPct}%
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xl font-black font-mono text-amber-900">
+                          ₹{expectedPrice.toLocaleString('en-IN')}
+                        </div>
+                        <span className="text-[10px] text-amber-800 block">
+                          Difference: ₹{diff.toLocaleString('en-IN')} below MRP
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Decision Choices */}
+                    <div className="space-y-3.5 pt-1">
+                      
+                      {/* Choice 1: Approve Customer Price */}
+                      <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/60 space-y-2">
+                        <div>
+                          <h4 className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                            <span>✅ Option A: Approve Customer Expected Price</span>
+                          </h4>
+                          <p className="text-[11px] text-emerald-800 mt-0.5">
+                            Authorize customer target price for institutional sale. The updated price will reflect on the quotation and customer view.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={negotiationSubmitting}
+                          onClick={() => handleApproveCustomerPrice(negotiationModalLead)}
+                          className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                          <CheckCircle2 size={14} />
+                          <span>Approve Customer Price (₹{expectedPrice.toLocaleString('en-IN')})</span>
+                        </button>
+                      </div>
+
+                      {/* Choice 2: Propose In-Between Counter Offer */}
+                      <div className="p-4 rounded-xl border border-indigo-200 bg-indigo-50/50 space-y-3">
+                        <div>
+                          <h4 className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+                            <span>🤝 Option B: Propose Authorized In-Between Rate</span>
+                          </h4>
+                          <p className="text-[11px] text-indigo-800 mt-0.5">
+                            If customer expected price is below viable margin, propose an authorized in-between rate for sales quotation generation.
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                              In-Between Counter Price (₹ per unit)
+                            </label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-2.5 text-slate-400 font-bold text-xs">₹</span>
+                              <input
+                                type="number"
+                                value={counterPriceInput}
+                                onChange={(e) => setCounterPriceInput(e.target.value)}
+                                placeholder={String(Math.round((actualPrice + expectedPrice) / 2))}
+                                className="w-full pl-6 pr-3 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 font-mono text-xs font-bold"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                              Admin Note / Justification
+                            </label>
+                            <input
+                              type="text"
+                              value={counterNoteInput}
+                              onChange={(e) => setCounterNoteInput(e.target.value)}
+                              placeholder="e.g. Includes 2yr warranty + installation"
+                              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 text-xs"
+                            />
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={negotiationSubmitting}
+                          onClick={() => handleCounterOfferPrice(negotiationModalLead, counterPriceInput, counterNoteInput)}
+                          className="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                          <span>Set In-Between Counter Offer (₹{parseFloat(counterPriceInput || 0).toLocaleString('en-IN')})</span>
+                          <ArrowRight size={14} />
+                        </button>
+                      </div>
+
+                    </div>
+                  </div>
+                );
+              })()}
+
+            </div>
+          </div>
+        )}
+
+        {/* Floating Toast Notification */}
+        {toastNotification && (
+          <div className="fixed bottom-6 right-6 z-50 p-4 rounded-2xl bg-slate-900 text-white shadow-2xl border border-slate-700 max-w-sm flex items-start gap-3 animate-in fade-in slide-in-from-bottom-5">
+            <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+              <CheckCircle2 size={16} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h5 className="font-bold text-xs text-white">{toastNotification.title}</h5>
+              <p className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">{toastNotification.message}</p>
+            </div>
+            <button
+              onClick={() => setToastNotification(null)}
+              className="text-slate-400 hover:text-white p-1 cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         </main>
       </div>

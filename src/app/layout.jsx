@@ -1,4 +1,5 @@
 import './globals.css';
+import Providers from './providers';
 
 export const metadata = {
   title: 'Super-Admin Network Hub | Raj Biosis & 70 Multi-Site Engine',
@@ -19,7 +20,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="min-h-screen bg-slate-50/60 text-slate-700 font-sans antialiased selection:bg-sky-100 selection:text-sky-800">
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

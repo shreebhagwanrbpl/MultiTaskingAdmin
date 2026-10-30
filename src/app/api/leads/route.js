@@ -332,13 +332,24 @@ export async function POST(request) {
       status: body.status || 'Pending RFQ'
     };
 
-    // 1. Always update local JSON file & memory
+    // 1. Always update local JSON file & memory with phone+equipment deduplication
     const currentList = readLocalLeads();
-    const existingIdx = currentList.findIndex(l => l.id === leadId);
+    const cleanPhone = (newLead.phone || newLead.customerPhone || newLead.rawLeadData?.customerPhone || '').replace(/\D/g, '').slice(-10);
+    const cleanEquip = (newLead.equipment || newLead.productName || newLead.rawLeadData?.productName || '').trim().toLowerCase();
+
+    const existingIdx = currentList.findIndex(l => {
+      if (l.id && l.id === leadId) return true;
+      const lPhone = (l.phone || l.customerPhone || l.rawLeadData?.customerPhone || '').replace(/\D/g, '').slice(-10);
+      const lEquip = (l.equipment || l.productName || l.rawLeadData?.productName || '').trim().toLowerCase();
+      return cleanPhone && cleanEquip && lPhone === cleanPhone && lEquip === cleanEquip;
+    });
+
     let updatedList;
     if (existingIdx >= 0) {
+      const existing = currentList[existingIdx];
+      newLead.id = existing.id || leadId; // Preserve original id so client & server remain in sync
       updatedList = [...currentList];
-      updatedList[existingIdx] = { ...updatedList[existingIdx], ...newLead };
+      updatedList[existingIdx] = { ...existing, ...newLead, updatedAt: nowIso };
     } else {
       updatedList = [newLead, ...currentList];
     }
@@ -475,37 +486,59 @@ export async function DELETE(request) {
 export async function PUT(request) {
   try {
     const body = await request.json();
-    const { id, _id, status } = body;
+    const { id, _id, ...fieldsToUpdate } = body;
 
     const currentList = readLocalLeads();
     const foundIdx = currentList.findIndex(l => (id && l.id === id) || (_id && (l._id === _id || String(l._id) === String(_id))));
     if (foundIdx >= 0) {
-      currentList[foundIdx].status = status || 'Quote Generated';
-      currentList[foundIdx].updatedAt = new Date().toISOString();
+      currentList[foundIdx] = {
+        ...currentList[foundIdx],
+        ...fieldsToUpdate,
+        updatedAt: new Date().toISOString()
+      };
       writeLocalLeads(currentList);
     }
 
     try {
       const db = await getDatabase();
       const collection = db.collection('leads');
-      const query = id ? { id } : {};
-      if (_id && !id) {
+      let query = {};
+      if (_id && id) {
         try {
           const { ObjectId } = await import('mongodb');
-          query._id = new ObjectId(_id);
+          query = { $or: [{ _id: new ObjectId(_id) }, { id: id }] };
         } catch (e) {
-          query._id = _id;
+          query = { $or: [{ _id: _id }, { id: id }] };
         }
+      } else if (_id) {
+        try {
+          const { ObjectId } = await import('mongodb');
+          query = { _id: new ObjectId(_id) };
+        } catch (e) {
+          query = { _id: _id };
+        }
+      } else if (id) {
+        query = { id };
       }
       await collection.updateOne(query, {
         $set: {
-          status: status || 'Quote Generated',
+          ...fieldsToUpdate,
           updatedAt: new Date().toISOString()
         }
       });
-      return NextResponse.json({ success: true, updated: true, source: 'mongodb' }, { headers: CORS_HEADERS });
+      return NextResponse.json({
+        success: true,
+        updated: true,
+        source: 'mongodb',
+        lead: foundIdx >= 0 ? currentList[foundIdx] : null
+      }, { headers: CORS_HEADERS });
     } catch (dbErr) {
-      return NextResponse.json({ success: true, updated: true, source: 'fallback' }, { headers: CORS_HEADERS });
+      return NextResponse.json({
+        success: true,
+        updated: true,
+        source: 'fallback',
+        lead: foundIdx >= 0 ? currentList[foundIdx] : null
+      }, { headers: CORS_HEADERS });
     }
   } catch (err) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500, headers: CORS_HEADERS });

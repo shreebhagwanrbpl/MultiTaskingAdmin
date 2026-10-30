@@ -31,3 +31,53 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* Quotation & Form Transition Animations */
+@keyframes formSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-90px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes quotationSlideToSide {
+  0% {
+    opacity: 0.88;
+    transform: translateX(-70px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes quotationExpandFull {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-form-slide-down {
+  animation: formSlideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-quotation-slide-side {
+  animation: quotationSlideToSide 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-quotation-expand-full {
+  animation: quotationExpandFull 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+

@@ -7,11 +7,13 @@ export function middleware(request) {
   // Extract hostname without port (e.g., "pulmocare.in:3000" -> "pulmocare.in")
   const currentHost = hostname.replace(/:\d+$/, '').toLowerCase();
 
-  // 1. Pass through static files, Next internals, API routes, and direct admin/preview URLs
+  // 1. Pass through static files, Next internals, API routes, and direct admin/login/signup/preview URLs
   if (
     url.pathname.startsWith('/_next') ||
     url.pathname.startsWith('/api') ||
     url.pathname.startsWith('/admin') ||
+    url.pathname.startsWith('/login') ||
+    url.pathname.startsWith('/signup') ||
     url.pathname.startsWith('/preview') ||
     url.pathname.includes('.')
   ) {
