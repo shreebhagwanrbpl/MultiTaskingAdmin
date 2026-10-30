@@ -38,17 +38,20 @@ import {
   Layers,
   Settings,
   MoreVertical,
-  Info
+  Info,
+  Sparkles,
+  Tag,
+  Building2
 } from 'lucide-react';
 import { DEFAULT_HOMEPAGE_CONFIG } from '../../data/defaultHomepage';
 
 const COLOR_OPTIONS = [
-  { id: 'rose', name: 'Zoho Red', badgeClass: 'bg-red-50 text-red-700 border border-red-200', dot: 'bg-red-600' },
-  { id: 'amber', name: 'Amber Warning', badgeClass: 'bg-amber-50 text-amber-800 border border-amber-200', dot: 'bg-amber-500' },
-  { id: 'emerald', name: 'Forest Green', badgeClass: 'bg-emerald-50 text-emerald-800 border border-emerald-200', dot: 'bg-emerald-600' },
-  { id: 'sky', name: 'Corporate Blue', badgeClass: 'bg-blue-50 text-blue-700 border border-blue-200', dot: 'bg-blue-600' },
-  { id: 'indigo', name: 'Deep Indigo', badgeClass: 'bg-indigo-50 text-indigo-700 border border-indigo-200', dot: 'bg-indigo-600' },
-  { id: 'red-outline', name: 'Red Outline', badgeClass: 'bg-white text-red-600 border border-red-300', dot: 'border border-red-500' }
+  { id: 'rose', name: 'Coral Rose', badgeClass: 'bg-rose-50 text-rose-700 border border-rose-200', text: 'text-rose-700', dot: 'bg-rose-500' },
+  { id: 'amber', name: 'Amber Gold', badgeClass: 'bg-amber-50 text-amber-800 border border-amber-200', text: 'text-amber-800', dot: 'bg-amber-500' },
+  { id: 'emerald', name: 'Clinical Emerald', badgeClass: 'bg-emerald-50 text-emerald-800 border border-emerald-200', text: 'text-emerald-800', dot: 'bg-emerald-600' },
+  { id: 'sky', name: 'Medical Sky Blue', badgeClass: 'bg-sky-50 text-sky-700 border border-sky-200', text: 'text-sky-700', dot: 'bg-sky-500' },
+  { id: 'indigo', name: 'Deep Indigo', badgeClass: 'bg-indigo-50 text-indigo-700 border border-indigo-200', text: 'text-indigo-700', dot: 'bg-indigo-600' },
+  { id: 'red-outline', name: 'Ruby Outline', badgeClass: 'bg-white text-rose-600 border border-rose-300', text: 'text-rose-600', dot: 'border-2 border-rose-500 bg-white' }
 ];
 
 export default function WebsiteHomepageManager() {
@@ -325,32 +328,32 @@ export default function WebsiteHomepageManager() {
     <div className="space-y-6 text-slate-800">
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed bottom-5 right-5 z-50 px-4 py-2.5 rounded shadow-md border text-xs font-medium flex items-center gap-2 ${
+        <div className={`fixed bottom-6 right-6 z-50 px-5 py-3 rounded-2xl shadow-xl border text-xs font-bold flex items-center gap-2.5 animate-in fade-in slide-in-from-bottom-3 ${
           toast.type === 'success' 
-            ? 'bg-emerald-50 text-emerald-800 border-emerald-300' 
-            : 'bg-red-50 text-red-800 border-red-300'
+            ? 'bg-emerald-600 text-white border-emerald-500 shadow-emerald-600/20' 
+            : 'bg-rose-600 text-white border-rose-500 shadow-rose-600/20'
         }`}>
-          {toast.type === 'success' ? <CheckCircle2 size={16} className="text-emerald-600" /> : <AlertCircle size={16} className="text-red-600" />}
+          {toast.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
           <span>{toast.message}</span>
         </div>
       )}
 
-      {/* ZOHO STYLE TOP ACTION BAR */}
-      <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs">
+      {/* MODERN MEDICAL TOP ACTION BAR */}
+      <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
+            <div className="flex items-center gap-2 text-xs text-slate-400 font-medium mb-1.5">
               <span>Storefront</span>
               <span>/</span>
-              <span className="text-slate-800 font-medium">Home Page Customization</span>
-              <span className="text-slate-300">|</span>
-              <span className="inline-flex items-center gap-1 font-mono text-[11px]">
-                <span className={`w-2 h-2 rounded-full ${dbStatus.connected ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
-                {dbStatus.connected ? 'MongoDB Connected' : 'Local Storage Fallback'}
+              <span className="text-slate-700 font-semibold">Home Page Customization</span>
+              <span>•</span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                {dbStatus.connected ? 'MongoDB Cluster Live' : 'Local Storage Cache'}
               </span>
             </div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              Home Page Builder & Content Management
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+              <span>Home Page Builder & Content Management</span>
             </h1>
           </div>
 
@@ -358,58 +361,60 @@ export default function WebsiteHomepageManager() {
             <button
               onClick={loadHomepageConfig}
               disabled={isLoading}
-              title="Refresh from MongoDB"
-              className="p-2 border border-slate-300 rounded bg-white hover:bg-slate-50 text-slate-600 text-xs font-medium transition cursor-pointer"
+              title="Refresh configuration from MongoDB"
+              className="p-2.5 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 text-slate-600 text-xs font-semibold shadow-2xs transition cursor-pointer"
             >
-              <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} />
+              <RefreshCw size={14} className={isLoading ? "animate-spin text-sky-600" : ""} />
             </button>
 
             <a
               href="/preview/rajbiosis.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3.5 py-2 border border-slate-300 rounded bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition flex items-center gap-1.5"
+              className="px-4 py-2.5 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs transition flex items-center gap-2"
             >
-              <Eye size={13} />
+              <Eye size={14} className="text-sky-600" />
               <span>Preview Website</span>
-              <ExternalLink size={11} className="text-slate-400" />
+              <ExternalLink size={12} className="text-slate-400" />
             </a>
 
             <button
               onClick={handleSaveChanges}
               disabled={isSaving}
-              className="px-4 py-2 rounded bg-[#E42528] hover:bg-[#CC1F22] text-white text-xs font-semibold shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white text-xs font-bold shadow-xs transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
-              {isSaving ? <RefreshCw size={13} className="animate-spin" /> : <Save size={13} />}
+              {isSaving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
               <span>Save Changes</span>
             </button>
           </div>
         </div>
 
-        {/* ZOHO HORIZONTAL UNDERLINE TAB BAR */}
-        <div className="mt-4 pt-3 flex items-center gap-6 border-t border-slate-100 overflow-x-auto text-xs">
+        {/* MODERN SEGMENTED PILL TAB BAR */}
+        <div className="mt-5 pt-4 border-t border-slate-100 flex items-center gap-2 overflow-x-auto pb-1">
           {[
-            { id: 'offers', label: 'Top Offers & Announcement Bar', count: (config.offers || []).length },
-            { id: 'carousel', label: 'Hero Banner Slider (5 Slides)', count: (config.carousel || []).length },
-            { id: 'categories', label: 'Equipment Categories', count: (config.categories || []).length },
-            { id: 'brands', label: 'Brand Partners & Logos', count: (config.brands || []).length },
-            { id: 'preview', label: 'Storefront Layout Preview', count: null }
+            { id: 'offers', label: 'Top Offers & Announcement Bar', count: (config.offers || []).length, icon: Sparkles },
+            { id: 'carousel', label: 'Hero Banner Slider (5 Slides)', count: (config.carousel || []).length, icon: ImageIcon },
+            { id: 'categories', label: 'Equipment Categories', count: (config.categories || []).length, icon: Layers },
+            { id: 'brands', label: 'Brand Partners & Logos', count: (config.brands || []).length, icon: Building2 },
+            { id: 'preview', label: 'Storefront Layout Preview', count: null, icon: Eye }
           ].map(tab => {
             const isActive = activeTab === tab.id;
+            const TabIcon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-2 font-semibold transition border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 cursor-pointer whitespace-nowrap ${
                   isActive 
-                    ? 'border-[#E42528] text-[#E42528]' 
-                    : 'border-transparent text-slate-600 hover:text-slate-900'
+                    ? 'bg-sky-50 text-sky-700 border border-sky-200/90 shadow-2xs' 
+                    : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent'
                 }`}
               >
+                <TabIcon size={14} className={isActive ? 'text-sky-600' : 'text-slate-400'} />
                 <span>{tab.label}</span>
                 {tab.count !== null && (
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded font-normal ${
-                    isActive ? 'bg-red-50 text-red-700' : 'bg-slate-100 text-slate-500'
+                  <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${
+                    isActive ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-500'
                   }`}>
                     {tab.count}
                   </span>
@@ -427,53 +432,69 @@ export default function WebsiteHomepageManager() {
         {/* ========================================================================= */}
         {activeTab === 'offers' && (
           <div className="space-y-5">
-            {/* Zoho Info Note */}
-            <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded text-xs text-blue-900 flex items-start gap-2.5">
-              <Info size={16} className="text-blue-600 shrink-0 mt-0.5" />
-              <div>
-                <strong>Promotional Top Ribbon:</strong> These offer badges are displayed at the very top of your storefront header. You can add, edit, reorder, or toggle individual offers.
+            {/* Clean Medical Info Note */}
+            <div className="p-4 bg-gradient-to-r from-sky-50/70 via-sky-50/40 to-indigo-50/30 border border-sky-100/90 rounded-2xl text-xs text-sky-950 flex items-start gap-3 shadow-2xs">
+              <div className="w-7 h-7 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Info size={15} />
+              </div>
+              <div className="leading-relaxed">
+                <strong className="font-bold text-sky-900">Promotional Top Ribbon:</strong> These offer badges are displayed at the very top of your medical storefront header. You can add, edit, reorder, or toggle individual offers in real-time.
               </div>
             </div>
 
-            {/* Clean Light-Themed Preview Strip (Not pitch black!) */}
-            <div className="bg-white border border-slate-200 rounded shadow-xs p-4 space-y-2">
-              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                Storefront Preview: Top Ribbon
+            {/* Pristine Modern Medical Storefront Top Ribbon Preview (NO BLACK!) */}
+            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Live Storefront Preview • Top Announcement Bar
+                  </span>
+                </div>
+                <span className="text-[11px] font-semibold text-slate-400">
+                  Header preview on rajbiosis.com
+                </span>
               </div>
-              <div className="border border-slate-200 rounded bg-[#101828] text-white p-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+
+              {/* Clean Luminous Light Medical Header Ribbon */}
+              <div className="rounded-2xl border border-sky-200/80 bg-gradient-to-r from-slate-50 via-sky-50/40 to-slate-50 p-3 flex flex-wrap items-center justify-between gap-3 shadow-2xs transition">
                 <div className="flex flex-wrap items-center gap-2">
                   {(config.offers || []).filter(o => o.active).map(offer => {
                     const theme = COLOR_OPTIONS.find(c => c.id === offer.color) || COLOR_OPTIONS[0];
                     return (
                       <span
                         key={offer.id}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-medium bg-white/10 border border-white/20 text-white"
+                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white border border-slate-200/90 shadow-2xs text-slate-800 hover:border-sky-300 transition"
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`}></span>
-                        <strong className="font-semibold">{offer.tag}:</strong>
-                        <span>{offer.title}</span>
+                        <span className={`w-2 h-2 rounded-full ${theme.dot}`}></span>
+                        <strong className={theme.text || 'text-slate-900'}>{offer.tag}:</strong>
+                        <span className="text-slate-600 font-medium">{offer.title}</span>
                       </span>
                     );
                   })}
                 </div>
 
                 <div className="flex items-center gap-3 text-xs shrink-0">
-                  <span className="text-slate-300 font-mono text-[11px]">
-                    {config.offersConfig?.hotline || '+91 9999-BIOSIS'}
-                  </span>
-                  <span className="px-3 py-1 rounded bg-[#E42528] text-white font-medium text-[11px]">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold text-xs shadow-2xs">
+                    <Phone size={12} className="text-sky-600" />
+                    <span className="font-mono">{config.offersConfig?.hotline || '+91 9999-BIOSIS'}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-bold text-xs shadow-xs transition"
+                  >
                     {config.offersConfig?.quoteBtnText || 'Request A Quote'}
-                  </span>
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* Zoho Style Table of Offers */}
-            <div className="bg-white border border-slate-200 rounded shadow-xs overflow-hidden">
-              <div className="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
+            {/* Modern Table of Offers */}
+            <div className="bg-white border border-slate-200/80 rounded-3xl shadow-sm overflow-hidden">
+              <div className="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between bg-white">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-800">Active Offers & Promo Pills</h3>
-                  <p className="text-xs text-slate-500">Configure promotional text, tags, and click links</p>
+                  <h3 className="text-sm font-bold text-slate-900">Active Offers & Promo Pills</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Configure promotional headlines, tags, color schemes, and target links</p>
                 </div>
                 <button
                   onClick={() => {
@@ -486,105 +507,110 @@ export default function WebsiteHomepageManager() {
                     });
                     setOfferModalOpen(true);
                   }}
-                  className="px-3 py-1.5 bg-[#E42528] hover:bg-[#CC1F22] text-white text-xs font-medium rounded transition flex items-center gap-1 cursor-pointer"
+                  className="px-4 py-2 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <Plus size={14} />
                   <span>Add New Offer</span>
                 </button>
               </div>
 
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[10px] tracking-wider">
-                  <tr>
-                    <th className="py-2.5 px-4 w-12 text-center">Order</th>
-                    <th className="py-2.5 px-4 w-24">Status</th>
-                    <th className="py-2.5 px-4">Badge / Tag</th>
-                    <th className="py-2.5 px-4">Offer Headline</th>
-                    <th className="py-2.5 px-4">Color Style</th>
-                    <th className="py-2.5 px-4">Target Link</th>
-                    <th className="py-2.5 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {(config.offers || []).map((offer, idx) => {
-                    const theme = COLOR_OPTIONS.find(c => c.id === offer.color) || COLOR_OPTIONS[0];
-                    return (
-                      <tr key={offer.id} className="hover:bg-slate-50/70 transition">
-                        <td className="py-3 px-4 text-center">
-                          <div className="flex items-center justify-center gap-1 text-slate-400">
-                            <button
-                              onClick={() => handleMoveOffer(idx, -1)}
-                              disabled={idx === 0}
-                              className="hover:text-slate-700 disabled:opacity-20 cursor-pointer p-0.5"
-                            >
-                              <MoveUp size={12} />
-                            </button>
-                            <button
-                              onClick={() => handleMoveOffer(idx, 1)}
-                              disabled={idx === (config.offers || []).length - 1}
-                              className="hover:text-slate-700 disabled:opacity-20 cursor-pointer p-0.5"
-                            >
-                              <MoveDown size={12} />
-                            </button>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <label className="inline-flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={offer.active}
-                              onChange={() => handleToggleOffer(offer.id)}
-                              className="sr-only peer"
-                            />
-                            <div className="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600 relative"></div>
-                          </label>
-                        </td>
-                        <td className="py-3 px-4 font-semibold text-slate-800">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${theme.badgeClass}`}>
-                            {offer.tag}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-slate-700 font-medium">
-                          {offer.title}
-                        </td>
-                        <td className="py-3 px-4 text-slate-500">
-                          <span className="flex items-center gap-1.5">
-                            <span className={`w-2 h-2 rounded-full ${theme.dot}`}></span>
-                            <span>{theme.name}</span>
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 font-mono text-slate-500 text-[11px]">
-                          {offer.link || '#'}
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <div className="flex items-center justify-end gap-1.5 text-slate-500">
-                            <button
-                              onClick={() => {
-                                setEditingOffer(offer);
-                                setOfferModalOpen(true);
-                              }}
-                              className="px-2 py-1 border border-slate-200 rounded hover:bg-slate-100 text-slate-600 cursor-pointer"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteOffer(offer.id)}
-                              className="p-1 border border-transparent rounded hover:border-red-200 hover:bg-red-50 text-red-600 cursor-pointer"
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50/80 border-b border-slate-100 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+                    <tr>
+                      <th className="py-3 px-4 w-14 text-center">Order</th>
+                      <th className="py-3 px-4 w-24">Status</th>
+                      <th className="py-3 px-4">Badge / Tag</th>
+                      <th className="py-3 px-4">Offer Headline</th>
+                      <th className="py-3 px-4">Color Style</th>
+                      <th className="py-3 px-4">Target Link</th>
+                      <th className="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {(config.offers || []).map((offer, idx) => {
+                      const theme = COLOR_OPTIONS.find(c => c.id === offer.color) || COLOR_OPTIONS[0];
+                      return (
+                        <tr key={offer.id} className="hover:bg-slate-50/60 transition">
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-1 text-slate-400">
+                              <button
+                                onClick={() => handleMoveOffer(idx, -1)}
+                                disabled={idx === 0}
+                                title="Move Up"
+                                className="hover:text-slate-800 disabled:opacity-20 cursor-pointer p-1 rounded hover:bg-slate-100"
+                              >
+                                <MoveUp size={13} />
+                              </button>
+                              <button
+                                onClick={() => handleMoveOffer(idx, 1)}
+                                disabled={idx === (config.offers || []).length - 1}
+                                title="Move Down"
+                                className="hover:text-slate-800 disabled:opacity-20 cursor-pointer p-1 rounded hover:bg-slate-100"
+                              >
+                                <MoveDown size={13} />
+                              </button>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <label className="inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={offer.active}
+                                onChange={() => handleToggleOffer(offer.id)}
+                                className="sr-only peer"
+                              />
+                              <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600 relative"></div>
+                            </label>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${theme.badgeClass}`}>
+                              {offer.tag}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-slate-800 font-semibold">
+                            {offer.title}
+                          </td>
+                          <td className="py-3 px-4 text-slate-600">
+                            <span className="inline-flex items-center gap-1.5 font-medium">
+                              <span className={`w-2.5 h-2.5 rounded-full ${theme.dot}`}></span>
+                              <span>{theme.name}</span>
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 font-mono text-slate-500 text-[11px]">
+                            {offer.link || '#'}
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => {
+                                  setEditingOffer(offer);
+                                  setOfferModalOpen(true);
+                                }}
+                                className="px-3 py-1.5 border border-slate-200 rounded-xl hover:bg-slate-100 text-slate-700 font-semibold cursor-pointer transition text-xs"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteOffer(offer.id)}
+                                title="Delete offer"
+                                className="p-1.5 rounded-xl text-rose-500 hover:text-rose-700 hover:bg-rose-50 cursor-pointer transition"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
 
-              {/* Secondary Options */}
-              <div className="bg-slate-50/70 border-t border-slate-200 p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Secondary Options Card */}
+              <div className="bg-slate-50/60 border-t border-slate-100 p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Support Hotline Number</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Support Hotline Number</label>
                   <input
                     type="text"
                     value={config.offersConfig?.hotline || ''}
@@ -592,12 +618,12 @@ export default function WebsiteHomepageManager() {
                       ...prev,
                       offersConfig: { ...(prev.offersConfig || {}), hotline: e.target.value }
                     }))}
-                    className="w-full px-3 py-1.5 bg-white text-xs border border-slate-300 rounded focus:border-blue-500 focus:outline-none"
+                    className="w-full px-3.5 py-2 bg-white text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none font-semibold text-slate-800 shadow-2xs"
                     placeholder="+91 9999-BIOSIS"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Quote Button Text</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Quote Button Text</label>
                   <input
                     type="text"
                     value={config.offersConfig?.quoteBtnText || ''}
@@ -605,7 +631,7 @@ export default function WebsiteHomepageManager() {
                       ...prev,
                       offersConfig: { ...(prev.offersConfig || {}), quoteBtnText: e.target.value }
                     }))}
-                    className="w-full px-3 py-1.5 bg-white text-xs border border-slate-300 rounded focus:border-blue-500 focus:outline-none"
+                    className="w-full px-3.5 py-2 bg-white text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none font-semibold text-slate-800 shadow-2xs"
                     placeholder="Request A Quote"
                   />
                 </div>
@@ -619,19 +645,21 @@ export default function WebsiteHomepageManager() {
         {/* ========================================================================= */}
         {activeTab === 'carousel' && (
           <div className="space-y-5">
-            <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded text-xs text-blue-900 flex items-start gap-2.5">
-              <Info size={16} className="text-blue-600 shrink-0 mt-0.5" />
-              <div>
-                <strong>Hero Banner Slider:</strong> Up to 5 promotional slides can be configured. Each slide includes a high-resolution banner image, headline, description, and direct call-to-action buttons.
+            <div className="p-4 bg-gradient-to-r from-sky-50/70 via-sky-50/40 to-indigo-50/30 border border-sky-100/90 rounded-2xl text-xs text-sky-950 flex items-start gap-3 shadow-2xs">
+              <div className="w-7 h-7 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Info size={15} />
+              </div>
+              <div className="leading-relaxed">
+                <strong className="font-bold text-sky-900">Hero Banner Slider:</strong> Up to 5 high-impact promotional slides can be configured. Each slide includes a high-resolution banner image, headline, description, and direct call-to-action buttons.
               </div>
             </div>
 
             {/* Slide Navigation & Selector */}
-            <div className="bg-white border border-slate-200 rounded shadow-xs p-4 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="bg-white border border-slate-200/80 rounded-3xl shadow-sm p-6 space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-700">Configured Slides:</span>
-                  <span className="text-xs font-mono font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
+                  <span className="text-xs font-bold text-slate-700">Configured Slides:</span>
+                  <span className="text-xs font-bold text-sky-700 bg-sky-50 border border-sky-100 px-3 py-1 rounded-full">
                     {(config.carousel || []).length} of 5 Active
                   </span>
                 </div>
@@ -639,7 +667,7 @@ export default function WebsiteHomepageManager() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleDeleteSlide(activeSlideIndex)}
-                    className="px-2.5 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50 cursor-pointer"
+                    className="px-3 py-1.5 text-xs font-bold text-rose-600 border border-rose-200 rounded-xl hover:bg-rose-50 cursor-pointer transition"
                   >
                     Delete Slide {activeSlideIndex + 1}
                   </button>
@@ -647,50 +675,50 @@ export default function WebsiteHomepageManager() {
                   <button
                     onClick={handleAddSlide}
                     disabled={(config.carousel || []).length >= 5}
-                    className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium rounded transition disabled:opacity-40 cursor-pointer flex items-center gap-1"
+                    className="px-4 py-1.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition disabled:opacity-40 cursor-pointer flex items-center gap-1.5"
                   >
-                    <Plus size={13} />
+                    <Plus size={14} />
                     <span>Add Slide</span>
                   </button>
                 </div>
               </div>
 
               {/* Slide Tabs */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1">
                 {(config.carousel || []).map((slide, idx) => (
                   <button
                     key={slide.id || idx}
                     onClick={() => setActiveSlideIndex(idx)}
-                    className={`px-3 py-2 text-xs font-medium rounded border transition cursor-pointer flex items-center gap-2 ${
+                    className={`px-4 py-2 text-xs font-bold rounded-xl border transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
                       idx === activeSlideIndex
-                        ? 'bg-slate-900 text-white border-slate-900'
+                        ? 'bg-sky-600 text-white border-sky-600 shadow-xs'
                         : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                     }`}
                   >
                     <span>Slide {idx + 1}</span>
-                    <span className="text-[10px] opacity-70 truncate max-w-[120px]">{slide.title}</span>
+                    <span className="text-[11px] opacity-80 truncate max-w-[120px]">{slide.title}</span>
                   </button>
                 ))}
               </div>
 
               {/* Current Slide Form */}
               {currentSlide && (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-3 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2 items-start">
                   {/* Left: Image Upload & Preview */}
                   <div className="lg:col-span-5 space-y-3">
-                    <label className="block text-xs font-semibold text-slate-700">
+                    <label className="block text-xs font-bold text-slate-700">
                       Banner Image (File Upload or URL)
                     </label>
 
-                    <div className="border border-slate-300 rounded bg-slate-50 p-2 text-center h-48 flex items-center justify-center overflow-hidden relative">
+                    <div className="border border-slate-200 rounded-2xl bg-slate-50/70 p-2 text-center h-48 flex items-center justify-center overflow-hidden relative shadow-2xs">
                       {currentSlide.image ? (
                         <img
                           src={currentSlide.image}
                           alt={currentSlide.title}
-                          className="w-full h-full object-cover rounded"
+                          className="w-full h-full object-cover rounded-xl"
                         />
                       ) : (
-                        <div className="text-slate-400 text-xs">No image selected</div>
+                        <div className="text-slate-400 text-xs font-medium">No image selected</div>
                       )}
                     </div>
 
@@ -706,9 +734,9 @@ export default function WebsiteHomepageManager() {
                       <button
                         type="button"
                         onClick={() => carouselFileRef.current?.click()}
-                        className="flex-1 py-1.5 px-3 border border-slate-300 rounded bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="flex-1 py-2 px-3 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                       >
-                        <Upload size={13} />
+                        <Upload size={13} className="text-sky-600" />
                         <span>Upload Image File</span>
                       </button>
                     </div>
@@ -719,91 +747,91 @@ export default function WebsiteHomepageManager() {
                         value={currentSlide.image || ''}
                         onChange={(e) => handleUpdateSlide('image', e.target.value)}
                         placeholder="Or paste image URL (https://...)"
-                        className="w-full px-3 py-1.5 text-xs border border-slate-300 rounded bg-white focus:border-blue-500 focus:outline-none font-mono"
+                        className="w-full px-3.5 py-2 text-xs border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none font-mono shadow-2xs"
                       />
                     </div>
                   </div>
 
                   {/* Right: Content Fields */}
-                  <div className="lg:col-span-7 space-y-3">
+                  <div className="lg:col-span-7 space-y-3.5">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-medium text-slate-700 mb-1">Badge Tag</label>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Badge Tag</label>
                         <input
                           type="text"
                           value={currentSlide.badge || ''}
                           onChange={(e) => handleUpdateSlide('badge', e.target.value)}
                           placeholder="e.g. Direct OEM Procurement"
-                          className="w-full px-3 py-1.5 text-xs border border-slate-300 rounded bg-white focus:border-blue-500 focus:outline-none"
+                          className="w-full px-3.5 py-2 text-xs border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none shadow-2xs"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-slate-700 mb-1">Slide Number</label>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Slide Number</label>
                         <input
                           type="text"
                           disabled
                           value={`Slide ${activeSlideIndex + 1} of ${(config.carousel || []).length}`}
-                          className="w-full px-3 py-1.5 text-xs border border-slate-200 rounded bg-slate-100 text-slate-500 font-mono"
+                          className="w-full px-3.5 py-2 text-xs border border-slate-200 rounded-xl bg-slate-50 text-slate-500 font-mono shadow-2xs"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">Main Headline</label>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Main Headline</label>
                       <input
                         type="text"
                         value={currentSlide.title || ''}
                         onChange={(e) => handleUpdateSlide('title', e.target.value)}
                         placeholder="e.g. Advanced Diagnostics for Better Healthcare"
-                        className="w-full px-3 py-1.5 text-xs font-semibold border border-slate-300 rounded bg-white focus:border-blue-500 focus:outline-none"
+                        className="w-full px-3.5 py-2 text-xs font-bold border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none shadow-2xs text-slate-900"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">Description / Spec Summary</label>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Description / Spec Summary</label>
                       <textarea
                         rows={2}
                         value={currentSlide.subtitle || ''}
                         onChange={(e) => handleUpdateSlide('subtitle', e.target.value)}
                         placeholder="Short summary of medical systems shown"
-                        className="w-full px-3 py-1.5 text-xs border border-slate-300 rounded bg-white focus:border-blue-500 focus:outline-none"
+                        className="w-full px-3.5 py-2 text-xs border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none shadow-2xs"
                       />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                       <div>
-                        <label className="block text-xs font-medium text-slate-700 mb-1">Primary Button</label>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Primary Button</label>
                         <input
                           type="text"
                           value={currentSlide.primaryBtnText || ''}
                           onChange={(e) => handleUpdateSlide('primaryBtnText', e.target.value)}
                           placeholder="Button label"
-                          className="w-full px-3 py-1 text-xs border border-slate-300 rounded bg-white mb-1.5"
+                          className="w-full px-3.5 py-1.5 text-xs border border-slate-200 rounded-xl bg-white mb-2 shadow-2xs"
                         />
                         <input
                           type="text"
                           value={currentSlide.primaryBtnLink || ''}
                           onChange={(e) => handleUpdateSlide('primaryBtnLink', e.target.value)}
                           placeholder="Link target (#categories)"
-                          className="w-full px-3 py-1 text-xs border border-slate-300 rounded bg-white font-mono"
+                          className="w-full px-3.5 py-1.5 text-xs border border-slate-200 rounded-xl bg-white font-mono shadow-2xs"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-xs font-medium text-slate-700 mb-1">Secondary Button</label>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Secondary Button</label>
                         <input
                           type="text"
                           value={currentSlide.secondaryBtnText || ''}
                           onChange={(e) => handleUpdateSlide('secondaryBtnText', e.target.value)}
                           placeholder="Button label"
-                          className="w-full px-3 py-1 text-xs border border-slate-300 rounded bg-white mb-1.5"
+                          className="w-full px-3.5 py-1.5 text-xs border border-slate-200 rounded-xl bg-white mb-2 shadow-2xs"
                         />
                         <input
                           type="text"
                           value={currentSlide.secondaryBtnLink || ''}
                           onChange={(e) => handleUpdateSlide('secondaryBtnLink', e.target.value)}
                           placeholder="Link target (#rfq)"
-                          className="w-full px-3 py-1 text-xs border border-slate-300 rounded bg-white font-mono"
+                          className="w-full px-3.5 py-1.5 text-xs border border-slate-200 rounded-xl bg-white font-mono shadow-2xs"
                         />
                       </div>
                     </div>
@@ -812,44 +840,45 @@ export default function WebsiteHomepageManager() {
               )}
             </div>
 
-            {/* Clean Light-Themed Preview of Banner */}
-            <div className="bg-white border border-slate-200 rounded shadow-xs p-4 space-y-2">
+            {/* Clean Modern Medical Preview of Banner (NO PITCH BLACK!) */}
+            <div className="bg-white border border-slate-200/80 rounded-3xl shadow-sm p-6 space-y-3">
               <div className="flex items-center justify-between text-xs text-slate-500">
-                <span className="font-semibold uppercase tracking-wider text-[11px] text-slate-400">
+                <span className="font-bold uppercase tracking-wider text-[11px] text-slate-400">
                   Interactive Banner Preview
                 </span>
-                <span className="font-mono text-slate-600">
+                <span className="font-mono text-slate-600 font-bold">
                   Slide {activeSlideIndex + 1} of {(config.carousel || []).length}
                 </span>
               </div>
 
-              <div className="relative border border-slate-200 rounded overflow-hidden bg-slate-900 h-64 select-none">
+              <div className="relative border border-slate-200 rounded-2xl overflow-hidden bg-slate-100 h-72 select-none shadow-2xs">
                 {currentSlide && (
                   <>
                     <img
                       src={currentSlide.image}
                       alt={currentSlide.title}
-                      className="w-full h-full object-cover opacity-85"
+                      className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent p-6 flex flex-col justify-end text-white">
-                      <span className="text-[10px] font-semibold bg-white/20 px-2 py-0.5 rounded w-fit mb-2">
+                    {/* Soft modern medical gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/85 via-slate-900/35 to-transparent p-6 flex flex-col justify-end text-white">
+                      <span className="text-[11px] font-bold bg-white/90 text-slate-900 px-3 py-1 rounded-full w-fit mb-2 shadow-xs backdrop-blur-xs">
                         {currentSlide.badge}
                       </span>
-                      <h4 className="text-xl font-bold">{currentSlide.title}</h4>
-                      <p className="text-xs text-slate-200 line-clamp-1 max-w-lg mt-1">{currentSlide.subtitle}</p>
+                      <h4 className="text-xl sm:text-2xl font-black drop-shadow-sm">{currentSlide.title}</h4>
+                      <p className="text-xs text-slate-100 line-clamp-1 max-w-lg mt-1 font-medium">{currentSlide.subtitle}</p>
                     </div>
 
                     <button
                       type="button"
                       onClick={() => setActiveSlideIndex(prev => (prev - 1 + config.carousel.length) % config.carousel.length)}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded bg-black/40 text-white hover:bg-black/70 cursor-pointer"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 p-2.5 rounded-2xl bg-white/80 hover:bg-white text-slate-800 shadow-md backdrop-blur-md cursor-pointer transition"
                     >
                       <ChevronLeft size={16} />
                     </button>
                     <button
                       type="button"
                       onClick={() => setActiveSlideIndex(prev => (prev + 1) % config.carousel.length)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded bg-black/40 text-white hover:bg-black/70 cursor-pointer"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-2.5 rounded-2xl bg-white/80 hover:bg-white text-slate-800 shadow-md backdrop-blur-md cursor-pointer transition"
                     >
                       <ChevronRight size={16} />
                     </button>
@@ -865,18 +894,20 @@ export default function WebsiteHomepageManager() {
         {/* ========================================================================= */}
         {activeTab === 'categories' && (
           <div className="space-y-5">
-            <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded text-xs text-blue-900 flex items-start gap-2.5">
-              <Info size={16} className="text-blue-600 shrink-0 mt-0.5" />
-              <div>
-                <strong>Equipment Categories:</strong> Configure clinical departments displayed on the homepage. You can assign category images, item count badges, and catalog links.
+            <div className="p-4 bg-gradient-to-r from-sky-50/70 via-sky-50/40 to-indigo-50/30 border border-sky-100/90 rounded-2xl text-xs text-sky-950 flex items-start gap-3 shadow-2xs">
+              <div className="w-7 h-7 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Info size={15} />
+              </div>
+              <div className="leading-relaxed">
+                <strong className="font-bold text-sky-900">Equipment Categories:</strong> Configure clinical departments displayed on the homepage. You can assign category images, item count badges, and catalog links.
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded shadow-xs overflow-hidden">
-              <div className="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
+            <div className="bg-white border border-slate-200/80 rounded-3xl shadow-sm overflow-hidden">
+              <div className="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between bg-white">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-800">Biomedical Categories</h3>
-                  <p className="text-xs text-slate-500">6 Core clinical verticals shown on the homepage</p>
+                  <h3 className="text-sm font-bold text-slate-900">Biomedical Categories</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">{(config.categories || []).length} Core clinical verticals shown on the homepage</p>
                 </div>
                 <button
                   onClick={() => {
@@ -889,43 +920,43 @@ export default function WebsiteHomepageManager() {
                     });
                     setCategoryModalOpen(true);
                   }}
-                  className="px-3 py-1.5 bg-[#E42528] hover:bg-[#CC1F22] text-white text-xs font-medium rounded transition flex items-center gap-1 cursor-pointer"
+                  className="px-4 py-2 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <Plus size={14} />
                   <span>Add Category</span>
                 </button>
               </div>
 
-              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
+              <div className="p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {(config.categories || []).map((cat) => (
                   <div
                     key={cat.id}
-                    className="border border-slate-200 rounded bg-white hover:border-slate-300 hover:shadow-xs transition p-2.5 flex flex-col justify-between"
+                    className="border border-slate-200/80 rounded-2xl bg-white hover:border-sky-300 hover:shadow-md transition p-3.5 flex flex-col justify-between group"
                   >
                     <div>
-                      <div className="w-full h-24 bg-slate-100 rounded overflow-hidden relative mb-2">
-                        <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
-                        <span className="absolute bottom-1 right-1 px-1.5 py-0.2 bg-black/70 text-white text-[9px] font-mono rounded">
+                      <div className="w-full h-28 bg-slate-100 rounded-xl overflow-hidden relative mb-2.5 shadow-2xs">
+                        <img src={cat.image} alt={cat.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                        <span className="absolute bottom-1.5 right-1.5 px-2 py-0.5 bg-white/95 text-slate-800 text-[10px] font-bold rounded-md shadow-xs">
                           {cat.badge || `${cat.itemCount || 10} Items`}
                         </span>
                       </div>
-                      <h4 className="text-xs font-semibold text-slate-900 truncate">{cat.name}</h4>
-                      <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">{cat.description}</p>
+                      <h4 className="text-xs font-bold text-slate-900 truncate group-hover:text-sky-700 transition">{cat.name}</h4>
+                      <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">{cat.description}</p>
                     </div>
 
-                    <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
                       <button
                         onClick={() => {
                           setEditingCategory(cat);
                           setCategoryModalOpen(true);
                         }}
-                        className="text-blue-600 hover:text-blue-800 font-medium cursor-pointer"
+                        className="text-sky-600 hover:text-sky-800 font-bold cursor-pointer"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDeleteCategory(cat.id)}
-                        className="text-red-500 hover:text-red-700 cursor-pointer"
+                        className="text-rose-500 hover:text-rose-700 font-medium cursor-pointer"
                       >
                         Delete
                       </button>
@@ -942,18 +973,20 @@ export default function WebsiteHomepageManager() {
         {/* ========================================================================= */}
         {activeTab === 'brands' && (
           <div className="space-y-5">
-            <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded text-xs text-blue-900 flex items-start gap-2.5">
-              <Info size={16} className="text-blue-600 shrink-0 mt-0.5" />
-              <div>
-                <strong>Brand Partners & OEM Directory:</strong> Manage OEM logos displayed under "Brands We Deal In & Support". You can add unlimited brands with logos, partnership levels, and website links.
+            <div className="p-4 bg-gradient-to-r from-sky-50/70 via-sky-50/40 to-indigo-50/30 border border-sky-100/90 rounded-2xl text-xs text-sky-950 flex items-start gap-3 shadow-2xs">
+              <div className="w-7 h-7 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shrink-0 mt-0.5">
+                <Info size={15} />
+              </div>
+              <div className="leading-relaxed">
+                <strong className="font-bold text-sky-900">Brand Partners & OEM Directory:</strong> Manage OEM logos displayed under "Brands We Deal In & Support". You can add unlimited brands with logos, partnership levels, and website links.
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded shadow-xs overflow-hidden">
-              <div className="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
+            <div className="bg-white border border-slate-200/80 rounded-3xl shadow-sm overflow-hidden">
+              <div className="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between bg-white">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-800">Brands We Deal In & Support</h3>
-                  <p className="text-xs text-slate-500">{(config.brands || []).length} Partner brands registered</p>
+                  <h3 className="text-sm font-bold text-slate-900">Brands We Deal In & Support</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">{(config.brands || []).length} Partner brands registered</p>
                 </div>
                 <button
                   onClick={() => {
@@ -966,51 +999,51 @@ export default function WebsiteHomepageManager() {
                     });
                     setBrandModalOpen(true);
                   }}
-                  className="px-3.5 py-1.5 bg-[#E42528] hover:bg-[#CC1F22] text-white text-xs font-medium rounded transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  className="px-4 py-2 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <Plus size={14} />
                   <span>Add Brand Logo</span>
                 </button>
               </div>
 
-              <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5">
+              <div className="p-5 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {(config.brands || []).map((brand) => (
                   <div
                     key={brand.id}
-                    className="border border-slate-200 rounded bg-white hover:border-slate-300 hover:shadow-xs transition p-3 flex flex-col justify-between items-center text-center"
+                    className="border border-slate-200/80 rounded-2xl bg-white hover:border-sky-300 hover:shadow-md transition p-4 flex flex-col justify-between items-center text-center group"
                   >
                     <div className="w-full flex justify-end">
-                      <span className="text-[9px] text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded font-medium">
+                      <span className="text-[10px] text-sky-700 bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full font-bold">
                         {brand.tier}
                       </span>
                     </div>
 
-                    <div className="w-full h-14 my-2 flex items-center justify-center p-1">
+                    <div className="w-full h-16 my-2.5 flex items-center justify-center p-2 rounded-xl bg-slate-50/70 border border-slate-100">
                       {brand.logo ? (
                         <img src={brand.logo} alt={brand.name} className="max-h-full max-w-full object-contain" />
                       ) : (
-                        <span className="text-xs font-bold text-slate-700">{brand.name}</span>
+                        <span className="text-xs font-black text-slate-700">{brand.name}</span>
                       )}
                     </div>
 
                     <div className="w-full">
-                      <div className="text-xs font-semibold text-slate-900 truncate">{brand.name}</div>
+                      <div className="text-xs font-bold text-slate-900 truncate">{brand.name}</div>
                       <div className="text-[10px] text-slate-400 truncate mt-0.5">{brand.tagline || brand.website}</div>
                     </div>
 
-                    <div className="w-full mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <div className="w-full mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
                       <button
                         onClick={() => {
                           setEditingBrand(brand);
                           setBrandModalOpen(true);
                         }}
-                        className="text-blue-600 hover:text-blue-800 font-medium cursor-pointer"
+                        className="text-sky-600 hover:text-sky-800 font-bold cursor-pointer"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDeleteBrand(brand.id)}
-                        className="text-red-500 hover:text-red-700 cursor-pointer"
+                        className="text-rose-500 hover:text-rose-700 font-medium cursor-pointer"
                       >
                         Remove
                       </button>
@@ -1027,88 +1060,90 @@ export default function WebsiteHomepageManager() {
         {/* ========================================================================= */}
         {activeTab === 'preview' && (
           <div className="space-y-4">
-            <div className="bg-white border border-slate-200 rounded shadow-xs p-4 flex items-center justify-between">
+            <div className="bg-white border border-slate-200/80 rounded-3xl shadow-sm p-5 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-slate-800">Clean Storefront Simulation</h3>
-                <p className="text-xs text-slate-500">Live preview of the header, offers ribbon, carousel, and categories</p>
+                <h3 className="text-sm font-bold text-slate-900">Clean Storefront Simulation</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Live simulation of the header, offers ribbon, hero carousel, and categories</p>
               </div>
               <a
                 href="/preview/rajbiosis.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3.5 py-1.5 border border-slate-300 rounded bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center gap-1.5"
+                className="px-4 py-2 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-2 shadow-2xs transition"
               >
-                <span>Open in Full Tab</span>
-                <ExternalLink size={12} />
+                <span>Open Full Preview</span>
+                <ExternalLink size={12} className="text-sky-600" />
               </a>
             </div>
 
-            <div className="border border-slate-300 rounded overflow-hidden shadow-xs bg-white">
-              {/* Browser Address Bar */}
-              <div className="bg-slate-100 border-b border-slate-200 px-4 py-2 flex items-center gap-2">
-                <div className="flex gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
-                  <span className="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
-                  <span className="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+            {/* Simulated Browser Frame */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden">
+              {/* Browser Bar */}
+              <div className="bg-slate-100/80 border-b border-slate-200 px-4 py-2.5 flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
                 </div>
-                <div className="bg-white border border-slate-200 rounded px-3 py-0.5 text-[11px] font-mono text-slate-600 flex-1 ml-2">
+                <div className="bg-white border border-slate-200 rounded-xl px-3 py-1 text-[11px] font-mono text-slate-600 flex-1 ml-2 shadow-2xs">
                   https://rajbiosis.com/
                 </div>
               </div>
 
-              {/* Top Offers Ribbon */}
-              <div className="bg-[#101828] text-white px-6 py-2 flex flex-wrap items-center justify-between gap-3 text-xs">
+              {/* Clean Medical Top Offers Ribbon (NO BLACK!) */}
+              <div className="border-b border-slate-200/80 bg-gradient-to-r from-slate-50 via-sky-50/40 to-slate-50 text-slate-800 px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
                 <div className="flex flex-wrap items-center gap-2">
                   {(config.offers || []).filter(o => o.active).map(offer => (
-                    <span key={offer.id} className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] bg-white/10 text-white font-medium">
+                    <span key={offer.id} className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] bg-white border border-slate-200 shadow-2xs text-slate-800 font-semibold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
                       <strong>{offer.tag}:</strong> {offer.title}
                     </span>
                   ))}
                 </div>
                 <div className="flex items-center gap-3 text-xs">
-                  <span className="text-slate-300 text-[11px] font-mono">{config.offersConfig?.hotline}</span>
-                  <span className="px-2.5 py-0.5 bg-[#E42528] text-white text-[10px] font-semibold rounded">
-                    {config.offersConfig?.quoteBtnText}
+                  <span className="text-slate-600 text-[11px] font-mono font-bold">{config.offersConfig?.hotline}</span>
+                  <span className="px-3 py-1 bg-gradient-to-r from-rose-600 to-red-600 text-white text-[11px] font-bold rounded-xl shadow-xs">
+                    {config.offersConfig?.quoteBtnText || 'Request A Quote'}
                   </span>
                 </div>
               </div>
 
               {/* Header */}
-              <div className="border-b border-slate-200 px-6 py-3.5 flex items-center justify-between">
+              <div className="border-b border-slate-100 px-6 py-3.5 flex items-center justify-between bg-white">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded bg-sky-600 text-white font-bold flex items-center justify-center text-xs">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sky-600 to-blue-700 text-white font-black flex items-center justify-center text-xs shadow-xs">
                     RB
                   </div>
                   <div>
                     <span className="font-bold text-sm text-slate-900 block leading-tight">Raj Biosis Private Limited</span>
-                    <span className="text-[10px] text-slate-400">Biomedical & Hospital Equipment</span>
+                    <span className="text-[10px] text-slate-400 font-medium">Biomedical & Hospital Equipment Hub</span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-5 text-xs text-slate-600 font-medium">
-                  <span className="text-red-600 font-semibold">All Products</span>
+                <div className="flex items-center gap-5 text-xs text-slate-600 font-semibold">
+                  <span className="text-sky-600 font-bold">All Products</span>
                   <span>Categories</span>
                   <span>About</span>
                   <span>Services</span>
                   <span>Contact</span>
-                  <button className="px-3 py-1.5 rounded bg-sky-600 text-white text-xs font-semibold">
+                  <button className="px-3.5 py-1.5 rounded-xl bg-sky-600 text-white text-xs font-bold shadow-xs">
                     Request Quote
                   </button>
                 </div>
               </div>
 
               {/* Hero Banner Snapshot */}
-              <div className="p-5 bg-slate-50 border-b border-slate-200">
-                <div className="relative rounded overflow-hidden shadow-xs h-64 bg-slate-900">
+              <div className="p-6 bg-slate-50/70 border-b border-slate-100">
+                <div className="relative rounded-2xl overflow-hidden shadow-sm h-64 bg-slate-100 border border-slate-200/80">
                   {currentSlide && (
                     <>
-                      <img src={currentSlide.image} alt={currentSlide.title} className="w-full h-full object-cover opacity-80" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent p-6 flex flex-col justify-end text-white">
-                        <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded w-fit mb-2 font-medium">{currentSlide.badge}</span>
-                        <h3 className="text-2xl font-bold">{currentSlide.title}</h3>
-                        <p className="text-xs text-slate-200 mt-1 max-w-lg">{currentSlide.subtitle}</p>
+                      <img src={currentSlide.image} alt={currentSlide.title} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/85 via-slate-900/35 to-transparent p-6 flex flex-col justify-end text-white">
+                        <span className="text-[10px] bg-white/90 text-slate-900 px-2.5 py-0.5 rounded-full w-fit mb-2 font-bold">{currentSlide.badge}</span>
+                        <h3 className="text-2xl font-black">{currentSlide.title}</h3>
+                        <p className="text-xs text-slate-100 mt-1 max-w-lg font-medium">{currentSlide.subtitle}</p>
                       </div>
-                      <div className="absolute top-3 right-3 px-2 py-0.5 bg-black/60 text-white text-[10px] font-mono rounded">
+                      <div className="absolute top-3 right-3 px-2.5 py-0.5 bg-white/90 text-slate-800 text-[10px] font-mono font-bold rounded-full shadow-xs">
                         {activeSlideIndex + 1} / {(config.carousel || []).length}
                       </div>
                     </>
@@ -1117,35 +1152,15 @@ export default function WebsiteHomepageManager() {
               </div>
 
               {/* Categories Grid Snapshot */}
-              <div className="p-6 bg-white border-b border-slate-200">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-sm font-bold text-slate-800">Biomedical Equipment Categories</h4>
-                  <span className="text-xs text-red-600 font-medium">All Categories &gt;</span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-                  {(config.categories || []).map((cat, idx) => (
-                    <div key={idx} className="border border-slate-200 rounded p-2 text-center bg-slate-50/50">
-                      <div className="w-full h-20 rounded overflow-hidden mb-1.5">
-                        <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
+              <div className="p-6 bg-white border-b border-slate-100">
+                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Featured Clinical Departments</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                  {(config.categories || []).slice(0, 6).map(c => (
+                    <div key={c.id} className="border border-slate-200/80 rounded-xl p-2 text-center bg-slate-50/50">
+                      <div className="w-full h-16 rounded-lg overflow-hidden bg-white mb-1.5">
+                        <img src={c.image} alt={c.name} className="w-full h-full object-cover" />
                       </div>
-                      <div className="font-semibold text-xs text-slate-800 truncate">{cat.name}</div>
-                      <div className="text-[10px] text-slate-400">{cat.badge}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Brands Snapshot */}
-              <div className="p-6 bg-slate-50">
-                <h4 className="text-sm font-bold text-slate-800 mb-3">Brands We Deal In & Support</h4>
-                <div className="flex flex-wrap items-center gap-3">
-                  {(config.brands || []).map((brand, idx) => (
-                    <div key={idx} className="border border-slate-200 rounded bg-white px-3 py-2 flex items-center gap-2">
-                      {brand.logo ? (
-                        <img src={brand.logo} alt={brand.name} className="h-5 max-w-[80px] object-contain" />
-                      ) : (
-                        <span className="text-xs font-semibold text-slate-700">{brand.name}</span>
-                      )}
+                      <span className="text-[11px] font-bold text-slate-800 block truncate">{c.name}</span>
                     </div>
                   ))}
                 </div>
@@ -1159,46 +1174,46 @@ export default function WebsiteHomepageManager() {
       {/* MODAL: ADD / EDIT OFFER */}
       {/* ========================================================================= */}
       {offerModalOpen && editingOffer && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-md max-w-md w-full shadow-lg border border-slate-200 p-5 space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200/90 p-6 space-y-4 animate-scale-up">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-900">
                 {editingOffer.id ? 'Edit Promotional Offer' : 'Add New Promotional Offer'}
               </h3>
-              <button onClick={() => setOfferModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+              <button onClick={() => setOfferModalOpen(false)} className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 cursor-pointer">
                 <X size={16} />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-3.5 text-xs">
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Badge Tag</label>
+                <label className="block font-bold text-slate-700 mb-1">Badge Tag</label>
                 <input
                   type="text"
                   value={editingOffer.tag || ''}
                   onChange={(e) => setEditingOffer({ ...editingOffer, tag: e.target.value })}
                   placeholder="e.g. Flash Sale / Special Offer"
-                  className="w-full px-3 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none"
+                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Offer Headline</label>
+                <label className="block font-bold text-slate-700 mb-1">Offer Headline</label>
                 <input
                   type="text"
                   value={editingOffer.title || ''}
                   onChange={(e) => setEditingOffer({ ...editingOffer, title: e.target.value })}
                   placeholder="e.g. FLAT 20% OFF on ICU Packages"
-                  className="w-full px-3 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none font-medium"
+                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none font-semibold text-slate-800 shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Color Theme</label>
+                <label className="block font-bold text-slate-700 mb-1">Color Theme</label>
                 <select
                   value={editingOffer.color || 'rose'}
                   onChange={(e) => setEditingOffer({ ...editingOffer, color: e.target.value })}
-                  className="w-full px-3 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none bg-white"
+                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none bg-white shadow-2xs font-medium"
                 >
                   {COLOR_OPTIONS.map(opt => (
                     <option key={opt.id} value={opt.id}>{opt.name}</option>
@@ -1207,29 +1222,29 @@ export default function WebsiteHomepageManager() {
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Target Link URL</label>
+                <label className="block font-bold text-slate-700 mb-1">Target Link URL</label>
                 <input
                   type="text"
                   value={editingOffer.link || ''}
                   onChange={(e) => setEditingOffer({ ...editingOffer, link: e.target.value })}
                   placeholder="#categories or /offers"
-                  className="w-full px-3 py-1.5 border border-slate-300 rounded font-mono focus:border-blue-500 focus:outline-none"
+                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl font-mono focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none shadow-2xs"
                 />
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2 text-xs">
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 text-xs">
               <button
                 type="button"
                 onClick={() => setOfferModalOpen(false)}
-                className="px-3 py-1.5 border border-slate-300 rounded text-slate-600 hover:bg-slate-50 cursor-pointer"
+                className="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 font-bold cursor-pointer transition"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={() => handleSaveOffer(editingOffer)}
-                className="px-4 py-1.5 bg-[#E42528] hover:bg-[#CC1F22] text-white font-medium rounded cursor-pointer"
+                className="px-4 py-2 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white font-bold rounded-xl shadow-xs cursor-pointer transition"
               >
                 Save Offer
               </button>
@@ -1242,52 +1257,52 @@ export default function WebsiteHomepageManager() {
       {/* MODAL: ADD / EDIT CATEGORY */}
       {/* ========================================================================= */}
       {categoryModalOpen && editingCategory && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-md max-w-md w-full shadow-lg border border-slate-200 p-5 space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200/90 p-6 space-y-4 animate-scale-up">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-900">
                 {editingCategory.id ? 'Edit Equipment Category' : 'Add Equipment Category'}
               </h3>
-              <button onClick={() => setCategoryModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+              <button onClick={() => setCategoryModalOpen(false)} className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 cursor-pointer">
                 <X size={16} />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-3.5 text-xs">
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Category Title</label>
+                <label className="block font-bold text-slate-700 mb-1">Category Title</label>
                 <input
                   type="text"
                   value={editingCategory.name || ''}
                   onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
                   placeholder="e.g. ICU & Critical Care"
-                  className="w-full px-3 py-1.5 border border-slate-300 rounded focus:border-blue-500 focus:outline-none font-medium"
+                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none font-bold text-slate-900 shadow-2xs"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium text-slate-700 mb-1">Items Count</label>
+                  <label className="block font-bold text-slate-700 mb-1">Items Count</label>
                   <input
                     type="number"
                     value={editingCategory.itemCount || 10}
                     onChange={(e) => setEditingCategory({ ...editingCategory, itemCount: Number(e.target.value) })}
-                    className="w-full px-3 py-1.5 border border-slate-300 rounded"
+                    className="w-full px-3.5 py-2 border border-slate-200 rounded-xl shadow-2xs"
                   />
                 </div>
                 <div>
-                  <label className="block font-medium text-slate-700 mb-1">Badge Text</label>
+                  <label className="block font-bold text-slate-700 mb-1">Badge Text</label>
                   <input
                     type="text"
                     value={editingCategory.badge || `${editingCategory.itemCount || 10} Items`}
                     onChange={(e) => setEditingCategory({ ...editingCategory, badge: e.target.value })}
-                    className="w-full px-3 py-1.5 border border-slate-300 rounded"
+                    className="w-full px-3.5 py-2 border border-slate-200 rounded-xl shadow-2xs font-semibold"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Category Image (Upload or URL)</label>
+                <label className="block font-bold text-slate-700 mb-1">Category Image (Upload or URL)</label>
                 <input
                   type="file"
                   ref={categoryFileRef}
@@ -1295,11 +1310,11 @@ export default function WebsiteHomepageManager() {
                   accept="image/*"
                   className="hidden"
                 />
-                <div className="flex gap-2 mb-1.5">
+                <div className="flex gap-2 mb-2">
                   <button
                     type="button"
                     onClick={() => categoryFileRef.current?.click()}
-                    className="px-3 py-1.5 border border-slate-300 rounded bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium cursor-pointer"
+                    className="px-3.5 py-2 border border-slate-200 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold cursor-pointer transition shadow-2xs text-xs"
                   >
                     Upload File
                   </button>
@@ -1308,40 +1323,40 @@ export default function WebsiteHomepageManager() {
                     value={editingCategory.image || ''}
                     onChange={(e) => setEditingCategory({ ...editingCategory, image: e.target.value })}
                     placeholder="https://..."
-                    className="flex-1 px-3 py-1.5 border border-slate-300 rounded font-mono text-[11px]"
+                    className="flex-1 px-3.5 py-2 border border-slate-200 rounded-xl font-mono text-[11px] shadow-2xs"
                   />
                 </div>
                 {editingCategory.image && (
-                  <div className="w-full h-20 rounded border border-slate-200 overflow-hidden bg-slate-50">
+                  <div className="w-full h-24 rounded-2xl border border-slate-200 overflow-hidden bg-slate-50 shadow-2xs">
                     <img src={editingCategory.image} alt="Preview" className="w-full h-full object-cover" />
                   </div>
                 )}
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Description</label>
+                <label className="block font-bold text-slate-700 mb-1">Description</label>
                 <textarea
                   rows={2}
                   value={editingCategory.description || ''}
                   onChange={(e) => setEditingCategory({ ...editingCategory, description: e.target.value })}
                   placeholder="e.g. Turbine Ventilators, Patient Monitors..."
-                  className="w-full px-3 py-1.5 border border-slate-300 rounded"
+                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl shadow-2xs"
                 />
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2 text-xs">
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 text-xs">
               <button
                 type="button"
                 onClick={() => setCategoryModalOpen(false)}
-                className="px-3 py-1.5 border border-slate-300 rounded text-slate-600 hover:bg-slate-50 cursor-pointer"
+                className="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 font-bold cursor-pointer transition"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={() => handleSaveCategory(editingCategory)}
-                className="px-4 py-1.5 bg-[#E42528] hover:bg-[#CC1F22] text-white font-medium rounded cursor-pointer"
+                className="px-4 py-2 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white font-bold rounded-xl shadow-xs cursor-pointer transition"
               >
                 Save Category
               </button>
@@ -1354,42 +1369,42 @@ export default function WebsiteHomepageManager() {
       {/* MODAL: ADD / EDIT BRAND LOGO */}
       {/* ========================================================================= */}
       {brandModalOpen && editingBrand && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-md max-w-md w-full shadow-lg border border-slate-200 p-5 space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200/90 p-6 space-y-4 animate-scale-up">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-900">
                 {editingBrand.id ? 'Edit Partner Brand' : 'Add Partner Brand Logo'}
               </h3>
-              <button onClick={() => setBrandModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+              <button onClick={() => setBrandModalOpen(false)} className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 cursor-pointer">
                 <X size={16} />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-3.5 text-xs">
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Brand Name</label>
+                <label className="block font-bold text-slate-700 mb-1">Brand Name</label>
                 <input
                   type="text"
                   value={editingBrand.name || ''}
                   onChange={(e) => setEditingBrand({ ...editingBrand, name: e.target.value })}
                   placeholder="e.g. Mindray / OSCAR / Philips"
-                  className="w-full px-3 py-1.5 border border-slate-300 rounded font-medium focus:border-blue-500 focus:outline-none"
+                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Partnership Level</label>
+                <label className="block font-bold text-slate-700 mb-1">Partnership Level</label>
                 <input
                   type="text"
                   value={editingBrand.tier || ''}
                   onChange={(e) => setEditingBrand({ ...editingBrand, tier: e.target.value })}
                   placeholder="e.g. Authorised Distributor / OEM Partner"
-                  className="w-full px-3 py-1.5 border border-slate-300 rounded"
+                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl shadow-2xs font-semibold"
                 />
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Brand Logo (Upload File or URL)</label>
+                <label className="block font-bold text-slate-700 mb-1">Brand Logo (Upload File or URL)</label>
                 <input
                   type="file"
                   ref={brandFileRef}
@@ -1397,11 +1412,11 @@ export default function WebsiteHomepageManager() {
                   accept="image/*"
                   className="hidden"
                 />
-                <div className="flex gap-2 mb-1.5">
+                <div className="flex gap-2 mb-2">
                   <button
                     type="button"
                     onClick={() => brandFileRef.current?.click()}
-                    className="px-3 py-1.5 border border-slate-300 rounded bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium cursor-pointer"
+                    className="px-3.5 py-2 border border-slate-200 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold cursor-pointer transition shadow-2xs text-xs"
                   >
                     Upload Logo
                   </button>
@@ -1410,11 +1425,11 @@ export default function WebsiteHomepageManager() {
                     value={editingBrand.logo || ''}
                     onChange={(e) => setEditingBrand({ ...editingBrand, logo: e.target.value })}
                     placeholder="https://... logo.png"
-                    className="flex-1 px-3 py-1.5 border border-slate-300 rounded font-mono text-[11px]"
+                    className="flex-1 px-3.5 py-2 border border-slate-200 rounded-xl font-mono text-[11px] shadow-2xs"
                   />
                 </div>
                 {editingBrand.logo && (
-                  <div className="w-full h-16 rounded border border-slate-200 flex items-center justify-center p-2 bg-slate-50">
+                  <div className="w-full h-18 rounded-2xl border border-slate-200 flex items-center justify-center p-2.5 bg-slate-50 shadow-2xs">
                     <img src={editingBrand.logo} alt="Logo" className="max-h-full max-w-full object-contain" />
                   </div>
                 )}
@@ -1422,40 +1437,40 @@ export default function WebsiteHomepageManager() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium text-slate-700 mb-1">Tagline</label>
+                  <label className="block font-bold text-slate-700 mb-1">Tagline</label>
                   <input
                     type="text"
                     value={editingBrand.tagline || ''}
                     onChange={(e) => setEditingBrand({ ...editingBrand, tagline: e.target.value })}
                     placeholder="e.g. Ultrasound & Critical Care"
-                    className="w-full px-3 py-1.5 border border-slate-300 rounded"
+                    className="w-full px-3.5 py-2 border border-slate-200 rounded-xl shadow-2xs"
                   />
                 </div>
                 <div>
-                  <label className="block font-medium text-slate-700 mb-1">Website URL</label>
+                  <label className="block font-bold text-slate-700 mb-1">Website URL</label>
                   <input
                     type="text"
                     value={editingBrand.website || ''}
                     onChange={(e) => setEditingBrand({ ...editingBrand, website: e.target.value })}
                     placeholder="https://..."
-                    className="w-full px-3 py-1.5 border border-slate-300 rounded font-mono"
+                    className="w-full px-3.5 py-2 border border-slate-200 rounded-xl font-mono shadow-2xs"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2 text-xs">
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 text-xs">
               <button
                 type="button"
                 onClick={() => setBrandModalOpen(false)}
-                className="px-3 py-1.5 border border-slate-300 rounded text-slate-600 hover:bg-slate-50 cursor-pointer"
+                className="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 font-bold cursor-pointer transition"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={() => handleSaveBrand(editingBrand)}
-                className="px-4 py-1.5 bg-[#E42528] hover:bg-[#CC1F22] text-white font-medium rounded cursor-pointer"
+                className="px-4 py-2 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white font-bold rounded-xl shadow-xs cursor-pointer transition"
               >
                 Save Brand
               </button>

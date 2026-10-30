@@ -27,9 +27,19 @@ import {
 } from 'lucide-react';
 import CustomerProductDetailView from './CustomerProductDetailView';
 
-export default function CustomerProfilesManager({ onRefreshNeeded }) {
-  const [customers, setCustomers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+export default function CustomerProfilesManager({ initialCustomers = [], onRefreshNeeded }) {
+  // Instant zero-latency cached customer profiles
+  const [customers, setCustomers] = useState(() => {
+    if (initialCustomers && initialCustomers.length > 0) return initialCustomers;
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('rbpl_cached_customers');
+        if (cached) return JSON.parse(cached);
+      } catch (e) {}
+    }
+    return [];
+  });
+  const [isLoading, setIsLoading] = useState(() => customers.length === 0);
   const [searchQuery, setSearchQuery] = useState('');
   const [districtFilter, setDistrictFilter] = useState('all');
   const [selectedAuditCustomer, setSelectedAuditCustomer] = useState(null);
@@ -47,6 +57,9 @@ export default function CustomerProfilesManager({ onRefreshNeeded }) {
       const data = await res.json();
       if (data.success && Array.isArray(data.customers)) {
         setCustomers(data.customers);
+        try {
+          localStorage.setItem('rbpl_cached_customers', JSON.stringify(data.customers));
+        } catch (e) {}
       }
     } catch (err) {
       console.warn('Failed to load customer profiles:', err);
@@ -74,8 +87,19 @@ export default function CustomerProfilesManager({ onRefreshNeeded }) {
     }
   };
 
+  // Sync initialCustomers immediately
   useEffect(() => {
-    fetchCustomers(false);
+    if (initialCustomers && initialCustomers.length > 0) {
+      setCustomers(initialCustomers);
+      setIsLoading(false);
+      try {
+        localStorage.setItem('rbpl_cached_customers', JSON.stringify(initialCustomers));
+      } catch (e) {}
+    }
+  }, [initialCustomers]);
+
+  useEffect(() => {
+    fetchCustomers(customers.length > 0);
     fetchRelatedData();
 
     // 1. Instant zero-latency broadcast listener across tabs/iframes
@@ -362,53 +386,6 @@ export default function CustomerProfilesManager({ onRefreshNeeded }) {
         />
       ) : (
         <>
-          {/* Top Metric Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Total Registered Accounts</span>
-            <span className="text-2xl font-bold text-slate-800">{totalProfiles}</span>
-            <span className="text-[11px] text-emerald-600 font-medium block mt-0.5">Verified Medical Buyers</span>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
-            <Users size={20} />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Profile Edits Tracked</span>
-            <span className="text-2xl font-bold text-slate-800">{editedProfilesCount}</span>
-            <span className="text-[11px] text-amber-600 font-medium block mt-0.5">With Field Change History</span>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-            <Edit3 size={20} />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Districts Represented</span>
-            <span className="text-2xl font-bold text-slate-800">{availableDistricts.length}</span>
-            <span className="text-[11px] text-sky-600 font-medium block mt-0.5">Across Rajasthan & Pan-India</span>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
-            <MapPin size={20} />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Live Database Sync</span>
-            <span className="text-2xl font-bold text-slate-800">Connected</span>
-            <span className="text-[11px] text-slate-400 font-mono block mt-0.5">MongoDB: customers</span>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-            <CheckCircle2 size={20} />
-          </div>
-        </div>
-      </div>
-
       {/* Main Workspace Card */}
       <div className="bg-white rounded-3xl border border-slate-100 shadow-xs overflow-hidden">
         {/* Filter & Search Bar */}
@@ -485,7 +462,14 @@ export default function CustomerProfilesManager({ onRefreshNeeded }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100/70 font-medium text-slate-600">
-              {filteredCustomers.length === 0 ? (
+              {isLoading && filteredCustomers.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-14 text-center">
+                    <div className="w-8 h-8 border-3 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-2.5"></div>
+                    <span className="text-xs font-semibold text-slate-500">Loading Customer Profiles...</span>
+                  </td>
+                </tr>
+              ) : filteredCustomers.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-14 text-center">
                     <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center mx-auto mb-3">

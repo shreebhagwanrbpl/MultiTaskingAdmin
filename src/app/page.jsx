@@ -227,7 +227,7 @@ export default function AdminDashboardPage({ searchParams }) {
   // Determine initial tab safely across SSR and Client Hydration
   const resolveInitialTab = () => {
     // 1. Check server-provided searchParams
-    if (searchParams?.tab && ['leads', 'customers', 'website', 'products', 'quotation', 'vps', 'marketing', 'users'].includes(searchParams.tab)) {
+    if (searchParams?.tab && ['leads', 'customers', 'website', 'products', 'quotation', 'marketing', 'users'].includes(searchParams.tab)) {
       return searchParams.tab;
     }
     // 2. Check window location or localStorage on client
@@ -237,7 +237,7 @@ export default function AdminDashboardPage({ searchParams }) {
         const urlTab = urlParams.get('tab');
         const storedTab = window.localStorage.getItem('admin_active_tab');
         const chosen = urlTab || storedTab;
-        if (chosen && ['leads', 'customers', 'website', 'products', 'quotation', 'vps', 'marketing', 'users'].includes(chosen)) {
+        if (chosen && ['leads', 'customers', 'website', 'products', 'quotation', 'marketing', 'users'].includes(chosen)) {
           return chosen;
         }
       } catch (e) { }
@@ -274,9 +274,11 @@ export default function AdminDashboardPage({ searchParams }) {
   // Auto-dismiss toast
   useEffect(() => {
     if (!toastNotification) return;
-    const timer = setTimeout(() => setToastNotification(null), 5000);
+    const timer = setTimeout(() => setToastNotification(null), 2500);
     return () => clearTimeout(timer);
   }, [toastNotification]);
+
+
 
   const openNegotiationModal = (lead) => {
     if (!lead) return;
@@ -322,8 +324,8 @@ export default function AdminDashboardPage({ searchParams }) {
       try {
         const channel = new BroadcastChannel('biomedical_leads_channel');
         channel.postMessage({ type: 'LEAD_PRICE_UPDATED', lead: { ...lead, ...updateData } });
-        setTimeout(() => { try { channel.close(); } catch(e){} }, 5000);
-      } catch(e){}
+        setTimeout(() => { try { channel.close(); } catch (e) { } }, 5000);
+      } catch (e) { }
 
       setToastNotification({
         title: 'Price Approved Successfully!',
@@ -376,8 +378,8 @@ export default function AdminDashboardPage({ searchParams }) {
       try {
         const channel = new BroadcastChannel('biomedical_leads_channel');
         channel.postMessage({ type: 'LEAD_PRICE_UPDATED', lead: { ...lead, ...updateData } });
-        setTimeout(() => { try { channel.close(); } catch(e){} }, 5000);
-      } catch(e){}
+        setTimeout(() => { try { channel.close(); } catch (e) { } }, 5000);
+      } catch (e) { }
 
       setToastNotification({
         title: 'Counter Offer Set!',
@@ -418,7 +420,7 @@ export default function AdminDashboardPage({ searchParams }) {
         const urlTab = urlParams.get('tab');
         const storedTab = window.localStorage.getItem('admin_active_tab');
         const chosen = urlTab || (searchParams?.tab) || storedTab;
-        if (chosen && ['leads', 'customers', 'website', 'products', 'quotation', 'vps', 'marketing', 'users'].includes(chosen)) {
+        if (chosen && ['leads', 'customers', 'website', 'products', 'quotation', 'marketing', 'users'].includes(chosen)) {
           setActiveTabRaw(chosen);
           // Sync URL if tab parameter was missing so hard refresh always stays here
           const url = new URL(window.location.href);
@@ -436,7 +438,7 @@ export default function AdminDashboardPage({ searchParams }) {
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const urlTab = urlParams.get('tab');
-        if (urlTab && ['leads', 'customers', 'website', 'products', 'quotation', 'vps', 'marketing', 'users'].includes(urlTab)) {
+        if (urlTab && ['leads', 'customers', 'website', 'products', 'quotation', 'marketing', 'users'].includes(urlTab)) {
           setActiveTabRaw(urlTab);
         }
       } catch (e) { }
@@ -780,7 +782,18 @@ export default function AdminDashboardPage({ searchParams }) {
     }
   };
 
-  const [customersList, setCustomersList] = useState([]);
+  const [customersList, setCustomersList] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('rbpl_cached_customers');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) { }
+    }
+    return [];
+  });
 
   const loadCustomerProfilesCount = async () => {
     try {
@@ -789,6 +802,7 @@ export default function AdminDashboardPage({ searchParams }) {
       if (data.success && Array.isArray(data.customers)) {
         setCustomersList(data.customers);
         setCustomerProfilesCount(data.customers.length);
+        try { localStorage.setItem('rbpl_cached_customers', JSON.stringify(data.customers)); } catch (e) { }
       }
     } catch (err) {
       console.warn('Customer profiles count err:', err);
@@ -959,10 +973,48 @@ export default function AdminDashboardPage({ searchParams }) {
       if (leadFilterDomain !== 'all' && l.siteDomain !== leadFilterDomain) {
         return false;
       }
-      if (activeDistrictFilter && activeDistrictFilter !== 'all' && activeDistrictFilter !== 'All Districts / Pan-India HQ') {
-        const d = activeDistrictFilter.toLowerCase();
-        const loc = `${l.district || ''} ${l.city || ''} ${l.hospital || ''} ${l.address || ''}`.toLowerCase();
-        if (!loc.includes(d)) return false;
+      if (activeDistrictFilter && activeDistrictFilter !== 'all' && activeDistrictFilter !== 'All Districts / Pan-India HQ' && activeDistrictFilter !== 'All India (National HQ)' && activeDistrictFilter !== 'All India (HQ)') {
+        const target = activeDistrictFilter.toLowerCase().trim();
+        const lState = (l.state || l.rawLeadData?.state || '').toLowerCase().trim();
+        const lDist = (l.district || l.rawLeadData?.district || '').toLowerCase().trim();
+        const lCity = (l.city || l.rawLeadData?.city || '').toLowerCase().trim();
+        const locCombined = `${l.district || ''} ${l.city || ''} ${l.hospital || ''} ${l.address || ''} ${l.state || ''} ${l.rawLeadData?.state || ''} ${l.rawLeadData?.district || ''} ${l.rawLeadData?.hospitalName || ''}`.toLowerCase();
+
+        // 1. Direct state match
+        if (lState && (lState === target || lState.includes(target) || target.includes(lState))) {
+          return true;
+        }
+
+        // 2. Combined location match
+        if (locCombined.includes(target)) {
+          return true;
+        }
+
+        // 3. Known Rajasthan districts / cities
+        if (target === 'rajasthan') {
+          const rajCities = ['jaipur', 'jodhpur', 'udaipur', 'kota', 'bikaner', 'ajmer', 'alwar', 'bhilwara', 'sikar', 'bharatpur', 'pali', 'ganganagar', 'barmer', 'banswara'];
+          if (rajCities.includes(lCity) || rajCities.includes(lDist)) {
+            return true;
+          }
+        }
+
+        // 4. Known Maharashtra districts
+        if (target === 'maharashtra') {
+          const mhCities = ['mumbai', 'pune', 'nagpur', 'nashik', 'aurangabad', 'thane'];
+          if (mhCities.includes(lCity) || mhCities.includes(lDist)) {
+            return true;
+          }
+        }
+
+        // 5. Known Karnataka districts
+        if (target === 'karnataka') {
+          const kaCities = ['bengaluru', 'bangalore', 'mysuru', 'mysore', 'hubballi', 'mangalore'];
+          if (kaCities.includes(lCity) || kaCities.includes(lDist)) {
+            return true;
+          }
+        }
+
+        return false;
       }
       return true;
     })
@@ -1164,28 +1216,15 @@ export default function AdminDashboardPage({ searchParams }) {
                 </span>
               )}
             </button>
-
-            <button
-              onClick={() => setActiveTab('vps')}
-              title="VPS Deployment & MongoDB Pipeline"
-              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'gap-2.5 px-3.5 py-2.5'} rounded-xl transition cursor-pointer ${activeTab === 'vps'
-                ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
-                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
-                }`}
-            >
-              <Server size={isSidebarCollapsed ? 19 : 16} />
-              {!isSidebarCollapsed && <span>VPS & MongoDB Config</span>}
-            </button>
           </nav>
         </div>
 
-        {/* Bottom User / Return */}
-                {/* Active User Session Pill in Sidebar */}
+        {/* Active User Session Docked at Bottom of Sidebar */}
         {user && (
-          <div className="p-2.5 mx-2.5 mb-2 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-2xs">
-            <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'justify-between'} gap-2`}>
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-sm shadow-2xs shrink-0">
+          <div className={`p-3 border-t border-slate-100 mt-auto bg-slate-50/70 ${isSidebarCollapsed ? 'flex flex-col items-center' : ''}`}>
+            <div className={`flex items-center ${isSidebarCollapsed ? 'flex-col gap-2' : 'justify-between gap-2'} w-full`}>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-white border border-slate-200/90 flex items-center justify-center text-sm shadow-2xs shrink-0">
                   {user.avatar || '👑'}
                 </div>
                 {!isSidebarCollapsed && (
@@ -1193,7 +1232,7 @@ export default function AdminDashboardPage({ searchParams }) {
                     <div className="text-xs font-bold text-slate-800 truncate leading-tight">
                       {user.fullName}
                     </div>
-                    <div className="text-[10px] text-sky-600 font-semibold truncate flex items-center gap-1">
+                    <div className="text-[10px] text-sky-600 font-semibold truncate flex items-center gap-1 mt-0.5">
                       <span>{user.roleBadge || user.role}</span>
                       <span>•</span>
                       <span className="text-slate-500 flex items-center gap-0.5"><MapPin size={9} />{user.state || user.district || "Rajasthan"}</span>
@@ -1201,59 +1240,17 @@ export default function AdminDashboardPage({ searchParams }) {
                   </div>
                 )}
               </div>
-              {!isSidebarCollapsed && (
-                <button
-                  type="button"
-                  onClick={logout}
-                  title="Sign Out of Portal"
-                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition cursor-pointer shrink-0"
-                >
-                  <LogOut size={13} />
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={logout}
+                title="Sign Out of Portal"
+                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition cursor-pointer shrink-0"
+              >
+                <LogOut size={isSidebarCollapsed ? 15 : 13} />
+              </button>
             </div>
           </div>
         )}
-
-<div className={`p-3 border-t border-slate-100 ${isSidebarCollapsed ? 'flex flex-col items-center space-y-2' : 'space-y-3'}`}>
-          <Link
-            href="/"
-            target="_blank"
-            className={`w-full flex items-center justify-center gap-2 py-2 px-3 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-800 text-xs font-semibold rounded-xl transition border border-slate-200/80 shadow-xs`}
-            title="View Public Storefront"
-          >
-            {!isSidebarCollapsed && <span>View Public Storefront</span>}
-            <ExternalLink size={13} />
-          </Link>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('vps')}
-            className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-2.5' : 'justify-between text-[11px] p-2'} rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/60 transition cursor-pointer text-left shadow-2xs relative`}
-            title={dbStatus.connected ? `MongoDB Connected (${dbStatus.latency || 'Live'})` : 'MongoDB Standby Mode'}
-          >
-            <span className="font-mono text-slate-500 flex items-center gap-1.5">
-              <Database size={isSidebarCollapsed ? 16 : 12} className={dbStatus.connected ? "text-emerald-500" : "text-amber-500"} />
-              {!isSidebarCollapsed && <span>MongoDB</span>}
-            </span>
-            {isSidebarCollapsed ? (
-              <span className={`absolute top-1.5 right-1.5 w-2 h-2 rounded-full border border-white ${dbStatus.connected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'
-                }`}></span>
-            ) : (
-              dbStatus.connected ? (
-                <span className="text-emerald-600 flex items-center gap-1.5 font-semibold text-[10px]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  Connected ({dbStatus.latency || 'Live'})
-                </span>
-              ) : (
-                <span className="text-amber-600 flex items-center gap-1.5 font-medium text-[10px]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                  Standby Mode
-                </span>
-              )
-            )}
-          </button>
-        </div>
       </aside>
 
       {/* Main Workspace Area (Scrollable with Sticky Sidebar) */}
@@ -1283,17 +1280,17 @@ export default function AdminDashboardPage({ searchParams }) {
               )}
               {activeTab === 'leads' && (
                 <>
-                  <span>Central Hospital Inquiries & Quotation Desk</span>
-                  <span className="text-xs px-2 py-0.5 rounded-md font-mono bg-sky-50 text-sky-700 border border-sky-200">
+                  <span className="truncate">Quotation Desk</span>
+                  <span className="text-[11px] font-bold font-mono px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-300 shadow-2xs shrink-0">
                     {filteredLeads.length} Inquiries
                   </span>
                 </>
               )}
 
 
-          {activeTab === 'customers' && (
+              {activeTab === 'customers' && (
                 <>
-                  <span>Registered Customer Profiles & Hospital Directory</span>
+                  <span>Registered Customer Profiles</span>
                   <span className="text-xs px-2 py-0.5 rounded-md font-mono bg-indigo-50 text-indigo-700 border border-indigo-200">
                     {customerProfilesCount} Accounts
                   </span>
@@ -1303,9 +1300,9 @@ export default function AdminDashboardPage({ searchParams }) {
               {activeTab === 'website' && 'Website & Home Page CMS Builder'}
               {activeTab === 'products' && (
                 <>
-                  <span>Multi-Company Products & Catalog Manager</span>
+                  <span>Catalog Manager</span>
                   <span className="text-xs px-2 py-0.5 rounded-md font-mono bg-sky-50 text-sky-700 border border-sky-200">
-                    Atlas Live Synced
+                    Live Synced
                   </span>
                 </>
               )}
@@ -1315,7 +1312,6 @@ export default function AdminDashboardPage({ searchParams }) {
 
                 </>
               )}
-              {activeTab === 'vps' && 'VPS Deployment & MongoDB Pipeline'}
             </h1>
           </div>
 
@@ -1350,13 +1346,13 @@ export default function AdminDashboardPage({ searchParams }) {
               type="button"
               onClick={() => setIsSoundEnabled(!isSoundEnabled)}
               title={isSoundEnabled ? "Lead Chime Sound: ON (Click to Mute)" : "Lead Chime Sound: MUTED (Click to Enable)"}
-              className={`text-xs px-2.5 py-1.5 rounded-xl border font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-2xs ${isSoundEnabled
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 hover:bg-emerald-100/70'
-                : 'bg-slate-50 text-slate-400 border-slate-200/80 hover:bg-slate-100'
+              className={`text-xs px-3 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs ${isSoundEnabled
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100'
                 }`}
             >
-              {isSoundEnabled ? <Volume2 size={14} className="text-emerald-600" /> : <VolumeX size={14} className="text-slate-400" />}
-              <span className="hidden sm:inline text-[11px]">{isSoundEnabled ? 'Alert Chime ON' : 'Muted'}</span>
+              {isSoundEnabled ? <Volume2 size={15} className="text-emerald-600 shrink-0" /> : <VolumeX size={15} className="text-slate-400 shrink-0" />}
+              <span className="text-[11px] font-bold">{isSoundEnabled ? 'Alert Chime ON' : 'Alert Chime OFF'}</span>
             </button>
 
 
@@ -1545,8 +1541,8 @@ export default function AdminDashboardPage({ searchParams }) {
                       {newLeadAlerts[0]?.negotiationStatus === 'approved'
                         ? `Make Quotation (Approved: ₹${(newLeadAlerts[0].approvedPrice || newLeadAlerts[0].price)?.toLocaleString('en-IN')})`
                         : newLeadAlerts[0]?.negotiationStatus === 'counter_offered'
-                        ? `Make Quotation (Counter: ₹${(newLeadAlerts[0].adminCounterPrice || newLeadAlerts[0].price)?.toLocaleString('en-IN')})`
-                        : 'Make Quotation'}
+                          ? `Make Quotation (Counter: ₹${(newLeadAlerts[0].adminCounterPrice || newLeadAlerts[0].price)?.toLocaleString('en-IN')})`
+                          : 'Make Quotation'}
                     </span>
                     <ArrowRight size={13} />
                   </button>
@@ -1624,54 +1620,31 @@ export default function AdminDashboardPage({ searchParams }) {
                   <CheckCheck size={20} />
                 </div>
               </div>
-            </div>
-          ) : activeTab === 'leads' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs hover:shadow-sm transition flex items-center justify-between">
-                <div>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Hospital RFQs & Leads</span>
-                  <span className="text-2xl font-bold text-slate-800">{filteredLeads.length} <span className="text-xs font-semibold text-emerald-600">{filteredLeads.length > 0 ? 'Live Inquiries' : 'No Inquiries Yet'}</span></span>
-                  <span className="text-[11px] text-slate-400 block mt-0.5">Direct MongoDB RFQ Inquiries</span>
+            </div>) : activeTab === 'leads' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs hover:shadow-sm transition flex items-center justify-between">
+                  <div>
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Hospital RFQs & Leads</span>
+                    <span className="text-2xl font-bold text-slate-800">{filteredLeads.length} <span className="text-xs font-semibold text-emerald-600">{filteredLeads.length > 0 ? 'Live Inquiries' : 'No Inquiries Yet'}</span></span>
+                    <span className="text-[11px] text-slate-400 block mt-0.5">Direct MongoDB RFQ Inquiries</span>
+                  </div>
+                  <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                    <Inbox size={22} />
+                  </div>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center font-bold">
-                  <Inbox size={20} />
-                </div>
-              </div>
 
-              <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs hover:shadow-sm transition flex items-center justify-between">
-                <div>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Quotation Pipeline</span>
-                  <span className="text-2xl font-bold text-slate-800">{formattedPipeline}</span>
-                  <span className="text-[11px] text-slate-400 block mt-0.5">{filteredLeads.length} Active Quotes In Pipeline</span>
-                </div>
-                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center font-bold">
-                  <FileText size={20} />
-                </div>
-              </div>
-
-              <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs hover:shadow-sm transition flex items-center justify-between">
-                <div>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Certified Hardware</span>
-                  <span className="text-2xl font-bold text-slate-800">{PRODUCTS.length} Models</span>
-                  <span className="text-[11px] text-slate-400 block mt-0.5">Biomedical Global Catalog</span>
-                </div>
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center font-bold">
-                  <Package size={20} />
+                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs hover:shadow-sm transition flex items-center justify-between">
+                  <div>
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Quotation Pipeline</span>
+                    <span className="text-2xl font-bold text-slate-800">{formattedPipeline}</span>
+                    <span className="text-[11px] text-slate-400 block mt-0.5">{filteredLeads.length} Active Quotes In Pipeline</span>
+                  </div>
+                  <div className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                    <FileText size={22} />
+                  </div>
                 </div>
               </div>
-
-              <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs hover:shadow-sm transition flex items-center justify-between">
-                <div>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Database & Cluster</span>
-                  <span className="text-2xl font-bold text-slate-800">{dbStatus.connected ? 'Cluster Live' : 'Standby'}</span>
-                  <span className="text-[11px] text-slate-400 block mt-0.5 font-mono">{dbStatus.database}</span>
-                </div>
-                <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-500 flex items-center justify-center font-bold">
-                  <Database size={20} />
-                </div>
-              </div>
-            </div>
-          ) : null}
+            ) : null}
 
           {/* =========================================================================
               TAB 2: CENTRAL LEADS & RFQ INQUIRIES DESK
@@ -1930,10 +1903,10 @@ export default function AdminDashboardPage({ searchParams }) {
                                         {lead.negotiationStatus === 'approved'
                                           ? `Make Quotation (Approved: ₹${(lead.approvedPrice || lead.price)?.toLocaleString('en-IN')})`
                                           : lead.negotiationStatus === 'counter_offered'
-                                          ? `Make Quotation (Counter: ₹${(lead.adminCounterPrice || lead.price)?.toLocaleString('en-IN')})`
-                                          : lead.quotationRef
-                                          ? `View Stamped PDF (${lead.quotationRef})`
-                                          : 'Make Quotation'}
+                                            ? `Make Quotation (Counter: ₹${(lead.adminCounterPrice || lead.price)?.toLocaleString('en-IN')})`
+                                            : lead.quotationRef
+                                              ? `View Stamped PDF (${lead.quotationRef})`
+                                              : 'Make Quotation'}
                                       </span>
                                     </button>
                                     {isAdmin && lead.isPriceNegotiated && (
@@ -2003,7 +1976,7 @@ export default function AdminDashboardPage({ searchParams }) {
           )}
 
           {activeTab === 'customers' && (
-            <CustomerProfilesManager onRefreshNeeded={loadCustomerProfilesCount} />
+            <CustomerProfilesManager initialCustomers={customersList} onRefreshNeeded={loadCustomerProfilesCount} />
           )}
 
           {/* =========================================================================
@@ -2027,324 +2000,6 @@ export default function AdminDashboardPage({ searchParams }) {
             <WebQuotationManager products={PRODUCTS} />
           )}
 
-          {/* =========================================================================
-              TAB 4: LIVE MONGODB CONNECTION STUDIO & MULTI-DOMAIN PIPELINE
-              ========================================================================= */}
-          {activeTab === 'vps' && (
-            <div className="space-y-6">
-
-              {/* Top MongoDB Cluster Status Banner */}
-              <div className={`p-6 rounded-3xl border shadow-xs transition flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${dbStatus.connected
-                ? 'bg-emerald-50/70 border-emerald-200/80 text-emerald-950'
-                : 'bg-amber-50/70 border-amber-200/80 text-amber-950'
-                }`}>
-                <div className="flex items-start sm:items-center gap-3.5">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-xs shrink-0 ${dbStatus.connected ? 'bg-emerald-500' : 'bg-amber-500'
-                    }`}>
-                    <Database size={24} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-base font-bold text-slate-800">
-                        {dbStatus.connected ? 'MongoDB Cluster Connected & Active' : 'MongoDB Standby Mode (In-Memory Fallback Active)'}
-                      </h3>
-                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${dbStatus.connected ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-300'
-                        }`}>
-                        {dbStatus.connected ? 'LIVE POOL' : 'STANDBY CACHE'}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {dbStatus.connected
-                        ? `All 70 websites, hospital quotations, and marketing campaigns are continuously synchronizing with '${dbStatus.database}'. Latency: ${dbStatus.latency}.`
-                        : 'Currently serving and saving data in memory with zero downtime. Connect your MongoDB Atlas cluster or local MongoDB instance below to activate persistent storage.'
-                      }
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 self-start sm:self-auto">
-                  <button
-                    type="button"
-                    onClick={checkDbStatus}
-                    className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 shadow-xs transition flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <RefreshCw size={13} className={dbStatus.checking ? "animate-spin" : ""} />
-                    <span>Check Connection</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* MongoDB Cluster Metric Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Database Name</span>
-                  <span className="text-lg font-bold font-mono text-slate-800 truncate block mt-0.5">{dbStatus.database || 'biomedical_network'}</span>
-                  <span className="text-[11px] text-emerald-600 font-medium block mt-1">Multi-Tenant Namespace</span>
-                </div>
-
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Sites Collection</span>
-                  <span className="text-2xl font-bold text-slate-800">{sites.length} <span className="text-xs font-semibold text-sky-600">Websites</span></span>
-                  <span className="text-[11px] text-slate-400 block mt-1">Config & Domain Registry</span>
-                </div>
-
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Leads Collection</span>
-                  <span className="text-2xl font-bold text-slate-800">{leads.length} <span className="text-xs font-semibold text-emerald-600">Inquiries</span></span>
-                  <span className="text-[11px] text-slate-400 block mt-1">Hospital Quotes & RFQs</span>
-                </div>
-
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Campaigns Collection</span>
-                  <span className="text-2xl font-bold text-slate-800">{campaignHistory.length} <span className="text-xs font-semibold text-indigo-600">Broadcasts</span></span>
-                  <span className="text-[11px] text-slate-400 block mt-1">Delivery & Telemetry Logs</span>
-                </div>
-              </div>
-
-              {/* Interactive MongoDB Connection Configuration Studio */}
-              <div className="bg-white rounded-3xl border border-slate-100 shadow-xs p-6 space-y-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
-                  <div>
-                    <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
-                      <Key size={16} className="text-sky-500" />
-                      <span>MongoDB Connection URI & Credentials</span>
-                    </h3>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      Connect your production MongoDB Atlas cluster or VPS MongoDB instance. Enter your URI and test the connection in real time.
-                    </p>
-                  </div>
-
-                  {/* Quick Preset Buttons */}
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[11px] text-slate-400 font-medium">Quick Presets:</span>
-                    <button
-                      type="button"
-                      onClick={() => setMongoUriInput('mongodb+srv://admin:pass@vps-cluster.mongodb.net/biomedical_network')}
-                      className="px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100/80 text-sky-700 text-[11px] font-semibold transition cursor-pointer border border-sky-200/60"
-                    >
-                      ☁️ Atlas Cloud
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setMongoUriInput('mongodb://127.0.0.1:27017/biomedical_network')}
-                      className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold transition cursor-pointer"
-                    >
-                      💻 Localhost
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setMongoUriInput('mongodb://127.0.0.1:27017/biomedical_network')}
-                      className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100/80 text-emerald-700 text-[11px] font-semibold transition cursor-pointer border border-emerald-200/60"
-                    >
-                      🖥️ VPS Port 27017
-                    </button>
-                  </div>
-                </div>
-
-                {/* URI Input & Buttons */}
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-xs font-semibold text-slate-700 block mb-1">
-                      MongoDB Connection URI (mongodb:// or mongodb+srv://)
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={mongoUriInput}
-                        onChange={(e) => setMongoUriInput(e.target.value)}
-                        placeholder="mongodb+srv://<username>:<password>@cluster0.mongodb.net/biomedical_network"
-                        className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-800 outline-none focus:bg-white focus:border-sky-400 transition"
-                      />
-                    </div>
-                    <span className="text-[11px] text-slate-400 mt-1 block">
-                      💡 Tip for Atlas: Ensure your IP address is whitelisted in MongoDB Atlas Network Access (or set to 0.0.0.0/0 for anywhere).
-                    </span>
-                  </div>
-
-                  {/* Actions Bar */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        disabled={isTestingMongo}
-                        onClick={handleTestMongoUri}
-                        className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
-                      >
-                        {isTestingMongo ? (
-                          <>
-                            <RefreshCw size={13} className="animate-spin text-sky-500" />
-                            <span>Testing Ping...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Wifi size={13} className="text-sky-500" />
-                            <span>Test Live Connection</span>
-                          </>
-                        )}
-                      </button>
-
-                      <button
-                        type="button"
-                        disabled={isSavingMongo}
-                        onClick={handleSaveMongoUri}
-                        className="px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-sm shadow-sky-500/25"
-                      >
-                        {isSavingMongo ? (
-                          <>
-                            <RefreshCw size={13} className="animate-spin" />
-                            <span>Saving to .env.local...</span>
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle2 size={13} />
-                            <span>Save to .env.local & Connect</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    <button
-                      type="button"
-                      disabled={isSeedingMongo}
-                      onClick={handleReseedMongo}
-                      className="px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-semibold transition cursor-pointer border border-slate-200/80 flex items-center gap-1.5 self-start sm:self-auto"
-                    >
-                      <RefreshCw size={12} className={isSeedingMongo ? "animate-spin text-sky-500" : ""} />
-                      <span>Re-Sync All Collections</span>
-                    </button>
-                  </div>
-
-                  {/* Real-Time Test Feedback Banner */}
-                  {mongoTestResult && (
-                    <div className={`p-4 rounded-2xl border text-xs shadow-xs transition ${mongoTestResult.connected
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                      : 'bg-rose-50 border-rose-200 text-rose-900'
-                      }`}>
-                      <div className="flex items-center gap-2 font-bold mb-1">
-                        {mongoTestResult.connected ? (
-                          <>
-                            <CheckCircle2 size={16} className="text-emerald-600" />
-                            <span>MongoDB Connection Test Passed!</span>
-                          </>
-                        ) : (
-                          <>
-                            <AlertCircle size={16} className="text-rose-600" />
-                            <span>MongoDB Connection Failed</span>
-                          </>
-                        )}
-                      </div>
-                      <div className="text-[11px] font-mono leading-relaxed pl-6">
-                        {mongoTestResult.connected ? (
-                          <>
-                            <div>Status: Ping OK | Latency: <strong>{mongoTestResult.latency}</strong> | Database: <strong>{mongoTestResult.database}</strong></div>
-                            <div>Collections Found: {mongoTestResult.collections?.join(', ') || 'sites, leads, campaigns'}</div>
-                          </>
-                        ) : (
-                          <>
-                            <div>Error: {mongoTestResult.error}</div>
-                            <div className="text-rose-700/80 mt-1 font-sans">
-                              Check that: 1) MongoDB server is running, 2) IP whitelist is open in Atlas, 3) Username & Password are correct.
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Database Collections & Data Architecture Explorer */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-100">
-                      db.collection('sites')
-                    </span>
-                    <span className="text-xs font-bold font-mono text-slate-800">{sites.length} Docs</span>
-                  </div>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    Stores the multi-tenant registry for all 70 biomedical websites. Each document defines domain routing, theme colors, typography fonts, header styles, and company ownership.
-                  </p>
-                  <div className="pt-2 border-t border-slate-100 flex flex-wrap gap-1 text-[10px] font-mono text-slate-500">
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded">domain</span>
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded">brandName</span>
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded">primaryColor</span>
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded">font</span>
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded">headerStyle</span>
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded">leadsCount</span>
-                  </div>
-                </div>
-
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">
-                      db.collection('leads')
-                    </span>
-                    <span className="text-xs font-bold font-mono text-slate-800">{leads.length} Docs</span>
-                  </div>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    Captures all incoming hospital quotations, doctor inquiries, and equipment RFQ orders routed from the 70 public storefronts directly to central sales administration.
-                  </p>
-                  <div className="pt-2 border-t border-slate-100 flex flex-wrap gap-1 text-[10px] font-mono text-slate-500">
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded">doctorName</span>
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded">hospital</span>
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded">equipment</span>
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded">quoteAmount</span>
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded">siteDomain</span>
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded">status</span>
-                  </div>
-                </div>
-
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100">
-                      db.collection('campaigns')
-                    </span>
-                    <span className="text-xs font-bold font-mono text-slate-800">{campaignHistory.length} Docs</span>
-                  </div>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    Stores multi-brand email marketing broadcasts across Raj Biosis, Human Biomedicals, and Global Biomedical, including recipient lists, open rates, and dispatch timestamps.
-                  </p>
-                  <div className="pt-2 border-t border-slate-100 flex flex-wrap gap-1 text-[10px] font-mono text-slate-500">
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded">id</span>
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded">company</span>
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded">subject</span>
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded">audience</span>
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded">openRate</span>
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded">status</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Nginx Wildcard Multi-Domain Reverse Proxy Guide */}
-              <div className="bg-white rounded-3xl border border-slate-100 shadow-xs p-6 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Server size={16} className="text-sky-500" />
-                    <h4 className="text-sm font-bold text-slate-800">VPS Nginx Wildcard Reverse Proxy Configuration</h4>
-                  </div>
-                  <span className="text-[11px] font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded">/etc/nginx/sites-available/biomedical</span>
-                </div>
-                <p className="text-xs text-slate-400">
-                  Deploy this configuration on your Ubuntu/Linux VPS to route all 70 domains to Next.js automatically without redeploying code.
-                </p>
-                <div className="bg-slate-50 p-4 rounded-2xl font-mono text-xs text-slate-700 border border-slate-200/80 overflow-x-auto space-y-1">
-                  <p className="text-slate-400"># Route all 70 domains & wildcard subdomains to Next.js port 3000/3001</p>
-                  <p className="text-sky-700 font-semibold">server &#123;</p>
-                  <p className="pl-4">listen 80;</p>
-                  <p className="pl-4">server_name *.rajbiosis.com pulmocare.in surgitech.in cardiopulse.in nephrolife.in orthodrive.in laparovision.com;</p>
-                  <p className="pl-4 text-emerald-700">location / &#123;</p>
-                  <p className="pl-8">proxy_pass http://127.0.0.1:3000;</p>
-                  <p className="pl-8">proxy_set_header Host $host;</p>
-                  <p className="pl-8">proxy_set_header X-Real-IP $remote_addr;</p>
-                  <p className="pl-8">proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;</p>
-                  <p className="pl-4 text-emerald-700">&#125;</p>
-                  <p className="text-sky-700 font-semibold">&#125;</p>
-                </div>
-              </div>
-
-            </div>
-          )}
 
           {/* =========================================================================
               TAB 5: MULTI-BRAND EMAIL MARKETING HUB (RAJ BIOSIS, HUMAN & GLOBAL)
@@ -2919,202 +2574,202 @@ export default function AdminDashboardPage({ searchParams }) {
 
             </div>
           )}
-        {/* Price Negotiation Review Modal for Admin */}
-        {negotiationModalLead && (
-          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-xl w-full p-6 space-y-5 text-slate-800 animate-in fade-in zoom-in-95">
-              
-              {/* Modal Header */}
-              <div className="flex items-start justify-between border-b border-slate-100 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center font-bold text-lg">
-                    ⚖️
-                  </div>
-                  <div>
-                    <h3 className="font-extrabold text-base text-slate-900">
-                      Biomedical Equipment Price Approval Desk
-                    </h3>
-                    <p className="text-xs text-slate-500">
-                      Institutional review of customer expected purchase rate
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setNegotiationModalLead(null)}
-                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-sm transition cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
+          {/* Price Negotiation Review Modal for Admin */}
+          {negotiationModalLead && (
+            <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-xl w-full p-6 space-y-5 text-slate-800 animate-in fade-in zoom-in-95">
 
-              {/* Customer & Product Information Card */}
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
-                <div className="flex items-center justify-between font-medium">
-                  <span className="text-slate-500">Hospital / Institution:</span>
-                  <strong className="text-slate-900 font-bold">{negotiationModalLead.hospital || negotiationModalLead.hospitalName || 'Healthcare Facility'}</strong>
-                </div>
-                <div className="flex items-center justify-between font-medium">
-                  <span className="text-slate-500">Procurement Contact:</span>
-                  <span className="text-slate-800">{negotiationModalLead.doctorName || negotiationModalLead.customerName || 'Procurement Lead'} ({negotiationModalLead.phone || '-'})</span>
-                </div>
-                <div className="flex items-center justify-between font-medium">
-                  <span className="text-slate-500">Equipment Requested:</span>
-                  <strong className="text-slate-900 font-bold">{negotiationModalLead.equipment || negotiationModalLead.productName || 'Biomedical System'}</strong>
-                </div>
-                <div className="flex items-center justify-between font-medium">
-                  <span className="text-slate-500">Quantity:</span>
-                  <span className="font-mono font-bold text-slate-800">{negotiationModalLead.quantity || '1 Unit'}</span>
-                </div>
-              </div>
-
-              {/* Side-by-Side Price Comparison */}
-              {(() => {
-                const actualPrice = negotiationModalLead.actualPrice || 150000;
-                const expectedPrice = negotiationModalLead.expectedPrice || negotiationModalLead.price || 120000;
-                const diff = actualPrice - expectedPrice;
-                const discountPct = Math.round((diff / actualPrice) * 100);
-
-                return (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      {/* Actual Catalog / GeM Price */}
-                      <div className="p-3.5 rounded-xl border border-slate-200 bg-white space-y-1">
-                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                          1. Product Actual Price (GeM)
-                        </span>
-                        <div className="text-xl font-black font-mono text-slate-900">
-                          ₹{actualPrice.toLocaleString('en-IN')}
-                        </div>
-                        <span className="text-[10px] text-slate-500 block">
-                          Official registered catalog MRP per unit
-                        </span>
-                      </div>
-
-                      {/* Customer Expected Price */}
-                      <div className="p-3.5 rounded-xl border-2 border-amber-300 bg-amber-50/50 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">
-                            2. Customer Expected Price
-                          </span>
-                          {diff > 0 && (
-                            <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-1.5 py-0.2 rounded">
-                              -{discountPct}%
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-xl font-black font-mono text-amber-900">
-                          ₹{expectedPrice.toLocaleString('en-IN')}
-                        </div>
-                        <span className="text-[10px] text-amber-800 block">
-                          Difference: ₹{diff.toLocaleString('en-IN')} below MRP
-                        </span>
-                      </div>
+                {/* Modal Header */}
+                <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center font-bold text-lg">
+                      ⚖️
                     </div>
+                    <div>
+                      <h3 className="font-extrabold text-base text-slate-900">
+                        Biomedical Equipment Price Approval Desk
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        Institutional review of customer expected purchase rate
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setNegotiationModalLead(null)}
+                    className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-sm transition cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
 
-                    {/* Decision Choices */}
-                    <div className="space-y-3.5 pt-1">
-                      
-                      {/* Choice 1: Approve Customer Price */}
-                      <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/60 space-y-2">
-                        <div>
-                          <h4 className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
-                            <span>✅ Option A: Approve Customer Expected Price</span>
-                          </h4>
-                          <p className="text-[11px] text-emerald-800 mt-0.5">
-                            Authorize customer target price for institutional sale. The updated price will reflect on the quotation and customer view.
-                          </p>
+                {/* Customer & Product Information Card */}
+                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
+                  <div className="flex items-center justify-between font-medium">
+                    <span className="text-slate-500">Hospital / Institution:</span>
+                    <strong className="text-slate-900 font-bold">{negotiationModalLead.hospital || negotiationModalLead.hospitalName || 'Healthcare Facility'}</strong>
+                  </div>
+                  <div className="flex items-center justify-between font-medium">
+                    <span className="text-slate-500">Procurement Contact:</span>
+                    <span className="text-slate-800">{negotiationModalLead.doctorName || negotiationModalLead.customerName || 'Procurement Lead'} ({negotiationModalLead.phone || '-'})</span>
+                  </div>
+                  <div className="flex items-center justify-between font-medium">
+                    <span className="text-slate-500">Equipment Requested:</span>
+                    <strong className="text-slate-900 font-bold">{negotiationModalLead.equipment || negotiationModalLead.productName || 'Biomedical System'}</strong>
+                  </div>
+                  <div className="flex items-center justify-between font-medium">
+                    <span className="text-slate-500">Quantity:</span>
+                    <span className="font-mono font-bold text-slate-800">{negotiationModalLead.quantity || '1 Unit'}</span>
+                  </div>
+                </div>
+
+                {/* Side-by-Side Price Comparison */}
+                {(() => {
+                  const actualPrice = negotiationModalLead.actualPrice || 150000;
+                  const expectedPrice = negotiationModalLead.expectedPrice || negotiationModalLead.price || 120000;
+                  const diff = actualPrice - expectedPrice;
+                  const discountPct = Math.round((diff / actualPrice) * 100);
+
+                  return (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* Actual Catalog / GeM Price */}
+                        <div className="p-3.5 rounded-xl border border-slate-200 bg-white space-y-1">
+                          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                            1. Product Actual Price (GeM)
+                          </span>
+                          <div className="text-xl font-black font-mono text-slate-900">
+                            ₹{actualPrice.toLocaleString('en-IN')}
+                          </div>
+                          <span className="text-[10px] text-slate-500 block">
+                            Official registered catalog MRP per unit
+                          </span>
                         </div>
-                        <button
-                          type="button"
-                          disabled={negotiationSubmitting}
-                          onClick={() => handleApproveCustomerPrice(negotiationModalLead)}
-                          className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
-                        >
-                          <CheckCircle2 size={14} />
-                          <span>Approve Customer Price (₹{expectedPrice.toLocaleString('en-IN')})</span>
-                        </button>
+
+                        {/* Customer Expected Price */}
+                        <div className="p-3.5 rounded-xl border-2 border-amber-300 bg-amber-50/50 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">
+                              2. Customer Expected Price
+                            </span>
+                            {diff > 0 && (
+                              <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-1.5 py-0.2 rounded">
+                                -{discountPct}%
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xl font-black font-mono text-amber-900">
+                            ₹{expectedPrice.toLocaleString('en-IN')}
+                          </div>
+                          <span className="text-[10px] text-amber-800 block">
+                            Difference: ₹{diff.toLocaleString('en-IN')} below MRP
+                          </span>
+                        </div>
                       </div>
 
-                      {/* Choice 2: Propose In-Between Counter Offer */}
-                      <div className="p-4 rounded-xl border border-indigo-200 bg-indigo-50/50 space-y-3">
-                        <div>
-                          <h4 className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
-                            <span>🤝 Option B: Propose Authorized In-Between Rate</span>
-                          </h4>
-                          <p className="text-[11px] text-indigo-800 mt-0.5">
-                            If customer expected price is below viable margin, propose an authorized in-between rate for sales quotation generation.
-                          </p>
+                      {/* Decision Choices */}
+                      <div className="space-y-3.5 pt-1">
+
+                        {/* Choice 1: Approve Customer Price */}
+                        <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/60 space-y-2">
+                          <div>
+                            <h4 className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                              <span>✅ Option A: Approve Customer Expected Price</span>
+                            </h4>
+                            <p className="text-[11px] text-emerald-800 mt-0.5">
+                              Authorize customer target price for institutional sale. The updated price will reflect on the quotation and customer view.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={negotiationSubmitting}
+                            onClick={() => handleApproveCustomerPrice(negotiationModalLead)}
+                            className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
+                          >
+                            <CheckCircle2 size={14} />
+                            <span>Approve Customer Price (₹{expectedPrice.toLocaleString('en-IN')})</span>
+                          </button>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Choice 2: Propose In-Between Counter Offer */}
+                        <div className="p-4 rounded-xl border border-indigo-200 bg-indigo-50/50 space-y-3">
                           <div>
-                            <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                              In-Between Counter Price (₹ per unit)
-                            </label>
-                            <div className="relative">
-                              <span className="absolute left-3 top-2.5 text-slate-400 font-bold text-xs">₹</span>
+                            <h4 className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+                              <span>🤝 Option B: Propose Authorized In-Between Rate</span>
+                            </h4>
+                            <p className="text-[11px] text-indigo-800 mt-0.5">
+                              If customer expected price is below viable margin, propose an authorized in-between rate for sales quotation generation.
+                            </p>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                                In-Between Counter Price (₹ per unit)
+                              </label>
+                              <div className="relative">
+                                <span className="absolute left-3 top-2.5 text-slate-400 font-bold text-xs">₹</span>
+                                <input
+                                  type="number"
+                                  value={counterPriceInput}
+                                  onChange={(e) => setCounterPriceInput(e.target.value)}
+                                  placeholder={String(Math.round((actualPrice + expectedPrice) / 2))}
+                                  className="w-full pl-6 pr-3 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 font-mono text-xs font-bold"
+                                />
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                                Admin Note / Justification
+                              </label>
                               <input
-                                type="number"
-                                value={counterPriceInput}
-                                onChange={(e) => setCounterPriceInput(e.target.value)}
-                                placeholder={String(Math.round((actualPrice + expectedPrice) / 2))}
-                                className="w-full pl-6 pr-3 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 font-mono text-xs font-bold"
+                                type="text"
+                                value={counterNoteInput}
+                                onChange={(e) => setCounterNoteInput(e.target.value)}
+                                placeholder="e.g. Includes 2yr warranty + installation"
+                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 text-xs"
                               />
                             </div>
                           </div>
 
-                          <div>
-                            <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                              Admin Note / Justification
-                            </label>
-                            <input
-                              type="text"
-                              value={counterNoteInput}
-                              onChange={(e) => setCounterNoteInput(e.target.value)}
-                              placeholder="e.g. Includes 2yr warranty + installation"
-                              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 text-xs"
-                            />
-                          </div>
+                          <button
+                            type="button"
+                            disabled={negotiationSubmitting}
+                            onClick={() => handleCounterOfferPrice(negotiationModalLead, counterPriceInput, counterNoteInput)}
+                            className="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
+                          >
+                            <span>Set In-Between Counter Offer (₹{parseFloat(counterPriceInput || 0).toLocaleString('en-IN')})</span>
+                            <ArrowRight size={14} />
+                          </button>
                         </div>
 
-                        <button
-                          type="button"
-                          disabled={negotiationSubmitting}
-                          onClick={() => handleCounterOfferPrice(negotiationModalLead, counterPriceInput, counterNoteInput)}
-                          className="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
-                        >
-                          <span>Set In-Between Counter Offer (₹{parseFloat(counterPriceInput || 0).toLocaleString('en-IN')})</span>
-                          <ArrowRight size={14} />
-                        </button>
                       </div>
-
                     </div>
-                  </div>
-                );
-              })()}
+                  );
+                })()}
 
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Floating Toast Notification */}
-        {toastNotification && (
-          <div className="fixed bottom-6 right-6 z-50 p-4 rounded-2xl bg-slate-900 text-white shadow-2xl border border-slate-700 max-w-sm flex items-start gap-3 animate-in fade-in slide-in-from-bottom-5">
-            <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-              <CheckCircle2 size={16} />
+          {/* Floating Toast Notification */}
+          {toastNotification && (
+            <div className="fixed bottom-6 right-6 z-50 p-4 rounded-2xl bg-slate-900 text-white shadow-2xl border border-slate-700 max-w-sm flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                <CheckCircle2 size={16} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h5 className="font-bold text-xs text-white">{toastNotification.title}</h5>
+                <p className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">{toastNotification.message}</p>
+              </div>
+              <button
+                onClick={() => setToastNotification(null)}
+                className="text-slate-400 hover:text-white p-1 cursor-pointer"
+              >
+                ✕
+              </button>
             </div>
-            <div className="flex-1 min-w-0">
-              <h5 className="font-bold text-xs text-white">{toastNotification.title}</h5>
-              <p className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">{toastNotification.message}</p>
-            </div>
-            <button
-              onClick={() => setToastNotification(null)}
-              className="text-slate-400 hover:text-white p-1 cursor-pointer"
-            >
-              ✕
-            </button>
-          </div>
-        )}
+          )}
 
         </main>
       </div>

@@ -451,8 +451,15 @@ export default function CustomerProductDetailView({
         </div>
       )}
 
-      {/* Top Navigation & Breadcrumbs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200/80">
+      {/* Top Navigation & Breadcrumbs (Sticky & Fixed on Scroll) */}
+      <div
+        style={{
+          position: 'sticky',
+          top: '64px',
+          zIndex: 25,
+        }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-sm transition-all"
+      >
         <div className="flex items-center gap-3">
           <button
             type="button"
