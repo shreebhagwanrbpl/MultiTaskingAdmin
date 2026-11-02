@@ -416,20 +416,106 @@ export async function POST(request) {
   }
 }
 
+const DELETED_RECORDS_FILE = path.join(process.cwd(), 'src', 'data', 'deleted_records.json');
+
+async function archiveRecords(items, deletedBy, itemType = 'lead') {
+  if (!items || items.length === 0) return;
+  const nowIso = new Date().toISOString();
+  const recordsToArchive = items.map(item => ({
+    id: `del-${item.id || item._id || Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    originalId: item.id || String(item._id || ''),
+    itemType: itemType,
+    title: item.hospital || item.hospitalName || item.customerName || item.equipment || 'Hospital Inquiry',
+    doctorName: item.doctorName || item.contact || item.customerName || '',
+    hospital: item.hospital || item.hospitalName || '',
+    phone: item.phone || item.customerPhone || '',
+    email: item.email || item.customerEmail || '',
+    equipment: item.equipment || item.productName || item.hardware || '',
+    amount: item.amount || item.quoteAmount || item.totalAmount || '₹0',
+    sourceWebsite: item.sourceWebsite || item.siteDomain || 'rajbiosis.com',
+    status: item.status || 'Archived',
+    deletedBy: {
+      name: deletedBy?.name || 'Admin',
+      role: deletedBy?.role || 'Administrator',
+      email: deletedBy?.email || ''
+    },
+    deletedAt: nowIso,
+    recordData: item
+  }));
+
+  // 1. Local JSON write
+  try {
+    let existing = [];
+    if (fs.existsSync(DELETED_RECORDS_FILE)) {
+      try {
+        existing = JSON.parse(fs.readFileSync(DELETED_RECORDS_FILE, 'utf-8'));
+      } catch (e) {}
+    }
+    const combined = [...recordsToArchive, ...(Array.isArray(existing) ? existing : [])];
+    const dir = path.dirname(DELETED_RECORDS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(DELETED_RECORDS_FILE, JSON.stringify(combined, null, 2), 'utf-8');
+    global._biomedical_deleted_records = combined;
+  } catch (err) {
+    console.warn('Local archive save error:', err);
+  }
+
+  // 2. MongoDB insert
+  try {
+    const db = await getDatabase();
+    await db.collection('deleted_records').insertMany(recordsToArchive);
+  } catch (dbErr) {
+    console.warn('MongoDB archive save error:', dbErr);
+  }
+}
+
 export async function DELETE(request) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const idsParam = searchParams.get('ids');
     const deleteTest = searchParams.get('deleteTest');
     const clearAll = searchParams.get('all') === 'true' || searchParams.get('clearAll') === 'true';
+
+    // Support json body with { ids: [...], deletedBy: { ... } }
+    let bodyIds = [];
+    let deletedBy = { name: 'Admin', role: 'HQ Admin', email: '' };
+    try {
+      const body = await request.json();
+      if (body) {
+        if (Array.isArray(body.ids)) bodyIds = body.ids;
+        if (body.deletedBy) deletedBy = body.deletedBy;
+      }
+    } catch (e) {}
+
+    let targetIds = [];
+    if (idsParam) {
+      targetIds = idsParam.split(',').map(s => s.trim()).filter(Boolean);
+    } else if (bodyIds.length > 0) {
+      targetIds = bodyIds.map(s => String(s).trim()).filter(Boolean);
+    } else if (id) {
+      targetIds = [id.trim()];
+    }
 
     let currentList = readLocalLeads();
 
     if (clearAll) {
+      let allLeads = [...currentList];
+      try {
+        const db = await getDatabase();
+        const mongoAll = await db.collection('leads').find({}).toArray();
+        const known = new Set(allLeads.map(l => l.id || String(l._id)));
+        mongoAll.forEach(m => {
+          if (!known.has(m.id || String(m._id))) allLeads.push(m);
+        });
+      } catch (e) {}
+      await archiveRecords(allLeads, deletedBy, 'lead');
+
       writeLocalLeads([]);
       try {
         const db = await getDatabase();
         await db.collection('leads').deleteMany({});
+        await db.collection('quotations').deleteMany({});
       } catch (e) {}
       return NextResponse.json({ success: true, count: 0, cleared: true, source: 'local' }, { headers: CORS_HEADERS });
     }
@@ -454,30 +540,138 @@ export async function DELETE(request) {
       return NextResponse.json({ success: true, message: 'Deleted test entries' }, { headers: CORS_HEADERS });
     }
 
-    if (!id) {
-      writeLocalLeads([]);
-      try {
-        const db = await getDatabase();
-        await db.collection('leads').deleteMany({});
-      } catch (e) {}
-      return NextResponse.json({ success: true, count: 0, cleared: true, source: 'local' }, { headers: CORS_HEADERS });
+    if (targetIds.length === 0) {
+      return NextResponse.json({ success: false, error: 'No lead ID provided for deletion' }, { status: 400, headers: CORS_HEADERS });
     }
 
-    const filtered = currentList.filter(l => l.id !== id && l._id !== id && String(l._id) !== id);
-    writeLocalLeads(filtered);
+    // 1. Gather all leads to archive (from local AND MongoDB)
+    let leadsToDelete = currentList.filter(l => 
+      targetIds.includes(l.id) || 
+      (l._id && targetIds.includes(String(l._id)))
+    );
 
     try {
       const db = await getDatabase();
-      const collection = db.collection('leads');
       const { ObjectId } = await import('mongodb');
-      const orConditions = [{ id: id }, { _id: id }];
-      if (ObjectId.isValid(id)) {
-        orConditions.push({ _id: new ObjectId(id) });
-      }
-      await collection.deleteMany({ $or: orConditions });
+      const mongoLeads = await db.collection('leads').find({
+        $or: [
+          { id: { $in: targetIds } },
+          ...targetIds.filter(t => t && t.length === 24).map(t => {
+            try {
+              return { _id: new ObjectId(t) };
+            } catch (e) {
+              return { id: t };
+            }
+          })
+        ]
+      }).toArray();
+      const knownIds = new Set(leadsToDelete.map(l => l.id || String(l._id)));
+      mongoLeads.forEach(ml => {
+        const idKey = ml.id || String(ml._id);
+        if (!knownIds.has(idKey)) {
+          leadsToDelete.push(ml);
+          knownIds.add(idKey);
+        }
+      });
     } catch (e) {}
 
-    return NextResponse.json({ success: true, deletedId: id }, { headers: CORS_HEADERS });
+    // Archive leads safely into audit vault
+    await archiveRecords(leadsToDelete, deletedBy, 'lead');
+
+    const quotationRefsToDelete = leadsToDelete.map(l => l.quotationRef).filter(Boolean);
+    const quotationIdsToDelete = leadsToDelete.map(l => l.quotationId).filter(Boolean);
+
+    // Also archive associated quotations if any
+    try {
+      const db = await getDatabase();
+      const quotesCollection = db.collection('quotations');
+      const quoteOrConditions = [
+        { leadId: { $in: targetIds } },
+        { id: { $in: targetIds } }
+      ];
+      if (quotationRefsToDelete.length > 0) quoteOrConditions.push({ refNo: { $in: quotationRefsToDelete } });
+      if (quotationIdsToDelete.length > 0) quoteOrConditions.push({ id: { $in: quotationIdsToDelete } });
+      const quotesToDelete = await quotesCollection.find({ $or: quoteOrConditions }).toArray();
+      if (quotesToDelete && quotesToDelete.length > 0) {
+        await archiveRecords(quotesToDelete, deletedBy, 'quotation');
+      }
+    } catch (e) {}
+
+    // 2. Remove from local leads (disk & memory)
+    const filtered = currentList.filter(l => 
+      !targetIds.includes(l.id) && 
+      (!l._id || !targetIds.includes(String(l._id)))
+    );
+    writeLocalLeads(filtered);
+    try {
+      if (fs.existsSync(LEADS_FILE)) {
+        fs.writeFileSync(LEADS_FILE, JSON.stringify(filtered, null, 2), 'utf-8');
+      }
+    } catch (e) {}
+
+    // 3. Remove from quotations.json and memory global._biomedical_quotations
+    const QUOTATIONS_FILE = path.join(process.cwd(), 'src', 'data', 'quotations.json');
+    try {
+      if (fs.existsSync(QUOTATIONS_FILE)) {
+        const qContent = fs.readFileSync(QUOTATIONS_FILE, 'utf-8');
+        const qList = JSON.parse(qContent);
+        if (Array.isArray(qList)) {
+          const updatedQList = qList.filter(q => 
+            !targetIds.includes(q.leadId) && 
+            !targetIds.includes(q.id) && 
+            !quotationRefsToDelete.includes(q.refNo) &&
+            !quotationIdsToDelete.includes(q.id)
+          );
+          fs.writeFileSync(QUOTATIONS_FILE, JSON.stringify(updatedQList, null, 2), 'utf-8');
+        }
+      }
+      if (global._biomedical_quotations && Array.isArray(global._biomedical_quotations)) {
+        global._biomedical_quotations = global._biomedical_quotations.filter(q => 
+          !targetIds.includes(q.leadId) && 
+          !targetIds.includes(q.id) && 
+          !quotationRefsToDelete.includes(q.refNo) &&
+          !quotationIdsToDelete.includes(q.id)
+        );
+      }
+    } catch (e) {}
+
+    // 4. Delete from MongoDB leads collection & quotations collection permanently
+    try {
+      const db = await getDatabase();
+      const leadsCollection = db.collection('leads');
+      const { ObjectId } = await import('mongodb');
+
+      const orConditions = targetIds.map(tId => ({ id: tId }));
+      targetIds.forEach(tId => {
+        if (ObjectId.isValid(tId)) {
+          orConditions.push({ _id: new ObjectId(tId) });
+        }
+      });
+      await leadsCollection.deleteMany({ $or: orConditions });
+
+      // Permanently remove matching quotations from MongoDB
+      const quotationsCollection = db.collection('quotations');
+      const quoteOrConditions = [
+        { leadId: { $in: targetIds } },
+        { id: { $in: targetIds } }
+      ];
+      if (quotationRefsToDelete.length > 0) {
+        quoteOrConditions.push({ refNo: { $in: quotationRefsToDelete } });
+      }
+      if (quotationIdsToDelete.length > 0) {
+        quoteOrConditions.push({ id: { $in: quotationIdsToDelete } });
+      }
+      await quotationsCollection.deleteMany({ $or: quoteOrConditions }).catch(() => {});
+    } catch (dbErr) {
+      console.warn('MongoDB delete leads error:', dbErr.message);
+    }
+
+    return NextResponse.json({
+      success: true,
+      deletedIds: targetIds,
+      deletedCount: targetIds.length,
+      message: `Permanently deleted ${targetIds.length} lead(s) and history from entire system`
+    }, { headers: CORS_HEADERS });
   } catch (err) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500, headers: CORS_HEADERS });
   }

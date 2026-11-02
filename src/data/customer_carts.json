@@ -1,0 +1,245 @@
+[
+  {
+    "_id": "6ae83a64a23c7c5e68a1e47a",
+    "address": "200ft Bypass, Heera Nagar, Jaipur",
+    "cart": [
+      {
+        "productId": "prod-surg-4k",
+        "name": "AuraSurg 4K UHD Endoscopy & Laparoscopy Camera Tower",
+        "sku": "RAJ-OT-4001",
+        "brand": "Storz Medical System",
+        "category": "Surgical & OT",
+        "price": 1450000,
+        "mrp": 1890000,
+        "image": "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=800&q=80",
+        "stockStatus": "Ready for Demo",
+        "addedAt": "2026-11-02T07:23:15.920Z",
+        "specs": "4K UHD 3840x2160 • 300W LED Light Source • Auto White Balance",
+        "sourceSite": "rajbiosis.com",
+        "quantity": 1
+      },
+      {
+        "productId": "prod-mon-12x",
+        "name": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+        "sku": "RAJ-ICU-604",
+        "brand": "Mindray",
+        "category": "ICU & Critical Care",
+        "price": 68500,
+        "mrp": 92000,
+        "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80",
+        "quantity": 2,
+        "addedAt": "2026-11-02T09:15:00.000Z",
+        "specs": "12.1\" Display • 6-Para ECG, SpO2, NIBP, 2-Temp",
+        "sourceSite": "rajbiosis.com"
+      }
+    ],
+    "customerId": "cust-7485965874",
+    "customerName": "Omprkash",
+    "district": "Jaipur",
+    "email": "omprkash@gmail.com",
+    "hospitalName": "Om Medical",
+    "lastActive": "Just now",
+    "phone": "7485965874",
+    "siteDomain": "rajbiosis.com",
+    "updatedAt": "2026-11-02T07:23:15.920Z",
+    "watchlist": [
+      {
+        "productId": "prod-vent-x9",
+        "name": "RajBiosis-Vent Pro-X9 Turbine Mechanical Ventilator",
+        "sku": "RAJ-ICU-8801",
+        "brand": "Raj Biosis OEM",
+        "category": "ICU & Critical Care",
+        "price": 485000,
+        "mrp": 650000,
+        "image": "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80",
+        "quantity": 2,
+        "addedAt": "2026-11-02T07:23:13.887Z",
+        "specs": "15.6\" Touch TFT • Turbine Driven • 4.5h Battery Backup",
+        "sourceSite": "rajbiosis.com",
+        "stockStatus": "In Stock"
+      },
+      {
+        "productId": "prod-xray-500",
+        "name": "RajScan Elite High-Frequency 500mA Digital X-Ray System",
+        "sku": "RAJ-RAD-500",
+        "brand": "Raj Biosis OEM",
+        "category": "Radiology & Imaging",
+        "price": 1220000,
+        "mrp": 1580000,
+        "image": "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80",
+        "stockStatus": "In Stock (Priority Dispatch)",
+        "addedAt": "2026-11-01T14:20:00.000Z",
+        "specs": "500mA • 50kW HF Generator • Wireless Flat Panel Detector",
+        "sourceSite": "rajbiosis.com"
+      }
+    ]
+  },
+  {
+    "customerId": "cust-9821055443",
+    "customerName": "Dr. S. K. Mehta",
+    "hospitalName": "Apollo Super Speciality Hospital",
+    "phone": "9821055443",
+    "email": "dr.mehta@apollohospitals.com",
+    "district": "New Delhi",
+    "address": "Sarita Vihar, Delhi Mathura Road, New Delhi",
+    "siteDomain": "rajbiosis.com",
+    "lastActive": "35 mins ago",
+    "updatedAt": "2026-11-02T09:45:00.000Z",
+    "cart": [
+      {
+        "productId": "prod-vent-x9",
+        "name": "RajBiosis-Vent Pro-X9 Turbine Mechanical Ventilator",
+        "sku": "RAJ-ICU-8801",
+        "brand": "Raj Biosis OEM",
+        "category": "ICU & Critical Care",
+        "price": 485000,
+        "mrp": 650000,
+        "image": "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80",
+        "quantity": 2,
+        "addedAt": "2026-11-02T07:15:00.000Z",
+        "specs": "High-Flow O2 (HFNC) • Integrated Neonatal Mode",
+        "sourceSite": "rajbiosis.com"
+      },
+      {
+        "productId": "prod-defib-biphasic",
+        "name": "DefiQuick Biphasic Defibrillator with Pacer & AED",
+        "sku": "RAJ-EMG-108",
+        "brand": "Zoll Medical",
+        "category": "Emergency & Resuscitation",
+        "price": 195000,
+        "mrp": 245000,
+        "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80",
+        "quantity": 1,
+        "addedAt": "2026-11-02T08:00:00.000Z",
+        "specs": "360J Biphasic Waveform • Color Screen • Manual & AED",
+        "sourceSite": "rajbiosis.com"
+      }
+    ],
+    "watchlist": [
+      {
+        "productId": "prod-infusion-dual",
+        "name": "SmartFlow Dual-Channel Micro Infusion Syringe Pump",
+        "sku": "RAJ-PUMP-202",
+        "brand": "B. Braun Compatible",
+        "category": "Infusion Delivery",
+        "price": 42000,
+        "mrp": 58000,
+        "image": "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80",
+        "stockStatus": "In Stock (Dispatch Today)",
+        "addedAt": "2026-11-01T11:00:00.000Z",
+        "specs": "Dual Syringe 5ml-60ml • 0.1-1500 ml/h Flow • Anti-Bolus",
+        "sourceSite": "rajbiosis.com"
+      }
+    ]
+  },
+  {
+    "customerId": "cust-9811244321",
+    "customerName": "Er. Rajesh K. Varma",
+    "hospitalName": "Fortis Escorts Heart Institute",
+    "phone": "9811244321",
+    "email": "rajesh.varma@fortishealthcare.com",
+    "district": "New Delhi",
+    "address": "Okhla Road, Sukhdev Vihar Metro Station, New Delhi",
+    "siteDomain": "cardiopulse.in",
+    "lastActive": "2 hours ago",
+    "updatedAt": "2026-11-02T08:10:00.000Z",
+    "cart": [
+      {
+        "productId": "prod-ecg-12ch",
+        "name": "CardioTrace 12-Channel Diagnostic Resting ECG Machine",
+        "sku": "RAJ-CARD-120",
+        "brand": "GE Healthcare Compatible",
+        "category": "Cardiology Diagnostics",
+        "price": 58240,
+        "mrp": 78000,
+        "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80",
+        "quantity": 1,
+        "addedAt": "2026-11-02T06:50:00.000Z",
+        "specs": "10\" Color Touch Screen • Glasgow Interpretation Algorithm",
+        "sourceSite": "cardiopulse.in"
+      }
+    ],
+    "watchlist": [
+      {
+        "productId": "prod-vent-x9",
+        "name": "RajBiosis-Vent Pro-X9 Turbine Mechanical Ventilator",
+        "sku": "RAJ-ICU-8801",
+        "brand": "Raj Biosis OEM",
+        "category": "ICU & Critical Care",
+        "price": 485000,
+        "mrp": 650000,
+        "image": "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80",
+        "stockStatus": "In Stock",
+        "addedAt": "2026-10-30T12:00:00.000Z",
+        "specs": "Turbine Driven • Battery 4.5h",
+        "sourceSite": "cardiopulse.in"
+      },
+      {
+        "productId": "prod-mon-12x",
+        "name": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+        "sku": "RAJ-ICU-604",
+        "brand": "Mindray",
+        "category": "ICU & Critical Care",
+        "price": 68500,
+        "mrp": 92000,
+        "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80",
+        "stockStatus": "In Stock",
+        "addedAt": "2026-10-29T10:30:00.000Z",
+        "specs": "12.1\" Touch Screen",
+        "sourceSite": "cardiopulse.in"
+      }
+    ]
+  },
+  {
+    "customerId": "cust-9844022331",
+    "customerName": "Dr. Priya Nair",
+    "hospitalName": "Manipal Hospital Bengaluru",
+    "phone": "9844022331",
+    "email": "priya.nair@manipalhospitals.com",
+    "district": "Bengaluru",
+    "address": "HAL Airport Road, Kodihalli, Bengaluru, Karnataka",
+    "siteDomain": "cardiopulse.in",
+    "lastActive": "Yesterday",
+    "updatedAt": "2026-11-01T15:20:00.000Z",
+    "cart": [
+      {
+        "productId": "prod-hemo-dialysis",
+        "name": "HemoPure Advanced Single-Pump Hemodialysis System",
+        "sku": "RAJ-REN-901",
+        "brand": "Fresenius Compatible",
+        "category": "Renal & Dialysis",
+        "price": 1120000,
+        "mrp": 1450000,
+        "image": "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=800&q=80",
+        "quantity": 1,
+        "addedAt": "2026-11-01T14:00:00.000Z",
+        "specs": "Automated Priming • Real-time Kt/V Monitoring • Online HDF",
+        "sourceSite": "cardiopulse.in"
+      }
+    ],
+    "watchlist": [
+      {
+        "productId": "prod-mon-12x",
+        "name": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+        "sku": "RAJ-ICU-604",
+        "brand": "Mindray",
+        "category": "ICU & Critical Care",
+        "price": 68500,
+        "mrp": 92000,
+        "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80",
+        "stockStatus": "In Stock",
+        "addedAt": "2026-10-28T09:00:00.000Z",
+        "specs": "6-Para Monitoring",
+        "sourceSite": "cardiopulse.in"
+      }
+    ],
+    "offer": {
+      "active": true,
+      "title": "Institutional Subsidy Discount",
+      "type": "percentage",
+      "value": 10,
+      "note": "10% Executive Concession approved for Manipal Hospital Procurement + Free 1-Yr AMC",
+      "validTill": "2026-11-15"
+    }
+  }
+]

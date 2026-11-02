@@ -235,14 +235,56 @@ export async function DELETE(request) {
       return NextResponse.json({ success: false, error: 'Quotation ID required' }, { status: 400, headers: CORS_HEADERS });
     }
 
-    // Always delete from persistent local storage
+    // Try reading deletedBy from body or params
+    let deletedBy = { name: 'Admin', role: 'HQ Admin', email: '' };
+    try {
+      const body = await request.json();
+      if (body?.deletedBy) deletedBy = body.deletedBy;
+    } catch (e) {}
+
+    // 1. Gather quotation object to archive
     const currentList = readLocalQuotations();
-    const filtered = currentList.filter(q => q.id !== id && q._id !== id);
+    const quoteToArchive = currentList.find(q => q.id === id || q._id === id || q.refNo === id);
+
+    // Archive into deleted_records
+    const DELETED_FILE = path.join(process.cwd(), 'src', 'data', 'deleted_records.json');
+    const nowIso = new Date().toISOString();
+    const archivedItem = {
+      id: `del-quot-${id}-${Date.now()}`,
+      originalId: id,
+      itemType: 'quotation',
+      title: quoteToArchive?.customerName || quoteToArchive?.subjectQuotation || 'Official Quotation',
+      doctorName: quoteToArchive?.customerName || '',
+      hospital: quoteToArchive?.customerAddress1 || quoteToArchive?.customerName || '',
+      phone: quoteToArchive?.customerAddress2 || '',
+      email: quoteToArchive?.customerEmail || '',
+      equipment: quoteToArchive?.subjectQuotation || '',
+      amount: quoteToArchive?.totalAmount ? `₹${Number(quoteToArchive.totalAmount).toLocaleString('en-IN')}` : '₹0',
+      sourceWebsite: 'rajbiosis.com',
+      status: 'Archived',
+      deletedBy,
+      deletedAt: nowIso,
+      recordData: quoteToArchive || { id }
+    };
+
+    try {
+      let existing = [];
+      if (fs.existsSync(DELETED_FILE)) {
+        try { existing = JSON.parse(fs.readFileSync(DELETED_FILE, 'utf-8')); } catch (e) {}
+      }
+      const combined = [archivedItem, ...(Array.isArray(existing) ? existing : [])];
+      fs.writeFileSync(DELETED_FILE, JSON.stringify(combined, null, 2), 'utf-8');
+      global._biomedical_deleted_records = combined;
+    } catch (e) {}
+
+    // Always delete from persistent local storage
+    const filtered = currentList.filter(q => q.id !== id && q._id !== id && q.refNo !== id);
     writeLocalQuotations(filtered);
 
-    // Also attempt MongoDB delete if reachable
+    // Also attempt MongoDB delete and archive if reachable
     try {
       const db = await getDatabase();
+      await db.collection('deleted_records').insertOne(archivedItem).catch(() => {});
       const collection = db.collection('quotations');
       let query = { id: id };
       if (ObjectId.isValid(id)) {
@@ -255,7 +297,7 @@ export async function DELETE(request) {
 
     return NextResponse.json({
       success: true,
-      message: 'Quotation deleted successfully',
+      message: 'Quotation deleted successfully and archived in audit trail',
       deletedId: id
     }, { headers: CORS_HEADERS });
   } catch (error) {

@@ -22,6 +22,7 @@ import {
   X,
   Minus,
   Calculator,
+  ArrowLeft,
   ArrowRight,
   Maximize2,
   FileCheck,
@@ -63,6 +64,17 @@ export default function WebQuotationManager({
 
   // Primary Tabs: 'leads' (Incoming Web Leads / New Queries) | 'completed' (All Completed Quotations) | 'quotation' (Active Quotation Workspace)
   const [activeMainTab, setActiveMainTab] = useState('leads');
+
+  // Listen for reset tab events from Sidebar or Dashboard navigation
+  useEffect(() => {
+    const handleResetTab = (e) => {
+      setActiveMainTab(e.detail || 'leads');
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('reset_web_quotation_tab', handleResetTab);
+      return () => window.removeEventListener('reset_web_quotation_tab', handleResetTab);
+    }
+  }, []);
 
   // Negotiable Price Approval States
   const [negotiationModalLead, setNegotiationModalLead] = useState(null);
@@ -135,8 +147,8 @@ export default function WebQuotationManager({
       try {
         const channel = new BroadcastChannel('biomedical_leads_channel');
         channel.postMessage({ type: 'LEAD_PRICE_UPDATED', lead: { ...lead, ...updateData } });
-        setTimeout(() => { try { channel.close(); } catch(e){} }, 5000);
-      } catch(e){}
+        setTimeout(() => { try { channel.close(); } catch (e) { } }, 5000);
+      } catch (e) { }
 
       setSuccessToast(`✅ Price Approved! ₹${approvedAmount.toLocaleString('en-IN')} approved for ${lead.hospital || lead.equipment}. Sales employees can now make the quotation.`);
       setNegotiationModalLead(null);
@@ -187,8 +199,8 @@ export default function WebQuotationManager({
       try {
         const channel = new BroadcastChannel('biomedical_leads_channel');
         channel.postMessage({ type: 'LEAD_PRICE_UPDATED', lead: { ...lead, ...updateData } });
-        setTimeout(() => { try { channel.close(); } catch(e){} }, 5000);
-      } catch(e){}
+        setTimeout(() => { try { channel.close(); } catch (e) { } }, 5000);
+      } catch (e) { }
 
       setSuccessToast(`🤝 Counter Offer Set! In-between rate ₹${numPrice.toLocaleString('en-IN')} set for ${lead.hospital || lead.equipment}. Sales employees can now proceed with quotation.`);
       setNegotiationModalLead(null);
@@ -314,7 +326,7 @@ export default function WebQuotationManager({
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed) && parsed.length > 0) return parsed;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     return [];
   });
@@ -331,7 +343,7 @@ export default function WebQuotationManager({
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed) && parsed.length > 0) return parsed;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     return [];
   });
@@ -365,19 +377,24 @@ export default function WebQuotationManager({
       // If already processed in this session, skip
       if (processedLeadIds.includes(id)) continue;
 
-      // Completed quotations that were fully dispatched should not show in pending RFQs
+      // Completed quotations that were created or dispatched should not show in pending RFQs
       const st = (lead.status || '').toLowerCase();
-      if (st.includes('quotation dispatched') || st.includes('completed quote')) continue;
+      if (
+        st.includes('quotation dispatched') ||
+        st.includes('completed quote') ||
+        st.includes('quotation created') ||
+        st.includes('quote generated') ||
+        Boolean(lead.quotationRef) ||
+        Boolean(lead.isQuotationCreated)
+      ) continue;
 
-      // Keep: 'pending', 'new', 'rfq', 'approved', 'counter', 'quote generated', or any inquiry
+      // Keep: 'pending', 'new', 'rfq', 'approved', 'counter'
       const isEligible =
         st.includes('pending') ||
         st.includes('new') ||
         st.includes('rfq') ||
         st.includes('approved') ||
         st.includes('counter') ||
-        st.includes('quote generated') ||
-        st.includes('quotation sent') ||
         lead.negotiationStatus === 'approved' ||
         lead.negotiationStatus === 'counter_offered' ||
         lead.negotiationStatus === 'pending_approval' ||
@@ -453,21 +470,21 @@ export default function WebQuotationManager({
     if (initialLeads && initialLeads.length > 0) {
       setWebLeads(initialLeads);
       setIsLeadsLoading(false);
-      try { localStorage.setItem('rbpl_cached_leads', JSON.stringify(initialLeads)); } catch (e) {}
+      try { localStorage.setItem('rbpl_cached_leads', JSON.stringify(initialLeads)); } catch (e) { }
     }
   }, [initialLeads]);
 
   useEffect(() => {
     if (initialQuotations && initialQuotations.length > 0) {
       setSavedQuotations(initialQuotations);
-      try { localStorage.setItem('rbpl_cached_quotations', JSON.stringify(initialQuotations)); } catch (e) {}
+      try { localStorage.setItem('rbpl_cached_quotations', JSON.stringify(initialQuotations)); } catch (e) { }
     }
   }, [initialQuotations]);
 
   useEffect(() => {
     if (initialCustomers && initialCustomers.length > 0) {
       setCustomersList(initialCustomers);
-      try { localStorage.setItem('rbpl_cached_customers', JSON.stringify(initialCustomers)); } catch (e) {}
+      try { localStorage.setItem('rbpl_cached_customers', JSON.stringify(initialCustomers)); } catch (e) { }
     }
   }, [initialCustomers]);
 
@@ -489,7 +506,7 @@ export default function WebQuotationManager({
       const res = await fetch('/api/quotations');
       const data = await res.json();
       if (data.success && Array.isArray(data.quotations)) {
-        try { localStorage.setItem('rbpl_cached_quotations', JSON.stringify(data.quotations)); } catch (e) {}
+        try { localStorage.setItem('rbpl_cached_quotations', JSON.stringify(data.quotations)); } catch (e) { }
         setSavedQuotations(prev => {
           const prevIds = new Set(prev.map(q => q.id || q._id || q.refNo));
           const fresh = data.quotations.filter(q => !prevIds.has(q.id || q._id || q.refNo));
@@ -515,7 +532,7 @@ export default function WebQuotationManager({
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed) && parsed.length > 0) return parsed;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     return [];
   });
@@ -663,7 +680,7 @@ export default function WebQuotationManager({
       const data = await res.json();
       if (data.success && Array.isArray(data.leads)) {
         setIsLeadsLoading(false);
-        try { localStorage.setItem('rbpl_cached_leads', JSON.stringify(data.leads)); } catch (e) {}
+        try { localStorage.setItem('rbpl_cached_leads', JSON.stringify(data.leads)); } catch (e) { }
         setWebLeads(prev => {
           const prevIds = new Set(prev.map(l => l.id || l._id));
           const hasNew = data.leads.some(l => !prevIds.has(l.id || l._id));
@@ -671,24 +688,8 @@ export default function WebQuotationManager({
             setHasNewLeadAlert(true);
             playLeadNotificationSound();
           }
-          // Merge with strict server authority and deduplication by customer+equipment
-          const serverIds = new Set(data.leads.map(l => l.id || l._id));
-          const serverCustEquip = new Set();
-          data.leads.forEach(l => {
-            const p = (l.phone || l.customerPhone || l.rawLeadData?.customerPhone || '').replace(/\D/g, '').slice(-10);
-            const eq = (l.equipment || l.productName || l.rawLeadData?.productName || '').trim().toLowerCase();
-            if (p && eq) serverCustEquip.add(`${p}::${eq}`);
-          });
-
-          const uncommitted = prev.filter(l => {
-            if (serverIds.has(l.id || l._id)) return false;
-            const p = (l.phone || l.customerPhone || l.rawLeadData?.customerPhone || '').replace(/\D/g, '').slice(-10);
-            const eq = (l.equipment || l.productName || l.rawLeadData?.productName || '').trim().toLowerCase();
-            if (p && eq && serverCustEquip.has(`${p}::${eq}`)) return false;
-            return true;
-          });
-
-          return [...uncommitted, ...data.leads];
+          // Strict server authority: if server didn't return it, it is DELETED!
+          return data.leads;
         });
       }
     } catch (err) {
@@ -764,6 +765,13 @@ export default function WebQuotationManager({
           if (event.data?.type === 'NEW_WEB_LEAD' && event.data.lead) {
             insertIncomingLead(event.data.lead);
           }
+          if (event.data?.type === 'LEADS_DELETED') {
+            const ids = event.data.ids || event.data.leadIds || [];
+            if (ids.length > 0) {
+              setWebLeads(prev => prev.filter(l => !ids.includes(l.id) && !ids.includes(l._id)));
+              setSavedQuotations(prev => prev.filter(q => !ids.includes(q.leadId) && !ids.includes(q.id) && !ids.includes(q._id)));
+            }
+          }
         };
       }
     } catch (e) { }
@@ -775,6 +783,13 @@ export default function WebQuotationManager({
       }
       if (event.data?.type === 'NEW_WEB_LEAD' && event.data.lead) {
         insertIncomingLead(event.data.lead);
+      }
+      if (event.data?.type === 'LEADS_DELETED') {
+        const ids = event.data.ids || event.data.leadIds || [];
+        if (ids.length > 0) {
+          setWebLeads(prev => prev.filter(l => !ids.includes(l.id) && !ids.includes(l._id)));
+          setSavedQuotations(prev => prev.filter(q => !ids.includes(q.leadId) && !ids.includes(q.id) && !ids.includes(q._id)));
+        }
       }
     };
     if (typeof window !== 'undefined') {
@@ -809,6 +824,15 @@ export default function WebQuotationManager({
         try {
           const lead = JSON.parse(e.newValue);
           if (lead) insertIncomingLead(lead);
+        } catch (err) { }
+      }
+      if (e.key === 'biomedical_leads_deleted' && e.newValue) {
+        try {
+          const ids = JSON.parse(e.newValue);
+          if (Array.isArray(ids) && ids.length > 0) {
+            setWebLeads(prev => prev.filter(l => !ids.includes(l.id) && !ids.includes(l._id)));
+            setSavedQuotations(prev => prev.filter(q => !ids.includes(q.leadId) && !ids.includes(q.id) && !ids.includes(q._id)));
+          }
         } catch (err) { }
       }
     };
@@ -969,7 +993,29 @@ export default function WebQuotationManager({
       unitPrice
     };
 
-    setItems([leadQuotationItem]);
+    if (lead.items && Array.isArray(lead.items) && lead.items.length > 0) {
+      const parsedItems = lead.items.map((it, idx) => ({
+        id: `cart-item-${idx}-${Date.now()}`,
+        sr: idx + 1,
+        itemCode: it.sku || `ITEM-${idx + 1}`,
+        title: it.description || it.name,
+        bullets: it.specs || 'CDSCO Medical Device Certified • Complete On-Site Commissioning',
+        qty: it.quantity || 1,
+        unitLabel: 'No',
+        unitPrice: it.rate || it.price || 0
+      }));
+      setItems(parsedItems);
+    } else {
+      setItems([leadQuotationItem]);
+    }
+
+    if (lead.specialOffer) {
+      setActiveNegotiationNotice({
+        type: 'approved',
+        price: lead.totalAmount,
+        message: `Special Hospital Offer: ${lead.specialOffer.title}${lead.discountAmount ? ` (-₹${lead.discountAmount.toLocaleString('en-IN')})` : ''} — Final Deal: ₹${Number(lead.totalAmount || 0).toLocaleString('en-IN')}`
+      });
+    }
 
     // 4. Quotation Subjects
     setSubjectLetter(`Quotation purchase of ${itemTitle}`);
@@ -985,18 +1031,72 @@ export default function WebQuotationManager({
     setTaxMode(extractedGst || '12');
     setDiscountPercent(0);
 
-    // 6. Mark Lead as Processed
+    // 6. Mark Lead as Processed and Save Quotation Permanently
     const leadId = lead.id || lead._id;
     if (leadId) {
       setProcessedLeadIds(prev => [...prev, leadId]);
     }
 
+    // Save official quotation to /api/quotations
+    const newQuotationRecord = {
+      refNo: freshRef,
+      leadId: lead.id,
+      date: getTodayFormatted(),
+      customerName: hospitalName,
+      customerAddress1: [doctorPart, phonePart].filter(Boolean).join(', '),
+      customerAddress2: [cityPart, emailPart].filter(Boolean).join(' • '),
+      subjectLetter: `Quotation purchase of ${itemTitle}`,
+      subjectQuotation: `Purchase of ${itemTitle}${itemCode ? `, Model: ${itemCode}` : ''}`,
+      items: [leadQuotationItem],
+      totalAmount: unitPrice * rawQty,
+      status: 'Ready',
+      lead
+    };
+
+    try {
+      fetch('/api/quotations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newQuotationRecord)
+      }).then(async r => {
+        const qData = await r.json();
+        if (qData.success && qData.quotation) {
+          setSavedQuotations(prev => [qData.quotation, ...prev.filter(q => q.refNo !== freshRef)]);
+        }
+      }).catch(() => { });
+    } catch (e) { }
+
+    // Update lead in MongoDB with quotationRef and status
     try {
       fetch('/api/leads', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: lead.id, _id: lead._id, status: 'Quote Generated' })
+        body: JSON.stringify({
+          id: lead.id,
+          _id: lead._id,
+          status: 'Quotation Created',
+          quotationRef: freshRef,
+          isQuotationCreated: true
+        })
       }).catch(() => { });
+    } catch (e) { }
+
+    setWebLeads(prev => prev.map(l => (l.id === lead.id || (lead._id && l._id === lead._id)) ? {
+      ...l,
+      status: 'Quotation Created',
+      quotationRef: freshRef,
+      isQuotationCreated: true
+    } : l));
+
+    try {
+      const channel = new BroadcastChannel('biomedical_leads_channel');
+      channel.postMessage({
+        type: 'LEAD_QUOTATION_CREATED',
+        leadId: lead.id,
+        quotationRef: freshRef,
+        lead: { ...lead, status: 'Quotation Created', quotationRef: freshRef }
+      });
+      setTimeout(() => { try { channel.close(); } catch (e) { } }, 5000);
     } catch (e) { }
 
     // Automatically switch to FULL PAGE 4-Page Quotation view on Quotation tab!
@@ -1092,8 +1192,43 @@ export default function WebQuotationManager({
     } catch (e) { }
   };
 
+  // Permanently delete a single lead from MongoDB and system
+  const handleDeleteWebLead = async (lead, e) => {
+    if (e) e.stopPropagation();
+    if (!confirm(`Ye delete ho jayega permanently:\n\nKya aap inquiry "${lead.id || lead.hospital}" ko MongoDB aur pure system se permanently remove karna chahte hain?`)) return;
+    const leadId = lead.id || lead._id;
+    try {
+      await fetch(`/api/leads?ids=${encodeURIComponent(leadId)}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: [leadId] })
+      });
+      setWebLeads(prev => prev.filter(l => l.id !== leadId && l._id !== leadId));
+      if (typeof window !== 'undefined') {
+        try {
+          const cached = localStorage.getItem('rbpl_cached_leads');
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed)) {
+              localStorage.setItem('rbpl_cached_leads', JSON.stringify(parsed.filter(l => l.id !== leadId && l._id !== leadId)));
+            }
+          }
+        } catch (e) { }
+      }
+      try {
+        const channel = new BroadcastChannel('biomedical_leads_channel');
+        channel.postMessage({ type: 'LEADS_DELETED', ids: [leadId], leadIds: [leadId] });
+        setTimeout(() => { try { channel.close(); } catch (e) { } }, 5000);
+      } catch (e) { }
+      setSuccessToast(`Inquiry ${leadId} permanently deleted from system.`);
+    } catch (err) {
+      console.error('Delete web lead error:', err);
+    }
+  };
+
   // Clear all leads and start completely fresh
   const handleClearAllWebLeads = async () => {
+    if (!confirm('Kya aap sabhi incoming leads permanently delete karna chahte hain? Ye MongoDB aur pure system se permanently remove ho jayenge.')) return;
     setWebLeads([]);
     setProcessedLeadIds([]);
     setSelectedLeadIdx(0);
@@ -1101,10 +1236,16 @@ export default function WebQuotationManager({
     try {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('latest_web_lead');
+        localStorage.removeItem('rbpl_cached_leads');
       }
-      await fetch('/api/leads', { method: 'DELETE' });
+      await fetch('/api/leads?clearAll=true', { method: 'DELETE' });
+      try {
+        const channel = new BroadcastChannel('biomedical_leads_channel');
+        channel.postMessage({ type: 'LEADS_CLEARED_ALL' });
+        setTimeout(() => { try { channel.close(); } catch (e) { } }, 5000);
+      } catch (e) { }
     } catch (e) { }
-    setSuccessToast('🧹 All leads cleared! Starting completely fresh.');
+    setSuccessToast('🧹 All leads permanently cleared from system!');
   };
 
 
@@ -2034,38 +2175,40 @@ export default function WebQuotationManager({
         {/* Upper Row: Title, New Lead Pill & Global Toolbar Actions (Never Collapsing) */}
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
 
-          {/* Left: Title, Badges & Subtitle */}
-          <div className="flex items-start sm:items-center gap-3.5 min-w-0">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-indigo-600 text-white flex items-center justify-center font-bold shadow-sm shrink-0 mt-0.5 sm:mt-0">
-              <FileText size={22} />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h2 className="text-lg font-black text-slate-900 tracking-tight whitespace-nowrap">
-                  Web Quotation
-                </h2>
-
-                {/* Direct Button to Incoming Leads / New Queries page */}
-                <button
-                  type="button"
-                  onClick={() => setActiveMainTab(activeMainTab === 'leads' ? 'quotation' : 'leads')}
-                  className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full font-extrabold text-xs transition cursor-pointer hover:scale-105 active:scale-95 shadow-sm whitespace-nowrap ${activeMainTab === 'leads'
-                    ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white ring-2 ring-amber-400/40 shadow-amber-500/25'
-                    : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300'
-                    }`}
-                  title="Click to view incoming leads and make quotation"
-                >
-                  <Sparkles size={13} className={activeMainTab === 'leads' ? 'text-amber-100' : 'text-amber-600'} />
-                  <span>⚡ Incoming Leads</span>
-                  {pendingWebLeads.length > 0 && (
-                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${activeMainTab === 'leads' ? 'bg-white text-rose-600' : 'bg-rose-500 text-white'
-                      }`}>
-                      {pendingWebLeads.length}
-                    </span>
-                  )}
-                </button>
+          {/* Left: Branding & Direct Switcher to Leads */}
+          <div className="flex items-start sm:items-center gap-3.5 min-w-0 flex-wrap">
+            <div
+              onClick={() => setActiveMainTab('leads')}
+              className="flex items-center gap-3 cursor-pointer group shrink-0"
+              title="Click to go back to Web Quotation desk"
+            >
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-indigo-600 text-white flex items-center justify-center font-bold shadow-sm shrink-0 mt-0.5 sm:mt-0 group-hover:scale-105 transition">
+                <FileText size={22} />
               </div>
+              <h2 className="text-lg font-black text-slate-900 tracking-tight whitespace-nowrap group-hover:text-sky-600 transition">
+                Web Quotation
+              </h2>
             </div>
+
+            {/* Direct Button to Incoming Leads / New Queries page */}
+            <button
+              type="button"
+              onClick={() => setActiveMainTab('leads')}
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full font-extrabold text-xs transition cursor-pointer hover:scale-105 active:scale-95 shadow-sm whitespace-nowrap ${activeMainTab === 'leads'
+                ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white ring-2 ring-amber-400/40 shadow-amber-500/25'
+                : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300'
+                }`}
+              title="Click to view incoming leads and make quotation"
+            >
+              <Sparkles size={13} className={activeMainTab === 'leads' ? 'text-amber-100' : 'text-amber-600'} />
+              <span>⚡ Incoming Leads</span>
+              {pendingWebLeads.length > 0 && (
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${activeMainTab === 'leads' ? 'bg-white text-rose-600' : 'bg-rose-500 text-white'
+                  }`}>
+                  {pendingWebLeads.length}
+                </span>
+              )}
+            </button>
           </div>
 
           {/* Right: Global Toolbar Actions (Always on ONE Single Line) */}
@@ -2082,12 +2225,12 @@ export default function WebQuotationManager({
 
             <button
               type="button"
-              onClick={() => setActiveMainTab(activeMainTab === 'completed' ? 'quotation' : 'completed')}
+              onClick={() => setActiveMainTab(activeMainTab === 'completed' ? 'leads' : 'completed')}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border shadow-2xs whitespace-nowrap ${activeMainTab === 'completed'
-                ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200/80 shadow-xs'
+                ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200/80 shadow-xs ring-2 ring-indigo-400/30'
                 : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200/80'
                 }`}
-              title="View completed quotations"
+              title={activeMainTab === 'completed' ? "Close History and return to Web Quotation" : "View completed quotations history"}
             >
               <History size={14} className={activeMainTab === 'completed' ? 'text-indigo-600' : 'text-slate-500'} />
               <span>History</span>
@@ -2411,21 +2554,20 @@ export default function WebQuotationManager({
                               <button
                                 type="button"
                                 onClick={() => handleMakeQuotationFromLead(lead)}
-                                className={`px-5 py-2.5 rounded-xl font-black text-xs shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 uppercase tracking-wide ${
-                                  lead.negotiationStatus === 'approved'
-                                    ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 hover:from-emerald-700 hover:to-sky-700 text-white ring-2 ring-emerald-400/30'
-                                    : lead.negotiationStatus === 'counter_offered'
+                                className={`px-5 py-2.5 rounded-xl font-black text-xs shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 uppercase tracking-wide ${lead.negotiationStatus === 'approved'
+                                  ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 hover:from-emerald-700 hover:to-sky-700 text-white ring-2 ring-emerald-400/30'
+                                  : lead.negotiationStatus === 'counter_offered'
                                     ? 'bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white ring-2 ring-indigo-400/30'
                                     : 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white ring-2 ring-amber-400/30'
-                                }`}
+                                  }`}
                               >
                                 <Sparkles size={14} className="text-white" />
                                 <span>
                                   {lead.negotiationStatus === 'approved'
                                     ? `Make Quotation (Approved: ₹${Number(lead.approvedPrice || lead.price || 0).toLocaleString('en-IN')})`
                                     : lead.negotiationStatus === 'counter_offered'
-                                    ? `Make Quotation (Counter: ₹${Number(lead.adminCounterPrice || lead.price || 0).toLocaleString('en-IN')})`
-                                    : 'Make Quotation'}
+                                      ? `Make Quotation (Counter: ₹${Number(lead.adminCounterPrice || lead.price || 0).toLocaleString('en-IN')})`
+                                      : 'Make Quotation'}
                                 </span>
                                 <ArrowRight size={13} />
                               </button>
@@ -2439,6 +2581,14 @@ export default function WebQuotationManager({
                                   <Edit3 size={13} />
                                 </button>
                               )}
+                              <button
+                                type="button"
+                                onClick={(e) => handleDeleteWebLead(lead, e)}
+                                className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition cursor-pointer border border-slate-200"
+                                title="Permanently Delete Lead"
+                              >
+                                <Trash2 size={14} />
+                              </button>
                             </div>
                           )}
                         </div>
@@ -2459,22 +2609,30 @@ export default function WebQuotationManager({
         <div className="space-y-5 animate-in fade-in duration-200">
           {/* Top Summary & Search Header */}
           <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
+            <div className="flex items-center gap-3.5 flex-wrap">
+              {/* Prominent Back Button to Return to First Image (Web Quotation Desk) */}
+              <button
+                type="button"
+                onClick={() => setActiveMainTab('leads')}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 hover:bg-sky-50 text-slate-800 hover:text-sky-700 border border-slate-200 hover:border-sky-300 text-xs font-bold transition shadow-xs cursor-pointer hover:scale-105 active:scale-95 shrink-0"
+                title="Wapis Web Quotation Desk par jayein"
+              >
+                <ArrowLeft size={14} className="text-sky-600" />
+                <span>← Back to Web Quotation</span>
+              </button>
               <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200/80 flex items-center justify-center font-bold shadow-2xs shrink-0">
                 <CheckCircle2 size={22} className="text-emerald-600" />
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-                    Completed &amp; Issued Quotations
+                    Quotations History
                   </h3>
                   <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-mono font-bold">
                     {savedQuotations.length} Issued
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  All generated 4-page official quotations saved in database. Click any quotation to view, edit, or download.
-                </p>
+
               </div>
             </div>
 
@@ -2985,11 +3143,10 @@ export default function WebQuotationManager({
                 </div>
 
                 {activeNegotiationNotice && (
-                  <div className={`p-3.5 mb-3 rounded-xl border flex items-center justify-between gap-3 text-xs font-semibold shadow-xs ${
-                    activeNegotiationNotice.type === 'approved'
-                      ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
-                      : 'bg-indigo-50 border-indigo-300 text-indigo-900'
-                  }`}>
+                  <div className={`p-3.5 mb-3 rounded-xl border flex items-center justify-between gap-3 text-xs font-semibold shadow-xs ${activeNegotiationNotice.type === 'approved'
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                    : 'bg-indigo-50 border-indigo-300 text-indigo-900'
+                    }`}>
                     <div className="flex items-center gap-2">
                       <span className="text-base">{activeNegotiationNotice.type === 'approved' ? '✅' : '🤝'}</span>
                       <span>{activeNegotiationNotice.message}</span>
@@ -4139,14 +4296,14 @@ export default function WebQuotationManager({
         </div>
       )}
 
-      
+
       {/* =========================================================================
           PRICE NEGOTIATION APPROVAL DESK MODAL (FOR ADMIN)
           ========================================================================= */}
       {negotiationModalLead && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-xl w-full p-6 sm:p-7 space-y-5 text-slate-800 animate-in fade-in zoom-in-95">
-            
+
             {/* Modal Header */}
             <div className="flex items-start justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-3">
@@ -4236,7 +4393,7 @@ export default function WebQuotationManager({
 
                   {/* Decision Choices */}
                   <div className="space-y-3.5 pt-1">
-                    
+
                     {/* Choice 1: Approve Customer Price */}
                     <div className="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/70 space-y-2.5">
                       <div>

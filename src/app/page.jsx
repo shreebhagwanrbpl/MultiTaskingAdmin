@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
@@ -46,6 +45,7 @@ import {
   PanelLeftOpen,
   RefreshCw,
   AlertCircle,
+  AlertTriangle,
   Wifi,
   WifiOff,
   Key,
@@ -59,7 +59,10 @@ import {
   LogOut,
   MapPin,
   UserCheck,
-  Lock
+  Lock,
+  Archive,
+  RotateCcw,
+  ShoppingCart
 } from 'lucide-react';
 import { PRODUCTS } from '../data/products';
 import ProductCatalogManager from './components/ProductCatalogManager';
@@ -67,6 +70,9 @@ import WebsiteHomepageManager from './components/WebsiteHomepageManager';
 import WebQuotationManager from './components/WebQuotationManager';
 import CustomerProfilesManager from './components/CustomerProfilesManager';
 import UserRoleManager from './components/UserRoleManager';
+import ExecutiveOverviewDashboard from './components/ExecutiveOverviewDashboard';
+import DeletedRecordsManager from './components/DeletedRecordsManager';
+import CartWatchlistManager from './components/CartWatchlistManager';
 import AuthScreen from './components/AuthScreen';
 import { useAuth } from '../lib/AuthContext';
 import { ALL_INDIAN_STATES, POPULAR_DISTRICT_HUBS } from '../data/indianDistricts';
@@ -227,7 +233,8 @@ export default function AdminDashboardPage({ searchParams }) {
   // Determine initial tab safely across SSR and Client Hydration
   const resolveInitialTab = () => {
     // 1. Check server-provided searchParams
-    if (searchParams?.tab && ['leads', 'customers', 'website', 'products', 'quotation', 'marketing', 'users'].includes(searchParams.tab)) {
+    if (searchParams?.tab === 'leads') return 'quotation';
+    if (searchParams?.tab && ['overview', 'customers', 'website', 'products', 'quotation', 'cart_watchlist', 'marketing', 'users', 'deleted'].includes(searchParams.tab)) {
       return searchParams.tab;
     }
     // 2. Check window location or localStorage on client
@@ -237,12 +244,13 @@ export default function AdminDashboardPage({ searchParams }) {
         const urlTab = urlParams.get('tab');
         const storedTab = window.localStorage.getItem('admin_active_tab');
         const chosen = urlTab || storedTab;
-        if (chosen && ['leads', 'customers', 'website', 'products', 'quotation', 'marketing', 'users'].includes(chosen)) {
+        if (chosen === 'leads') return 'quotation';
+        if (chosen && ['overview', 'customers', 'website', 'products', 'quotation', 'cart_watchlist', 'marketing', 'users', 'deleted'].includes(chosen)) {
           return chosen;
         }
       } catch (e) { }
     }
-    return 'leads';
+    return 'overview';
   };
 
   const [activeTab, setActiveTabRaw] = useState(resolveInitialTab);
@@ -419,8 +427,9 @@ export default function AdminDashboardPage({ searchParams }) {
         const urlParams = new URLSearchParams(window.location.search);
         const urlTab = urlParams.get('tab');
         const storedTab = window.localStorage.getItem('admin_active_tab');
-        const chosen = urlTab || (searchParams?.tab) || storedTab;
-        if (chosen && ['leads', 'customers', 'website', 'products', 'quotation', 'marketing', 'users'].includes(chosen)) {
+        let chosen = urlTab || (searchParams?.tab) || storedTab;
+        if (chosen === 'leads') chosen = 'quotation';
+        if (chosen && ['overview', 'customers', 'website', 'products', 'quotation', 'cart_watchlist', 'marketing', 'users', 'deleted'].includes(chosen)) {
           setActiveTabRaw(chosen);
           // Sync URL if tab parameter was missing so hard refresh always stays here
           const url = new URL(window.location.href);
@@ -437,8 +446,9 @@ export default function AdminDashboardPage({ searchParams }) {
     const handlePopState = () => {
       try {
         const urlParams = new URLSearchParams(window.location.search);
-        const urlTab = urlParams.get('tab');
-        if (urlTab && ['leads', 'customers', 'website', 'products', 'quotation', 'marketing', 'users'].includes(urlTab)) {
+        let urlTab = urlParams.get('tab');
+        if (urlTab === 'leads') urlTab = 'quotation';
+        if (urlTab && ['overview', 'customers', 'website', 'products', 'quotation', 'cart_watchlist', 'marketing', 'users', 'deleted'].includes(urlTab)) {
           setActiveTabRaw(urlTab);
         }
       } catch (e) { }
@@ -611,6 +621,11 @@ export default function AdminDashboardPage({ searchParams }) {
   const [leads, setLeads] = useState([]);
   const [customerProfilesCount, setCustomerProfilesCount] = useState(0);
 
+  // Inquiries Checkbox Selection & Permanent Deletion States
+  const [selectedLeadIds, setSelectedLeadIds] = useState([]);
+  const [deleteModalData, setDeleteModalData] = useState({ isOpen: false, leadIds: [], leadsInfo: [] });
+  const [isDeletingLeads, setIsDeletingLeads] = useState(false);
+
   // New Lead Alert System with 4-second Auto-Dismiss Timer
   const [newLeadAlerts, setNewLeadAlerts] = useState([]);
   const [alertCountdown, setAlertCountdown] = useState(4);
@@ -695,6 +710,8 @@ export default function AdminDashboardPage({ searchParams }) {
     loadCampaignsFromDb();
     loadCustomerProfilesCount();
     loadQuotations();
+    loadDeletedRecordsCount();
+    loadCartWatchlistCount();
 
     // Periodic 2-second polling to capture incoming leads and customer profile edits
     const pollTimer = setInterval(() => {
@@ -791,10 +808,37 @@ export default function AdminDashboardPage({ searchParams }) {
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed) && parsed.length > 0) return parsed;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     return [];
   });
+
+  const [deletedRecordsCount, setDeletedRecordsCount] = useState(0);
+  const [cartTotalBadge, setCartTotalBadge] = useState(4);
+
+  const loadCartWatchlistCount = async () => {
+    try {
+      const res = await fetch('/api/cart-watchlist');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.carts)) {
+        let count = 0;
+        data.carts.forEach(c => {
+          count += (c.cart || []).length;
+        });
+        setCartTotalBadge(count || data.carts.length);
+      }
+    } catch (e) {}
+  };
+
+  const loadDeletedRecordsCount = async () => {
+    try {
+      const res = await fetch('/api/deleted-records');
+      const data = await res.json();
+      if (data.success && typeof data.count === 'number') {
+        setDeletedRecordsCount(data.count);
+      }
+    } catch (e) { }
+  };
 
   const loadQuotations = async () => {
     try {
@@ -802,9 +846,9 @@ export default function AdminDashboardPage({ searchParams }) {
       const data = await res.json();
       if (data.success && Array.isArray(data.quotations)) {
         setQuotationsList(data.quotations);
-        try { localStorage.setItem('rbpl_cached_quotations', JSON.stringify(data.quotations)); } catch (e) {}
+        try { localStorage.setItem('rbpl_cached_quotations', JSON.stringify(data.quotations)); } catch (e) { }
       }
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const [customersList, setCustomersList] = useState(() => {
@@ -890,21 +934,120 @@ export default function AdminDashboardPage({ searchParams }) {
     );
   };
 
-  const handleDeleteLead = async (leadId) => {
-    if (!confirm(`Are you sure you want to remove inquiry ${leadId}?`)) return;
+  const handleSelectAllToggle = () => {
+    if (filteredLeads.length === 0) return;
+    if (selectedLeadIds.length === filteredLeads.length) {
+      setSelectedLeadIds([]);
+    } else {
+      setSelectedLeadIds(filteredLeads.map(l => l.id));
+    }
+  };
+
+  const handleRowSelectToggle = (leadId) => {
+    setSelectedLeadIds(prev =>
+      prev.includes(leadId) ? prev.filter(id => id !== leadId) : [...prev, leadId]
+    );
+  };
+
+  const openDeleteModalForSingle = (lead) => {
+    if (!lead) return;
+    setDeleteModalData({
+      isOpen: true,
+      leadIds: [lead.id],
+      leadsInfo: [lead]
+    });
+  };
+
+  const openDeleteModalForSelected = () => {
+    if (selectedLeadIds.length === 0) return;
+    const selectedObjects = leads.filter(l => selectedLeadIds.includes(l.id));
+    setDeleteModalData({
+      isOpen: true,
+      leadIds: selectedLeadIds,
+      leadsInfo: selectedObjects.length > 0 ? selectedObjects : selectedLeadIds.map(id => ({ id }))
+    });
+  };
+
+  const handleConfirmPermanentDelete = async () => {
+    if (!deleteModalData.leadIds || deleteModalData.leadIds.length === 0) return;
+    setIsDeletingLeads(true);
+
+    const idsToDelete = [...deleteModalData.leadIds];
     try {
-      const res = await fetch(`/api/leads?id=${encodeURIComponent(leadId)}`, {
-        method: 'DELETE'
+      const res = await fetch(`/api/leads?ids=${encodeURIComponent(idsToDelete.join(','))}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ids: idsToDelete,
+          deletedBy: {
+            name: user?.fullName || user?.name || 'Rajesh Sharma',
+            role: user?.roleBadge || user?.role || 'HQ Admin',
+            email: user?.email || 'rajesh@rajbiosis.com'
+          }
+        })
       });
       const data = await res.json();
-      if (data.success) {
-        setLeads(prev => prev.filter(l => l.id !== leadId));
-        knownLeadIdsRef.current.delete(leadId);
-        setNewLeadAlerts(prev => prev.filter(a => a.id !== leadId));
+
+      if (data.success || res.ok) {
+        // 1. Remove from local leads state (which immediately updates filteredLeads and both top cards)
+        setLeads(prev => prev.filter(l => !idsToDelete.includes(l.id) && (!l._id || !idsToDelete.includes(String(l._id)))));
+
+        // 2. Clear from selection
+        setSelectedLeadIds(prev => prev.filter(id => !idsToDelete.includes(id)));
+
+        // 3. Remove from known leads and alerts
+        idsToDelete.forEach(id => {
+          if (knownLeadIdsRef.current) knownLeadIdsRef.current.delete(id);
+        });
+        setNewLeadAlerts(prev => prev.filter(a => !idsToDelete.includes(a.id)));
+
+        // Clean up cached leads in localStorage so WebQuotationManager never restores them
+        if (typeof window !== 'undefined') {
+          try {
+            const cached = window.localStorage.getItem('rbpl_cached_leads');
+            if (cached) {
+              const parsed = JSON.parse(cached);
+              if (Array.isArray(parsed)) {
+                const cleaned = parsed.filter(l => !idsToDelete.includes(l.id) && (!l._id || !idsToDelete.includes(String(l._id))));
+                window.localStorage.setItem('rbpl_cached_leads', JSON.stringify(cleaned));
+              }
+            }
+          } catch (e) { }
+        }
+
+        // 4. Broadcast channel to inform WebQuotationManager and other tabs
+        try {
+          const channel = new BroadcastChannel('biomedical_leads_channel');
+          channel.postMessage({ type: 'LEADS_DELETED', ids: idsToDelete, leadIds: idsToDelete });
+          setTimeout(() => { try { channel.close(); } catch (e) { } }, 5000);
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem('biomedical_leads_deleted', JSON.stringify(idsToDelete));
+          }
+        } catch (e) { }
+
+        // 5. Close modal
+        loadDeletedRecordsCount(); // after delete
+        setDeleteModalData({ isOpen: false, leadIds: [], leadsInfo: [] });
+
+        // 6. Show success toast notification
+        setToastNotification({
+          title: 'Permanently Deleted!',
+          message: `${idsToDelete.length} inquiry(s) aur related records system aur database se permanently remove kar diye gaye hain.`
+        });
+      } else {
+        alert(data.error || 'Failed to delete inquiries. Please try again.');
       }
-    } catch (e) {
-      console.error('Delete lead err:', e);
+    } catch (err) {
+      console.error('Delete lead error:', err);
+      alert('Error during deletion: ' + err.message);
+    } finally {
+      setIsDeletingLeads(false);
     }
+  };
+
+  const handleDeleteLead = async (leadId) => {
+    const lead = leads.find(l => l.id === leadId);
+    openDeleteModalForSingle(lead || { id: leadId });
   };
 
   const isRecentLead = (lead) => {
@@ -1141,25 +1284,24 @@ export default function AdminDashboardPage({ searchParams }) {
           {/* Nav Items */}
           <nav className="p-2 space-y-1 text-xs font-semibold">
 
+            {/* Overview & Performance Intelligence Dashboard */}
             <button
-              onClick={() => setActiveTab('leads')}
-              title={`Central Leads & RFQ (${leads.length} Inquiries)`}
-              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer relative group ${activeTab === 'leads'
+              onClick={() => setActiveTab('overview')}
+              title="Overview & Performance Intelligence"
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer relative group ${activeTab === 'overview'
                 ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
                 : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
                 }`}
             >
               <span className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
-                <Inbox size={isSidebarCollapsed ? 19 : 16} />
-                {!isSidebarCollapsed && <span>Central Leads & RFQ</span>}
+                <LayoutDashboard size={isSidebarCollapsed ? 19 : 16} />
+                {!isSidebarCollapsed && <span>Overview</span>}
               </span>
               {isSidebarCollapsed ? (
-                leads.length > 0 && (
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-sky-500 rounded-full border border-white"></span>
-                )
+                <span className="absolute top-2 right-2 w-2 h-2 bg-sky-500 rounded-full border border-white"></span>
               ) : (
-                <span className="text-[10px] bg-sky-500 text-white font-bold px-1.5 py-0.5 rounded-full">
-                  {leads.length}
+                <span className="text-[10px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.2 rounded border border-sky-200">
+                  BI
                 </span>
               )}
             </button>
@@ -1222,8 +1364,13 @@ export default function AdminDashboardPage({ searchParams }) {
             </button>
 
             <button
-              onClick={() => setActiveTab('quotation')}
-              title="Web Quotation (4-Page Official PDF Generator)"
+              onClick={() => {
+                setActiveTab('quotation');
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new CustomEvent('reset_web_quotation_tab', { detail: 'leads' }));
+                }
+              }}
+              title={`Web Quotation & Incoming Leads (${leads.length} Pending)`}
               className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer relative group ${activeTab === 'quotation'
                 ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
                 : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
@@ -1234,10 +1381,70 @@ export default function AdminDashboardPage({ searchParams }) {
                 {!isSidebarCollapsed && <span>Web Quotation</span>}
               </span>
               {isSidebarCollapsed ? (
-                <span className="absolute top-2 right-2 w-2 h-2 bg-sky-600 rounded-full border border-white"></span>
+                leads.length > 0 ? (
+                  <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white animate-pulse"></span>
+                ) : (
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-sky-600 rounded-full border border-white"></span>
+                )
               ) : (
-                <span className="text-[10px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.2 rounded border border-sky-200">
-                  PDF
+                <div className="flex items-center gap-1.5">
+                  {leads.length > 0 && (
+                    <span className="text-[10px] bg-amber-500 text-white font-bold px-1.5 py-0.5 rounded-full shadow-2xs flex items-center gap-0.5 animate-pulse" title={`${leads.length} New Incoming Web Leads`}>
+                      <span>⚡</span>
+                      <span>{leads.length}</span>
+                    </span>
+                  )}
+                  <span className="text-[10px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.2 rounded border border-sky-200">
+                    PDF
+                  </span>
+                </div>
+              )}
+            </button>
+
+            {/* Add to Cart / Watchlist Products Tab */}
+            <button
+              onClick={() => setActiveTab('cart_watchlist')}
+              title={`Add to Cart / Watchlist Products (${cartTotalBadge})`}
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer relative group ${activeTab === 'cart_watchlist'
+                ? 'bg-amber-50 text-amber-700 font-semibold border border-amber-200/80 shadow-xs'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
+                }`}
+            >
+              <span className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+                <ShoppingCart size={isSidebarCollapsed ? 19 : 16} />
+                {!isSidebarCollapsed && <span>Add to Cart / Watchlist</span>}
+              </span>
+              {isSidebarCollapsed ? (
+                cartTotalBadge > 0 && (
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full border border-white"></span>
+                )
+              ) : (
+                <span className="text-[10px] bg-amber-100 text-amber-900 font-bold px-1.5 py-0.2 rounded border border-amber-200">
+                  {cartTotalBadge}
+                </span>
+              )}
+            </button>
+
+            {/* Deleted Records & Audit Trail Tab */}
+            <button
+              onClick={() => setActiveTab('deleted')}
+              title={`Deleted Records (${deletedRecordsCount})`}
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer relative group ${activeTab === 'deleted'
+                ? 'bg-rose-50 text-rose-700 font-semibold border border-rose-200/80 shadow-xs'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
+                }`}
+            >
+              <span className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+                <Archive size={isSidebarCollapsed ? 19 : 16} />
+                {!isSidebarCollapsed && <span>Deleted Records</span>}
+              </span>
+              {isSidebarCollapsed ? (
+                deletedRecordsCount > 0 && (
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>
+                )
+              ) : (
+                <span className="text-[10px] bg-rose-100 text-rose-800 font-bold px-1.5 py-0.2 rounded border border-rose-200">
+                  {deletedRecordsCount}
                 </span>
               )}
             </button>
@@ -1295,6 +1502,14 @@ export default function AdminDashboardPage({ searchParams }) {
             </button>
 
             <h1 className="text-base font-bold text-slate-800 flex items-center gap-2">
+              {activeTab === 'overview' && (
+                <>
+                  <span className="truncate">Performance Intelligence</span>
+                  <span className="text-[11px] font-bold font-mono px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-300 shadow-2xs shrink-0">
+                    Executive Overview
+                  </span>
+                </>
+              )}
               {activeTab === 'users' && (
                 <>
                   <span>Biomedical Team & Sales Territory Roles</span>
@@ -1303,38 +1518,27 @@ export default function AdminDashboardPage({ searchParams }) {
                   </span>
                 </>
               )}
-              {activeTab === 'leads' && (
-                <>
-                  <span className="truncate">Quotation Desk</span>
-                  <span className="text-[11px] font-bold font-mono px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-300 shadow-2xs shrink-0">
-                    {filteredLeads.length} Inquiries
-                  </span>
-                </>
-              )}
-
-
-              {activeTab === 'customers' && (
-                <>
-                  <span>Registered Customer Profiles</span>
-                  <span className="text-xs px-2 py-0.5 rounded-md font-mono bg-indigo-50 text-indigo-700 border border-indigo-200">
-                    {customerProfilesCount} Accounts
-                  </span>
-                </>
-              )}
-              {activeTab === 'marketing' && 'Multi-Brand Email Marketing Hub (Raj Biosis, Human & Global Bio)'}
-              {activeTab === 'website' && 'Website & Home Page CMS Builder'}
-              {activeTab === 'products' && (
-                <>
-                  <span>Catalog Manager</span>
-                  <span className="text-xs px-2 py-0.5 rounded-md font-mono bg-sky-50 text-sky-700 border border-sky-200">
-                    Live Synced
-                  </span>
-                </>
-              )}
               {activeTab === 'quotation' && (
                 <>
-                  <span>Web Quotation</span>
-
+                  <span className="truncate">Web Quotation &amp; Incoming Leads</span>
+                  {leads.length > 0 ? (
+                    <span className="text-[11px] font-bold font-mono px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs shrink-0 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                      <span>{leads.length} Incoming Leads</span>
+                    </span>
+                  ) : (
+                    <span className="text-[11px] font-bold font-mono px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-300 shadow-2xs shrink-0">
+                      Official PDF Desk
+                    </span>
+                  )}
+                </>
+              )}
+              {activeTab === 'cart_watchlist' && (
+                <>
+                  <span className="truncate">Add to Cart &amp; Watchlist Products</span>
+                  <span className="text-[11px] font-bold font-mono px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs shrink-0">
+                    Hospital Buyers
+                  </span>
                 </>
               )}
             </h1>
@@ -1576,12 +1780,15 @@ export default function AdminDashboardPage({ searchParams }) {
               <button
                 type="button"
                 onClick={() => {
-                  setActiveTab('leads');
+                  setActiveTab('quotation');
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('reset_web_quotation_tab', { detail: 'leads' }));
+                  }
                   setNewLeadAlerts([]);
                 }}
-                className="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
               >
-                <span>View Leads</span>
+                <span>Open in Web Quotation</span>
                 <ArrowRight size={13} />
               </button>
               <button
@@ -1598,6 +1805,19 @@ export default function AdminDashboardPage({ searchParams }) {
 
         {/* Dashboard Content Body */}
         <main className="p-6 space-y-6">
+
+          {/* TAB 0: EXECUTIVE PERFORMANCE & SYSTEM INTELLIGENCE OVERVIEW */}
+          {activeTab === 'overview' && (
+            <ExecutiveOverviewDashboard
+              leads={leads}
+              quotations={quotationsList}
+              customers={customersList}
+              sites={sites}
+              products={PRODUCTS}
+              user={user}
+              onNavigateTab={setActiveTab}
+            />
+          )}
 
           {/* Quick Metrics Bar (Dynamic for Marketing or Sites) */}
           {activeTab === 'marketing' ? (
@@ -1645,350 +1865,9 @@ export default function AdminDashboardPage({ searchParams }) {
                   <CheckCheck size={20} />
                 </div>
               </div>
-            </div>) : activeTab === 'leads' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs hover:shadow-sm transition flex items-center justify-between">
-                  <div>
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Hospital RFQs & Leads</span>
-                    <span className="text-2xl font-bold text-slate-800">{filteredLeads.length} <span className="text-xs font-semibold text-emerald-600">{filteredLeads.length > 0 ? 'Live Inquiries' : 'No Inquiries Yet'}</span></span>
-                    <span className="text-[11px] text-slate-400 block mt-0.5">Direct MongoDB RFQ Inquiries</span>
-                  </div>
-                  <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-                    <Inbox size={22} />
-                  </div>
-                </div>
+            </div>) : null}
 
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs hover:shadow-sm transition flex items-center justify-between">
-                  <div>
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Quotation Pipeline</span>
-                    <span className="text-2xl font-bold text-slate-800">{formattedPipeline}</span>
-                    <span className="text-[11px] text-slate-400 block mt-0.5">{filteredLeads.length} Active Quotes In Pipeline</span>
-                  </div>
-                  <div className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-                    <FileText size={22} />
-                  </div>
-                </div>
-              </div>
-            ) : null}
 
-          {/* =========================================================================
-              TAB 2: CENTRAL LEADS & RFQ INQUIRIES DESK
-              ========================================================================= */}
-          {activeTab === 'leads' && (
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-xs overflow-hidden space-y-4">
-              {/* Filter & Subtab Bar */}
-              <div className="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center gap-3 flex-wrap">
-                  {/* Desk Mode Switcher */}
-                  <div className="flex items-center p-1 bg-slate-100 rounded-xl">
-                    <button
-                      type="button"
-                      className="px-3 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-800 shadow-xs"
-                    >
-                      📋 Hospital RFQs & Leads ({filteredLeads.length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('customers')}
-                      className="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-500 hover:text-slate-800 transition cursor-pointer flex items-center gap-1.5"
-                    >
-                      <span>👥 Registered Profiles ({customerProfilesCount})</span>
-                      <ArrowRight size={12} />
-                    </button>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <label className="text-xs font-semibold text-slate-400">Website:</label>
-                    <select
-                      value={leadFilterDomain}
-                      onChange={(e) => setLeadFilterDomain(e.target.value)}
-                      className="bg-slate-50/80 border border-slate-200/80 rounded-xl px-3 py-1.5 text-xs text-slate-700 font-mono outline-none focus:bg-white focus:border-sky-400"
-                    >
-                      <option value="all">All Source Websites ({leads.length})</option>
-                      {availableLeadDomains.map(d => {
-                        const siteObj = sites.find(s => s.domain === d);
-                        return (
-                          <option key={d} value={d}>
-                            {siteObj?.brandName ? `${siteObj.brandName} (${d})` : d}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => loadLeadsFromDb()}
-                    className="text-xs py-1.5 px-3 bg-white border border-slate-200/80 text-slate-600 hover:bg-slate-50 rounded-xl font-medium flex items-center gap-1.5 transition shadow-xs cursor-pointer"
-                    title="Refresh leads list"
-                  >
-                    <RefreshCw size={13} />
-                    <span>Refresh</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      const csvContent = "data:text/csv;charset=utf-8," +
-                        ["Ref,Date,Website,Hospital,Doctor,Phone,Equipment,Amount,Status"]
-                          .concat(filteredLeads.map(l => `"${l.id}","${l.date || ''}","${l.siteDomain || ''}","${(l.hospital || '').replace(/"/g, '""')}","${(l.doctorName || l.contact || '').replace(/"/g, '""')}","${l.phone || ''}","${(l.equipment || '').replace(/"/g, '""')}","${(l.quoteAmount || l.amount || '').replace(/"/g, '""')}","${l.status || ''}"`))
-                          .join("\n");
-                      const encodedUri = encodeURI(csvContent);
-                      const link = document.createElement("a");
-                      link.setAttribute("href", encodedUri);
-                      link.setAttribute("download", `Hospital_Leads_${new Date().toISOString().slice(0, 10)}.csv`);
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
-                    }}
-                    className="text-xs py-1.5 px-3 bg-white border border-slate-200/80 text-slate-600 hover:bg-slate-50 rounded-xl font-medium flex items-center gap-1.5 transition shadow-xs cursor-pointer"
-                  >
-                    <Download size={13} />
-                    <span>Export CSV</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Leads Table - Always Sorted Newest First */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wider text-[10px] bg-slate-50/50">
-                      <th className="py-3 px-4">Ref & Date</th>
-                      <th className="py-3 px-4">Source Website</th>
-                      <th className="py-3 px-4">Hospital & Doctor</th>
-                      <th className="py-3 px-4">Requested Hardware</th>
-                      <th className="py-3 px-4">Quotation Value</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100/70 font-medium text-slate-600">
-                    {filteredLeads.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} className="py-12 text-center">
-                          <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
-                            <Inbox size={22} />
-                          </div>
-                          <h4 className="text-sm font-bold text-slate-700">No Hospital Quotation Inquiries Yet</h4>
-                          <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1">
-                            When doctors, hospital purchase officers, or clinic heads request quotes on any connected website, inquiries will be registered here directly in MongoDB.
-                          </p>
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredLeads.map((lead) => {
-                        const isRecent = isRecentLead(lead);
-                        const phoneClean = (lead.phone || '').replace(/\D/g, '');
-                        return (
-                          <tr key={lead.id} className={`transition ${isRecent ? 'bg-amber-50/50 hover:bg-amber-50/80' : 'hover:bg-sky-50/30'}`}>
-                            <td className="py-3 px-4">
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-mono font-bold text-slate-800 block">{lead.id}</span>
-                                {isRecent && (
-                                  <span className="text-[9px] bg-rose-500 text-white font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider animate-pulse">
-                                    NEW
-                                  </span>
-                                )}
-                              </div>
-                              <span className="text-[10px] text-slate-500 font-mono block mt-0.5">
-                                {lead.dateTime || (lead.createdAt ? new Date(lead.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : (lead.date || 'Recent'))}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4">
-                              <span className="px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-100 font-mono text-[11px] font-medium">
-                                {lead.siteDomain || 'rajbiosis.com'}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4">
-                              <div className="font-bold text-slate-800 text-xs flex items-center gap-1.5 flex-wrap">
-                                <span>{lead.hospital || lead.hospitalName || 'Healthcare Facility'}</span>
-                                {isLeadProfileComplete(lead) ? (
-                                  <span className="text-[9px] bg-emerald-50 text-emerald-800 font-bold px-1.5 py-0.5 rounded border border-emerald-300">
-                                    Profile Complete
-                                  </span>
-                                ) : (
-                                  <span className="text-[9px] bg-amber-50 text-amber-800 font-bold px-1.5 py-0.5 rounded border border-amber-300">
-                                    Profile Incomplete
-                                  </span>
-                                )}
-                              </div>
-                              <span className="text-[11px] text-slate-600 font-medium block">
-                                {lead.doctorName || lead.customerName || lead.contact || 'Medical Representative'}
-                              </span>
-                              <span className="text-[10px] text-slate-400 font-mono">{lead.phone || lead.mobile || '-'}</span>
-                            </td>
-                            <td className="py-3 px-4">
-                              <span className="text-slate-800 font-medium">
-                                {lead.equipment || lead.productName || 'Biomedical Equipment'}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4">
-                              {lead.isPriceNegotiated ? (
-                                <div>
-                                  {lead.negotiationStatus === 'approved' ? (
-                                    <div>
-                                      <span className="text-emerald-700 font-bold text-sm font-mono block">
-                                        ₹{(lead.approvedPrice || lead.price || 0).toLocaleString('en-IN')}
-                                      </span>
-                                      <span className="text-[10px] text-slate-400 line-through font-mono block">
-                                        GeM: ₹{(lead.actualPrice || 150000).toLocaleString('en-IN')}
-                                      </span>
-                                    </div>
-                                  ) : lead.negotiationStatus === 'counter_offered' ? (
-                                    <div>
-                                      <span className="text-indigo-700 font-bold text-sm font-mono block">
-                                        ₹{(lead.adminCounterPrice || lead.price || 0).toLocaleString('en-IN')}
-                                      </span>
-                                      <span className="text-[10px] text-slate-500 font-mono block">
-                                        Offered: ₹{(lead.expectedPrice || lead.price || 0).toLocaleString('en-IN')}
-                                      </span>
-                                    </div>
-                                  ) : (
-                                    <div>
-                                      <span className="text-amber-700 font-bold text-sm font-mono block">
-                                        ₹{(lead.expectedPrice || lead.price || 0).toLocaleString('en-IN')}
-                                      </span>
-                                      <span className="text-[10px] text-slate-400 font-mono block">
-                                        GeM MRP: ₹{(lead.actualPrice || 150000).toLocaleString('en-IN')}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                              ) : (
-                                <span className="text-emerald-600 font-bold text-sm font-mono">
-                                  {lead.quoteAmount || lead.amount || '₹0'}
-                                </span>
-                              )}
-                            </td>
-                            <td className="py-3 px-4">
-                              {lead.isPriceNegotiated ? (
-                                lead.negotiationStatus === 'approved' ? (
-                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 flex items-center gap-1 w-fit">
-                                    <CheckCircle2 size={10} className="text-emerald-600" />
-                                    <span>Price Approved</span>
-                                  </span>
-                                ) : lead.negotiationStatus === 'counter_offered' ? (
-                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-800 border border-indigo-300 flex items-center gap-1 w-fit">
-                                    <span>🤝 Counter Offered</span>
-                                  </span>
-                                ) : (
-                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300 flex items-center gap-1 w-fit animate-pulse">
-                                    <Clock size={10} className="text-amber-600" />
-                                    <span>Awaiting Approval</span>
-                                  </span>
-                                )
-                              ) : (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/70">
-                                  {lead.status || 'Pending RFQ'}
-                                </span>
-                              )}
-                            </td>
-                            <td className="py-3 px-4 text-right">
-                              <div className="flex items-center justify-end gap-1.5 flex-wrap">
-                                {lead.isPriceNegotiated && lead.negotiationStatus === 'pending_approval' ? (
-                                  !isAdmin ? (
-                                    <button
-                                      type="button"
-                                      onClick={() => handleRequestAdminApproval(lead)}
-                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition shadow-xs cursor-pointer shrink-0 hover:scale-105 active:scale-95"
-                                      title="Negotiated price requires Admin approval"
-                                    >
-                                      <Lock size={12} className="text-amber-100" />
-                                      <span>Request Admin Approval</span>
-                                    </button>
-                                  ) : (
-                                    <button
-                                      type="button"
-                                      onClick={() => openNegotiationModal(lead)}
-                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-700 hover:to-rose-700 text-white text-xs font-bold transition shadow-xs cursor-pointer shrink-0 animate-pulse hover:scale-105 active:scale-95"
-                                      title="Review Customer Expected Price vs Actual MRP and Approve or Counter"
-                                    >
-                                      <ShieldCheck size={12} className="text-amber-200" />
-                                      <span>Review & Approve Price</span>
-                                    </button>
-                                  )
-                                ) : isLeadProfileComplete(lead) || lead.quotationRef ? (
-                                  <div className="flex items-center gap-1">
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        if (typeof window !== 'undefined') {
-                                          try {
-                                            localStorage.setItem('active_quotation_lead', JSON.stringify(lead));
-                                          } catch (e) { }
-                                        }
-                                        setActiveTab('quotation');
-                                      }}
-                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold transition shadow-xs cursor-pointer shrink-0 hover:scale-105 active:scale-95"
-                                      title="Click to view and edit 4-page official quotation PDF"
-                                    >
-                                      <Sparkles size={12} className="text-amber-200" />
-                                      <span>
-                                        {lead.negotiationStatus === 'approved'
-                                          ? `Make Quotation (Approved: ₹${(lead.approvedPrice || lead.price)?.toLocaleString('en-IN')})`
-                                          : lead.negotiationStatus === 'counter_offered'
-                                            ? `Make Quotation (Counter: ₹${(lead.adminCounterPrice || lead.price)?.toLocaleString('en-IN')})`
-                                            : lead.quotationRef
-                                              ? `View Stamped PDF (${lead.quotationRef})`
-                                              : 'Make Quotation'}
-                                      </span>
-                                    </button>
-                                    {isAdmin && lead.isPriceNegotiated && (
-                                      <button
-                                        type="button"
-                                        onClick={() => openNegotiationModal(lead)}
-                                        className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition cursor-pointer"
-                                        title="Adjust price approval or counter offer"
-                                      >
-                                        <Edit3 size={13} />
-                                      </button>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <div
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold shadow-2xs"
-                                    title="Customer profile incomplete. Ask customer to complete profile on website."
-                                  >
-                                    <AlertCircle size={13} className="text-amber-600 shrink-0" />
-                                    <span>Ask customer to complete profile to generate quotation</span>
-                                  </div>
-                                )}
-
-                                {lead.phone && (
-                                  <>
-                                    <a
-                                      href={`tel:${lead.phone}`}
-                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold transition shadow-xs"
-                                      title="Call Direct"
-                                    >
-                                      <PhoneCall size={12} />
-                                      <span>Call</span>
-                                    </a>
-                                    {phoneClean && (
-                                      <a
-                                        href={`https://wa.me/91${phoneClean.slice(-10)}?text=${encodeURIComponent(`Hello Dr. ${lead.doctorName || lead.customerName || ''}, regarding your quotation inquiry for ${lead.equipment || 'hospital equipment'} with Raj Biosis:`)}`}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="inline-flex items-center p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition"
-                                        title="WhatsApp Message"
-                                      >
-                                        <MessageCircle size={13} />
-                                      </a>
-                                    )}
-                                  </>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
 
           {/* =========================================================================
               TAB: REGISTERED CUSTOMER PROFILES & HOSPITAL DIRECTORY
@@ -2023,6 +1902,25 @@ export default function AdminDashboardPage({ searchParams }) {
               ========================================================================= */}
           {activeTab === 'quotation' && (
             <WebQuotationManager products={PRODUCTS} initialLeads={leads} initialQuotations={quotationsList} initialCustomers={customersList} />
+          )}
+
+          {/* =========================================================================
+              TAB: CUSTOMER ADD TO CART & WATCHLIST PRODUCTS DESK
+              ========================================================================= */}
+          {activeTab === 'cart_watchlist' && (
+            <CartWatchlistManager onNavigateTab={setActiveTab} />
+          )}
+
+          {/* TAB: DELETED RECORDS & AUDIT TRAIL VAULT */}
+          {activeTab === 'deleted' && (
+            <DeletedRecordsManager
+              user={user}
+              onRecordRestored={() => {
+                loadLeadsFromDb();
+                loadQuotations();
+                loadDeletedRecordsCount();
+              }}
+            />
           )}
 
 
@@ -2772,6 +2670,91 @@ export default function AdminDashboardPage({ searchParams }) {
                     </div>
                   );
                 })()}
+
+              </div>
+            </div>
+          )}
+
+          {/* Permanent Delete Confirmation Modal */}
+          {deleteModalData.isOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+              <div className="bg-white rounded-3xl shadow-2xl border border-rose-100 max-w-lg w-full p-6 space-y-5 animate-in zoom-in-95 duration-200">
+
+                {/* Header with Danger Icon */}
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 shadow-xs">
+                    <Trash2 size={24} className="animate-bounce" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-rose-100 text-rose-700 mb-1">
+                      Permanent Action
+                    </span>
+                    <h3 className="text-lg font-bold text-slate-900">
+                      Ye delete ho jayega permanently
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                      Kya aap sach me ise delete karna chahte hain? Ye inquiry, iski official quotation, PDF history aur saare records MongoDB aur pure system se permanently remove ho jayenge.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Selected Items Summary / Preview */}
+                <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3.5 max-h-48 overflow-y-auto space-y-2">
+                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-1">
+                    Items to be deleted ({deleteModalData.leadIds.length}):
+                  </div>
+                  {deleteModalData.leadsInfo.map((l, idx) => (
+                    <div key={l.id || idx} className="bg-white p-2.5 rounded-xl border border-slate-200/80 flex items-center justify-between text-xs">
+                      <div className="min-w-0 pr-2">
+                        <span className="font-mono font-bold text-slate-800 block text-[11px]">{l.id}</span>
+                        <span className="text-slate-600 font-semibold truncate block text-[11px]">
+                          {l.hospital || l.hospitalName || 'Healthcare Facility'} — {l.doctorName || l.contact || 'Doctor'}
+                        </span>
+                        <span className="text-slate-400 text-[10px] block truncate">
+                          {l.equipment || l.productName || 'Equipment'}
+                        </span>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className="font-mono font-bold text-slate-700 text-xs block">
+                          {l.quoteAmount || l.amount || '₹0'}
+                        </span>
+                        <span className="text-[9px] text-slate-400 font-mono block">
+                          {l.siteDomain || 'rajbiosis.com'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setDeleteModalData({ isOpen: false, leadIds: [], leadsInfo: [] })}
+                    disabled={isDeletingLeads}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmPermanentDelete}
+                    disabled={isDeletingLeads}
+                    className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:scale-95 shadow-md shadow-rose-200 transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {isDeletingLeads ? (
+                      <>
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Deleting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 size={14} />
+                        <span>Haan, Permanently Delete Karein</span>
+                      </>
+                    )}
+                  </button>
+                </div>
 
               </div>
             </div>
