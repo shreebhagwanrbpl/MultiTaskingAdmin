@@ -505,64 +505,7 @@ export default function WebsiteDomainPreviewPage(props) {
     const prodTitle = rfqProduct?.name || 'Institutional Medical Devices & Equipment Batch';
     const prodSku = rfqProduct?.sku || 'BATCH-INSTITUTIONAL';
 
-    // 1. Official Quotation Object
-    const quotationPayload = {
-      id: quotationId,
-      refNo,
-      date: `${dd}.${mm}.${yyyy}`,
-      customerName: hospName,
-      customerAddress1: [
-        `Attn: ${docName}`,
-        rfqPhone ? `Mob: ${rfqPhone}` : ''
-      ].filter(Boolean).join(', '),
-      customerAddress2: [
-        cityName,
-        rfqEmail ? `Email: ${rfqEmail}` : ''
-      ].filter(Boolean).join(' • '),
-      hospitalName: hospName,
-      doctorName: docName,
-      phone: rfqPhone || '',
-      email: rfqEmail || '',
-      city: cityName,
-      address: cityName,
-      subjectLetter: `Quotation purchase of ${prodTitle}`,
-      subjectQuotation: `Purchase of ${prodTitle}${prodSku ? `, Model: ${prodSku}` : ''}`,
-      signatory: {
-        name: 'Bhupender Raj',
-        role: 'Sales & Mkt. Head',
-        company: site?.brandName ? `${site.brandName} (Raj Biosis Pvt Ltd.)` : 'Raj Biosis Pvt Ltd.',
-        address1: 'B-7, Aman Plaza, Plot No. 26,',
-        address2: 'Heera Nagar-A, Chitrakoot',
-        city: 'Jaipur-302021 Rajasthan',
-        phone: '+91-998-3333-469'
-      },
-      items: [
-        {
-          id: `item-1`,
-          sr: 1,
-          itemCode: prodSku,
-          title: prodTitle,
-          bullets: bulletsList.join('\n'),
-          qty: numQty,
-          unitLabel: 'No',
-          unitPrice: leadPrice,
-          totalPrice: itemTotal
-        }
-      ],
-      subtotal: itemTotal,
-      taxMode: 'inclusive',
-      taxAmount: 0,
-      grandTotal: itemTotal,
-      amountInWords: numberToWordsIndian(itemTotal),
-      source: 'website_rfq',
-      sourceDomain: site.domain,
-      brandName: site.brandName,
-      leadId: leadId,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    // 2. Central Lead Object
+    // 1. Central Lead Object (Pure lead entry — NO quotation is generated automatically!)
     const leadPayload = {
       id: leadId,
       doctorName: docName,
@@ -594,9 +537,10 @@ export default function WebsiteDomainPreviewPage(props) {
       sourceDomain: site.domain,
       siteDomain: site.domain,
       brandName: site.brandName,
-      status: isPriceNegotiated ? 'Pending Price Approval' : 'Quote Generated',
-      quotationId: isPriceNegotiated ? null : quotationId,
-      quotationRef: isPriceNegotiated ? null : refNo,
+      status: isPriceNegotiated ? 'Pending Price Approval' : 'New RFQ',
+      quotationId: null,
+      quotationRef: null,
+      isQuotationCreated: false,
       isProfileComplete: true,
       quantity: `${numQty} Unit${numQty > 1 ? 's' : ''}`,
       customerNote: rfqCustomerNote || '',
@@ -604,7 +548,7 @@ export default function WebsiteDomainPreviewPage(props) {
       date: 'Just now'
     };
 
-    // 3. Customer Profile Payload
+    // 2. Customer Profile Payload
     const customerPayload = {
       fullName: docName,
       hospitalName: hospName,
@@ -617,50 +561,45 @@ export default function WebsiteDomainPreviewPage(props) {
       brandName: site.brandName
     };
 
-    // 4. INSTANT ZERO-LATENCY BROADCAST TO ADMIN DESK (Fired immediately in 0ms)
+    // 3. INSTANT ZERO-LATENCY BROADCAST TO ADMIN DESK (LEAD ONLY)
     try {
       if (typeof window !== 'undefined') {
         // BroadcastChannel across tabs
         try {
           const channel = new BroadcastChannel('biomedical_leads_channel');
-          channel.postMessage({ type: 'NEW_WEB_QUOTATION', quotation: quotationPayload, lead: leadPayload });
-          channel.postMessage({ type: 'NEW_WEB_LEAD', lead: leadPayload, quotation: quotationPayload });
+          channel.postMessage({ type: 'NEW_WEB_LEAD', lead: leadPayload });
           setTimeout(() => { try { channel.close(); } catch(e){} }, 15000);
         } catch(bcErr) {}
 
         // LocalStorage for cross-window and hard reload sync
         try {
-          localStorage.setItem('latest_web_quotation', JSON.stringify({ ...quotationPayload, ts: Date.now() }));
           localStorage.setItem('latest_web_lead', JSON.stringify({ ...leadPayload, ts: Date.now() }));
         } catch(lsErr) {}
 
         // Iframe parent communication
         try {
           if (window.parent && window.parent !== window) {
-            window.parent.postMessage({ type: 'NEW_WEB_QUOTATION', quotation: quotationPayload, lead: leadPayload }, '*');
-            window.parent.postMessage({ type: 'NEW_WEB_LEAD', lead: leadPayload, quotation: quotationPayload }, '*');
+            window.parent.postMessage({ type: 'NEW_WEB_LEAD', lead: leadPayload }, '*');
           }
         } catch(ipErr) {}
 
         // Window opener communication (if opened in separate tab)
         try {
           if (window.opener) {
-            window.opener.postMessage({ type: 'NEW_WEB_QUOTATION', quotation: quotationPayload, lead: leadPayload }, '*');
-            window.opener.postMessage({ type: 'NEW_WEB_LEAD', lead: leadPayload, quotation: quotationPayload }, '*');
+            window.opener.postMessage({ type: 'NEW_WEB_LEAD', lead: leadPayload }, '*');
           }
         } catch(opErr) {}
 
         // Same-window CustomEvent dispatch
         try {
-          window.dispatchEvent(new CustomEvent('new_web_quotation', { detail: quotationPayload }));
           window.dispatchEvent(new CustomEvent('new_web_lead', { detail: leadPayload }));
         } catch(ceErr) {}
       }
     } catch (instantErr) {
-      console.warn('Instant quotation broadcast error:', instantErr);
+      console.warn('Instant lead broadcast error:', instantErr);
     }
 
-    // 5. Persist to API endpoints in background (Quotations + Leads + Customers)
+    // 4. Persist to API endpoints in background (Leads + Customers — Never auto-create quotation!)
     try {
       const promises = [
         fetch('/api/leads', {
@@ -674,17 +613,6 @@ export default function WebsiteDomainPreviewPage(props) {
           body: JSON.stringify(customerPayload)
         })
       ];
-      // Only persist to /api/quotations if price is standard catalog (NOT negotiated).
-      // If price is negotiated, wait until Admin approves and sales employee clicks 'Make Quotation'!
-      if (!isPriceNegotiated) {
-        promises.push(
-          fetch('/api/quotations', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(quotationPayload)
-          })
-        );
-      }
       await Promise.allSettled(promises);
       setRfqSuccess(true);
     } catch (err) {

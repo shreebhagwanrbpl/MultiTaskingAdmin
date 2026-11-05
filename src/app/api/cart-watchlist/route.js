@@ -11,27 +11,41 @@ export const CORS_HEADERS = {
 
 const CARTS_FILE = path.join(process.cwd(), 'src', 'data', 'customer_carts.json');
 
+// Helper to filter out static fake mockup accounts
+function isDynamicCustomer(c) {
+  if (!c) return false;
+  const phone = (c.phone || '').replace(/\D/g, '');
+  const id = c.customerId || c.id || '';
+  // Exclude static test phones / IDs
+  if (['9821055443', '9811244321', '9844022331'].some(p => phone.includes(p))) return false;
+  if (['cust-9821055443', 'cust-9811244321', 'cust-9844022331'].includes(id)) return false;
+  return true;
+}
+
 function readLocalCarts() {
   try {
     if (fs.existsSync(CARTS_FILE)) {
       const content = fs.readFileSync(CARTS_FILE, 'utf-8');
       const parsed = JSON.parse(content);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed)) {
+        return parsed.filter(isDynamicCustomer);
+      }
     }
   } catch (e) {
     console.warn('Failed to read local customer carts:', e.message);
   }
-  return global._biomedical_customer_carts && Array.isArray(global._biomedical_customer_carts)
-    ? global._biomedical_customer_carts
+  return (global._biomedical_customer_carts && Array.isArray(global._biomedical_customer_carts))
+    ? global._biomedical_customer_carts.filter(isDynamicCustomer)
     : [];
 }
 
 function writeLocalCarts(list) {
-  global._biomedical_customer_carts = list;
+  const dynamicOnly = (list || []).filter(isDynamicCustomer);
+  global._biomedical_customer_carts = dynamicOnly;
   try {
     const dir = path.dirname(CARTS_FILE);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(CARTS_FILE, JSON.stringify(list, null, 2), 'utf-8');
+    fs.writeFileSync(CARTS_FILE, JSON.stringify(dynamicOnly, null, 2), 'utf-8');
   } catch (e) {
     console.warn('Failed to write local customer carts:', e.message);
   }
@@ -53,31 +67,51 @@ export async function GET(request) {
     const collection = db.collection('customer_carts');
     const mongoCarts = await collection.find({}).toArray();
 
-    const map = new Map();
-    localList.forEach(c => map.set(c.customerId || c.phone, c));
-    mongoCarts.forEach(c => map.set(c.customerId || c.phone, { ...c, _id: String(c._id) }));
+    // Check storewide offers collection
+    let storewideOffer = null;
+    try {
+      const storewideCol = db.collection('storewide_offers');
+      storewideOffer = await storewideCol.findOne({ active: true });
+      if (storewideOffer && storewideOffer.validTill && new Date(storewideOffer.validTill) < new Date()) {
+        storewideOffer = null;
+      }
+    } catch (e) {}
 
-    const merged = Array.from(map.values());
-    writeLocalCarts(merged);
+    // Use MongoDB carts as single source of truth when available
+    const dynamicList = (mongoCarts && mongoCarts.length > 0)
+      ? mongoCarts.filter(isDynamicCustomer).map(c => ({ ...c, _id: String(c._id) }))
+      : localList.filter(isDynamicCustomer);
+
+    writeLocalCarts(dynamicList);
 
     if (customerId || phone) {
       const cleanPhone = (phone || '').replace(/\D/g, '').slice(-10);
-      const match = merged.find(c => 
+      const match = dynamicList.find(c => 
         (customerId && (c.customerId === customerId || c.id === customerId)) ||
         (cleanPhone && (c.phone || '').replace(/\D/g, '').includes(cleanPhone))
       );
+
+      // If customer found, attach storewide offer fallback if customer has no active offer
+      const resultCart = match ? {
+        ...match,
+        activeOffer: match.activeOffer || (storewideOffer ? storewideOffer : null),
+        storewideOffer: storewideOffer
+      } : null;
+
       return NextResponse.json({
         success: true,
         source: 'mongodb',
-        customerCart: match || null
+        customerCart: resultCart,
+        storewideOffer: storewideOffer
       }, { headers: CORS_HEADERS });
     }
 
     return NextResponse.json({
       success: true,
       source: 'mongodb',
-      count: merged.length,
-      carts: merged
+      count: dynamicList.length,
+      carts: dynamicList,
+      storewideOffer: storewideOffer
     }, { headers: CORS_HEADERS });
   } catch (e) {
     if (customerId || phone) {
@@ -105,18 +139,219 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { action, customerId, phone, customerData, product, productId, quantity = 1, listType = 'cart' } = body;
+    const {
+      action,
+      customerId,
+      phone,
+      customerData,
+      product,
+      productId,
+      quantity = 1,
+      listType = 'cart',
+      targetAudience = 'single',
+      offer,
+      sendEmail = false,
+      sentBy = 'Rajesh (HQ Admin)'
+    } = body;
 
     let currentList = readLocalCarts();
+
+    // =========================================================================
+    // ACTION: CREATE & SEND OFFER (Supports Single Customer & All Customers)
+    // =========================================================================
+    if (action === 'create_and_send_offer' || action === 'broadcast_offer') {
+      const offerData = {
+        ...offer,
+        offerId: offer?.offerId || `OFFER-${Date.now().toString().slice(-6)}`,
+        status: 'sent',
+        sentAt: new Date().toISOString(),
+        sentBy: sentBy,
+        targetAudience: targetAudience || (customerId === 'all' ? 'all' : 'single')
+      };
+
+      if (targetAudience === 'all' || customerId === 'all') {
+        // Broadcast offer to ALL customers
+        currentList = currentList.map(c => ({
+          ...c,
+          activeOffer: offerData,
+          offer: offerData,
+          offersHistory: [offerData, ...(c.offersHistory || [])]
+        }));
+        writeLocalCarts(currentList);
+
+        try {
+          const db = await getDatabase();
+          const collection = db.collection('customer_carts');
+          await collection.updateMany(
+            {},
+            {
+              $set: { activeOffer: offerData, offer: offerData },
+              $push: { offersHistory: { $each: [offerData], $position: 0 } }
+            }
+          );
+
+          // Save to storewide_offers collection
+          const storewideCol = db.collection('storewide_offers');
+          await storewideCol.updateOne(
+            { id: 'global_active_offer' },
+            {
+              $set: {
+                id: 'global_active_offer',
+                ...offerData,
+                active: true,
+                updatedAt: new Date().toISOString()
+              }
+            },
+            { upsert: true }
+          );
+
+          // Record in campaigns audit
+          const campaignsCol = db.collection('campaigns');
+          await campaignsCol.insertOne({
+            id: `CAMP-${offerData.offerId}`,
+            company: 'Raj Biosis Private Limited',
+            companyId: 'rajbiosis',
+            subject: `Broadcast Special Offer: ${offerData.title} to All Customers`,
+            audience: `All ${currentList.length} Active Customers`,
+            sentAt: 'Just now',
+            openRate: 'Delivered',
+            status: 'Delivered',
+            recipients: currentList.length,
+            offerDetails: offerData,
+            createdAt: new Date().toISOString()
+          });
+        } catch (dbErr) {
+          console.warn('Broadcast offer DB error:', dbErr.message);
+        }
+
+        return NextResponse.json({
+          success: true,
+          message: `Offer "${offerData.title}" broadcasted to all ${currentList.length} customers successfully`,
+          offer: offerData,
+          affectedCustomers: currentList.length
+        }, { headers: CORS_HEADERS });
+      } else {
+        // Single customer offer
+        const cleanPhone = (phone || customerData?.phone || '').replace(/\D/g, '').slice(-10);
+        const idx = currentList.findIndex(c => 
+          (customerId && (c.customerId === customerId || c.id === customerId)) ||
+          (cleanPhone && (c.phone || '').replace(/\D/g, '').includes(cleanPhone))
+        );
+
+        if (idx >= 0) {
+          const target = currentList[idx];
+          target.activeOffer = offerData;
+          target.offer = offerData;
+          target.offersHistory = target.offersHistory || [];
+          target.offersHistory.unshift(offerData);
+          target.updatedAt = new Date().toISOString();
+          currentList[idx] = target;
+          writeLocalCarts(currentList);
+
+          try {
+            const db = await getDatabase();
+            const collection = db.collection('customer_carts');
+            await collection.updateOne(
+              { $or: [{ customerId: target.customerId }, { phone: target.phone }] },
+              { $set: target },
+              { upsert: true }
+            );
+
+            if (sendEmail && target.email) {
+              const campaignsCol = db.collection('campaigns');
+              await campaignsCol.insertOne({
+                id: `CAMP-${offerData.offerId}`,
+                company: 'Raj Biosis Private Limited',
+                companyId: 'rajbiosis',
+                subject: `Special Offer: ${offerData.title} for ${target.customerName}`,
+                audience: `${target.customerName} (${target.hospitalName})`,
+                sentAt: 'Just now',
+                openRate: 'Delivered',
+                status: 'Delivered',
+                recipients: 1,
+                offerDetails: offerData,
+                createdAt: new Date().toISOString()
+              });
+            }
+          } catch (dbErr) {
+            console.warn('Single offer DB error:', dbErr.message);
+          }
+
+          return NextResponse.json({
+            success: true,
+            message: `Offer sent to ${target.customerName} successfully`,
+            customerCart: target,
+            offer: offerData
+          }, { headers: CORS_HEADERS });
+        }
+      }
+    }
+
+    // =========================================================================
+    // ACTION: REVOKE OFFER (Single Customer or All Customers)
+    // =========================================================================
+    if (action === 'revoke_offer' || action === 'remove_offer') {
+      if (customerId === 'all' || targetAudience === 'all') {
+        currentList = currentList.map(c => ({
+          ...c,
+          activeOffer: null,
+          offer: null
+        }));
+        writeLocalCarts(currentList);
+
+        try {
+          const db = await getDatabase();
+          const collection = db.collection('customer_carts');
+          await collection.updateMany({}, { $set: { activeOffer: null, offer: null } });
+
+          const storewideCol = db.collection('storewide_offers');
+          await storewideCol.updateMany({}, { $set: { active: false, revokedAt: new Date().toISOString() } });
+        } catch (dbErr) {}
+
+        return NextResponse.json({
+          success: true,
+          message: 'All storewide and customer offers revoked successfully'
+        }, { headers: CORS_HEADERS });
+      } else {
+        const cleanPhone = (phone || '').replace(/\D/g, '').slice(-10);
+        const idx = currentList.findIndex(c => 
+          (customerId && (c.customerId === customerId || c.id === customerId)) ||
+          (cleanPhone && (c.phone || '').replace(/\D/g, '').includes(cleanPhone))
+        );
+
+        if (idx >= 0) {
+          currentList[idx].activeOffer = null;
+          currentList[idx].offer = null;
+          writeLocalCarts(currentList);
+
+          try {
+            const db = await getDatabase();
+            const collection = db.collection('customer_carts');
+            await collection.updateOne(
+              { $or: [{ customerId: currentList[idx].customerId }, { phone: currentList[idx].phone }] },
+              { $set: { activeOffer: null, offer: null } }
+            );
+          } catch (dbErr) {}
+
+          return NextResponse.json({
+            success: true,
+            message: 'Customer offer revoked successfully',
+            customerCart: currentList[idx]
+          }, { headers: CORS_HEADERS });
+        }
+      }
+    }
+
+    // =========================================================================
+    // STANDARD CART & WATCHLIST ACTIONS
+    // =========================================================================
     const cleanPhone = (phone || customerData?.phone || '').replace(/\D/g, '').slice(-10);
 
-    // Find customer index
     let idx = currentList.findIndex(c => 
       (customerId && (c.customerId === customerId || c.id === customerId)) ||
       (cleanPhone && (c.phone || '').replace(/\D/g, '').includes(cleanPhone))
     );
 
-    // If customer doesn't exist, create customer cart shell
     if (idx === -1) {
       const newEntry = {
         customerId: customerId || `cust-${cleanPhone || Date.now()}`,
@@ -140,7 +375,6 @@ export async function POST(request) {
     target.updatedAt = new Date().toISOString();
     target.lastActive = 'Just now';
 
-    // Handle distinct actions
     if (action === 'add_to_cart') {
       const existingCartItem = target.cart.find(i => i.productId === product.productId || i.productId === product.id);
       if (existingCartItem) {
@@ -226,44 +460,6 @@ export async function POST(request) {
       }
     } else if (action === 'clear_cart') {
       target.cart = [];
-    } else if (action === 'create_and_send_offer' || action === 'apply_offer') {
-      const offerData = {
-        ...body.offer,
-        offerId: body.offer?.offerId || `OFFER-${Date.now().toString().slice(-6)}`,
-        status: 'sent',
-        sentAt: new Date().toISOString(),
-        sentBy: body.sentBy || 'Rajesh (HQ Admin)'
-      };
-      target.activeOffer = offerData;
-      target.offer = offerData; // backwards compatibility
-      target.offersHistory = target.offersHistory || [];
-      target.offersHistory.unshift(offerData);
-
-      // Record to campaigns audit if sent via email
-      if (body.sendEmail && target.email) {
-        try {
-          const db = await getDatabase();
-          const campaignsCol = db.collection('campaigns');
-          await campaignsCol.insertOne({
-            id: `CAMP-${offerData.offerId}`,
-            company: 'Raj Biosis Private Limited',
-            companyId: 'rajbiosis',
-            subject: `Exclusive Special Offer: ${offerData.title} for ${target.customerName}`,
-            audience: `${target.customerName} (${target.hospitalName})`,
-            sentAt: 'Just now',
-            openRate: 'Delivered',
-            status: 'Delivered',
-            recipients: 1,
-            offerDetails: offerData,
-            createdAt: new Date().toISOString()
-          });
-        } catch (e) {
-          console.warn('Campaign email log fallback:', e.message);
-        }
-      }
-    } else if (action === 'revoke_offer' || action === 'remove_offer') {
-      target.activeOffer = null;
-      target.offer = null;
     } else if (action === 'save_customer') {
       if (customerData) {
         Object.assign(target, customerData);
@@ -273,7 +469,6 @@ export async function POST(request) {
     currentList[idx] = target;
     writeLocalCarts(currentList);
 
-    // Save to MongoDB
     try {
       const db = await getDatabase();
       const collection = db.collection('customer_carts');
@@ -295,4 +490,3 @@ export async function POST(request) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500, headers: CORS_HEADERS });
   }
 }
-

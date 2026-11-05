@@ -26,35 +26,49 @@ import {
   Check,
   Package,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Users,
+  User,
+  Globe,
+  Radio,
+  Copy,
+  Edit3
 } from 'lucide-react';
 import { PRODUCTS } from '../../data/products';
 
 export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
   const [customerCarts, setCustomerCarts] = useState([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
+  const [storewideOffer, setStorewideOffer] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [toastMsg, setToastMsg] = useState(null);
 
   // Offer Modal State
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+  const [targetAudience, setTargetAudience] = useState('single'); // 'single' | 'all'
+  const [productScope, setProductScope] = useState('cart_watchlist'); // 'cart_watchlist' | 'all_catalog' | 'specific_catalog_product'
+  const [selectedCatalogProductId, setSelectedCatalogProductId] = useState(PRODUCTS[0]?.id || 'prod-vent-x9');
   const [offerSelectedProductIds, setOfferSelectedProductIds] = useState([]);
+  const [catalogSearch, setCatalogSearch] = useState('');
+
   const [offerForm, setOfferForm] = useState({
     title: 'Institutional Subsidy Discount',
     type: 'percentage', // 'percentage' | 'flat' | 'perk'
     value: 10,
     perkText: 'Free 2-Year Comprehensive OEM Warranty & Hospital Commissioning',
     note: 'Special rate approved by Admin for immediate hospital purchase order',
-    validTill: '2026-11-15',
+    validTill: '2026-11-20',
     sendWhatsApp: true,
     sendEmail: true,
     sendPortal: true
   });
   const [isSendingOffer, setIsSendingOffer] = useState(false);
 
-  // Offer History View State
-  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  // WhatsApp Broadcast Assistant Modal State
+  const [showBroadcastModal, setShowBroadcastModal] = useState(false);
+  const [lastDispatchedOffer, setLastDispatchedOffer] = useState(null);
+  const [copiedBroadcastText, setCopiedBroadcastText] = useState(false);
 
   const showToast = (title, message, type = 'success') => {
     setToastMsg({ title, message, type });
@@ -69,6 +83,7 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
       const data = await res.json();
       if (data.success && Array.isArray(data.carts)) {
         setCustomerCarts(data.carts);
+        setStorewideOffer(data.storewideOffer || null);
         if (data.carts.length > 0 && !selectedCustomerId) {
           setSelectedCustomerId(data.carts[0].customerId);
         }
@@ -82,7 +97,21 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
 
   useEffect(() => {
     fetchCarts();
+    const interval = setInterval(() => { fetchCarts(); }, 8000);
+    return () => clearInterval(interval);
   }, []);
+
+  // Filtered customer list for search
+  const filteredCustomers = useMemo(() => {
+    if (!searchQuery.trim()) return customerCarts;
+    const q = searchQuery.toLowerCase();
+    return customerCarts.filter(c =>
+      (c.customerName || '').toLowerCase().includes(q) ||
+      (c.hospitalName || '').toLowerCase().includes(q) ||
+      (c.phone || '').includes(q) ||
+      (c.district || '').toLowerCase().includes(q)
+    );
+  }, [customerCarts, searchQuery]);
 
   // Currently selected customer object
   const currentCustomer = useMemo(() => {
@@ -99,8 +128,8 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
     return list;
   }, [cartItems, watchlistItems]);
 
-  const activeOffer = currentCustomer?.activeOffer || currentCustomer?.offer || null;
-  const offersHistory = currentCustomer?.offersHistory || [];
+  const activeOffer = currentCustomer?.activeOffer || currentCustomer?.offer || storewideOffer || null;
+  const isStorewideActive = Boolean(storewideOffer && storewideOffer.active);
 
   // Total cart calculation
   const totalCartValue = useMemo(() => {
@@ -111,19 +140,70 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
     return watchlistItems.reduce((acc, item) => acc + Number(item.price || 0), 0);
   }, [watchlistItems]);
 
-  // Selected products calculation inside Offer Modal
+  // Catalog products filtered by search
+  const filteredCatalogProducts = useMemo(() => {
+    if (!catalogSearch.trim()) return PRODUCTS;
+    const q = catalogSearch.toLowerCase();
+    return PRODUCTS.filter(p =>
+      (p.name || '').toLowerCase().includes(q) ||
+      (p.category || '').toLowerCase().includes(q) ||
+      (p.brand || '').toLowerCase().includes(q)
+    );
+  }, [catalogSearch]);
+
+  // Selected catalog product object
+  const currentCatalogProduct = useMemo(() => {
+    return PRODUCTS.find(p => p.id === selectedCatalogProductId) || PRODUCTS[0];
+  }, [selectedCatalogProductId]);
+
+  // Selected products calculation inside Offer Modal based on scope
   const selectedOfferProducts = useMemo(() => {
-    return allCustomerProducts.filter(p => offerSelectedProductIds.includes(p.productId));
-  }, [allCustomerProducts, offerSelectedProductIds]);
+    if (productScope === 'all_catalog') {
+      return PRODUCTS.map(p => ({
+        productId: p.id,
+        name: p.name,
+        price: p.price,
+        category: p.category,
+        brand: p.brand,
+        image: p.image,
+        origin: 'catalog',
+        quantity: 1
+      }));
+    } else if (productScope === 'specific_catalog_product') {
+      if (!currentCatalogProduct) return [];
+      return [{
+        productId: currentCatalogProduct.id,
+        name: currentCatalogProduct.name,
+        price: currentCatalogProduct.price,
+        category: currentCatalogProduct.category,
+        brand: currentCatalogProduct.brand,
+        image: currentCatalogProduct.image,
+        origin: 'catalog',
+        quantity: 1
+      }];
+    } else {
+      // cart_watchlist
+      return allCustomerProducts.filter(p => offerSelectedProductIds.includes(p.productId));
+    }
+  }, [productScope, allCustomerProducts, offerSelectedProductIds, currentCatalogProduct]);
 
+  // Regular total calculation based on scope
   const selectedOfferRegularTotal = useMemo(() => {
-    return selectedOfferProducts.reduce((acc, item) => {
-      const qty = item.origin === 'cart' ? (item.quantity || 1) : 1;
-      return acc + (Number(item.price || 0) * qty);
-    }, 0);
-  }, [selectedOfferProducts]);
+    if (productScope === 'all_catalog') {
+      // Sum of current customer's cart or avg catalog value
+      const cartSum = totalCartValue + totalWatchlistValue;
+      return cartSum > 0 ? cartSum : 500000;
+    } else if (productScope === 'specific_catalog_product') {
+      return Number(currentCatalogProduct?.price || 150000);
+    } else {
+      return selectedOfferProducts.reduce((acc, item) => {
+        const qty = item.origin === 'cart' ? (item.quantity || 1) : 1;
+        return acc + (Number(item.price || 0) * qty);
+      }, 0);
+    }
+  }, [productScope, selectedOfferProducts, totalCartValue, totalWatchlistValue, currentCatalogProduct]);
 
-  // Live offer calculation
+  // Live offer discount calculation
   const calculatedOfferDiscount = useMemo(() => {
     const total = selectedOfferRegularTotal;
     if (offerForm.type === 'percentage') {
@@ -138,42 +218,39 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
     return Math.max(0, selectedOfferRegularTotal - calculatedOfferDiscount);
   }, [selectedOfferRegularTotal, calculatedOfferDiscount]);
 
-  // Open Offer Modal (Default selects all customer items or specific item)
-  const handleOpenOfferModal = (singleProduct = null) => {
-    if (!currentCustomer) return;
+  // Open Offer Modal
+  const handleOpenOfferModal = (options = {}) => {
+    const {
+      audience = 'single',
+      scope = 'cart_watchlist',
+      singleProduct = null,
+      specificCatalogId = null
+    } = options;
+
+    setTargetAudience(audience);
+    setProductScope(scope);
+
+    if (specificCatalogId) {
+      setSelectedCatalogProductId(specificCatalogId);
+    }
 
     if (singleProduct) {
       setOfferSelectedProductIds([singleProduct.productId]);
     } else {
-      // Select all products
       setOfferSelectedProductIds(allCustomerProducts.map(p => p.productId));
     }
 
-    if (activeOffer && !singleProduct) {
-      setOfferForm({
-        title: activeOffer.title || 'Institutional Subsidy Discount',
-        type: activeOffer.type || 'percentage',
-        value: activeOffer.value || 10,
-        perkText: activeOffer.perk || 'Free 2-Year Comprehensive OEM Warranty & Hospital Commissioning',
-        note: activeOffer.note || 'Special rate approved by Admin for immediate hospital purchase order',
-        validTill: activeOffer.validTill || '2026-11-15',
-        sendWhatsApp: true,
-        sendEmail: true,
-        sendPortal: true
-      });
-    } else {
-      setOfferForm({
-        title: 'Institutional Subsidy Discount',
-        type: 'percentage',
-        value: 10,
-        perkText: 'Free 2-Year Comprehensive OEM Warranty & Hospital Commissioning',
-        note: 'Special rate approved by Admin for immediate hospital purchase order',
-        validTill: '2026-11-15',
-        sendWhatsApp: true,
-        sendEmail: true,
-        sendPortal: true
-      });
-    }
+    setOfferForm({
+      title: audience === 'all' ? 'All-Customer B2B Institutional Offer' : 'Institutional Subsidy Discount',
+      type: 'percentage',
+      value: 10,
+      perkText: 'Free 2-Year Comprehensive OEM Warranty & Hospital Commissioning',
+      note: 'Special rate approved by Admin for immediate hospital purchase order',
+      validTill: '2026-11-20',
+      sendWhatsApp: true,
+      sendEmail: true,
+      sendPortal: true
+    });
 
     setIsOfferModalOpen(true);
   };
@@ -197,32 +274,37 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
     setOfferSelectedProductIds(watchlistItems.map(p => p.productId));
   };
 
-  // Dispatch WhatsApp Offer Message
-  const sendWhatsAppOfferMessage = (offerPayload) => {
-    if (!currentCustomer || !currentCustomer.phone) return;
-
-    const doctorName = currentCustomer.customerName || 'Doctor';
-    const hospital = currentCustomer.hospitalName || 'Hospital';
-    const phone = currentCustomer.phone.replace(/\D/g, '');
+  // Generate WhatsApp Message text for a specific customer
+  const buildWhatsAppMessage = (customer, offerPayload) => {
+    const doctorName = customer?.customerName || 'Doctor';
+    const hospital = customer?.hospitalName || 'Hospital';
 
     let msg = `🏥 *RAJ BIOSIS HEALTHCARE - SPECIAL PROCUREMENT OFFER*\n\n`;
-    msg += `Dear *${doctorName}* (${hospital}),\n\n`;
-    msg += `Aapke dwara rajbiosis.com par select kiye gaye biomedical equipment par management ne special offer approve kiya hai:\n\n`;
+    msg += `Dear *Dr. ${doctorName}* (${hospital}),\n\n`;
+    msg += `Management has approved an exclusive special offer for your medical institution on rajbiosis.com:\n\n`;
 
-    selectedOfferProducts.forEach((item, idx) => {
-      const qty = item.origin === 'cart' ? (item.quantity || 1) : 1;
-      msg += `${idx + 1}. *${item.name}* (Qty: ${qty}) - ₹${(Number(item.price || 0) * qty).toLocaleString('en-IN')}\n`;
-    });
-
-    msg += `\n💰 *Regular Catalog Total:* ₹${offerPayload.regularAmount.toLocaleString('en-IN')}\n`;
-
-    if (offerPayload.type === 'percentage') {
-      msg += `🏷️ *Approved Special Discount:* ${offerPayload.value}% OFF (-₹${offerPayload.discountAmount.toLocaleString('en-IN')})\n`;
-    } else if (offerPayload.type === 'flat') {
-      msg += `🏷️ *Approved Flat Concession:* -₹${offerPayload.discountAmount.toLocaleString('en-IN')}\n`;
+    if (offerPayload.productScope === 'all_catalog') {
+      msg += `🌟 *SCOPE: ALL MEDICAL EQUIPMENT & ICU SYSTEMS (STOREWIDE)*\n`;
+      msg += `Valid across all ventilators, monitors, defibrillators, X-ray & surgical systems.\n`;
+    } else if (offerPayload.productScope === 'specific_catalog_product') {
+      msg += `📦 *FEATURED PRODUCT:* ${offerPayload.specificProductName || 'Biomedical Equipment'}\n`;
+    } else {
+      msg += `📦 *SELECTED EQUIPMENT IN YOUR INQUIRY:*\n`;
+      (offerPayload.selectedProductNames || []).slice(0, 5).forEach((name, idx) => {
+        msg += `${idx + 1}. *${name}*\n`;
+      });
     }
 
-    msg += `✨ *FINAL SPECIAL OFFER PRICE:* ₹${offerPayload.offerAmount.toLocaleString('en-IN')}\n`;
+    if (offerPayload.type === 'percentage') {
+      msg += `\n🏷️ *Approved Special Discount:* ${offerPayload.value}% OFF\n`;
+    } else if (offerPayload.type === 'flat') {
+      msg += `\n🏷️ *Approved Flat Concession:* -₹${Number(offerPayload.value).toLocaleString('en-IN')}\n`;
+    }
+
+    if (offerPayload.regularAmount && offerPayload.regularAmount > 0) {
+      msg += `💰 *Regular Catalog Total:* ₹${offerPayload.regularAmount.toLocaleString('en-IN')}\n`;
+      msg += `✨ *FINAL SPECIAL OFFER PRICE:* ₹${offerPayload.offerAmount.toLocaleString('en-IN')}\n`;
+    }
 
     if (offerPayload.perk) {
       msg += `🎁 *Complimentary Privilege:* ${offerPayload.perk}\n`;
@@ -236,19 +318,30 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
       msg += `\n_Note: ${offerPayload.note}_\n`;
     }
 
-    msg += `\nKripya confirm karein jisse aapka official 4-page formal quotation dispatch kiya ja sake. Dhanyawad!\n- Raj Biosis Sales & Engineering HQ`;
+    msg += `\nPlease reply to confirm and generate your official 4-page formal quotation. Thank you!\n- Raj Biosis Sales & Engineering Desk\nOfficial Portal: https://rajbiosis.com`;
+    return msg;
+  };
 
+  // Dispatch WhatsApp Offer Message to a specific customer
+  const sendWhatsAppOfferMessage = (customer, offerPayload) => {
+    if (!customer || !customer.phone) return;
+    const phone = customer.phone.replace(/\D/g, '').slice(-10);
+    const msg = buildWhatsAppMessage(customer, offerPayload);
     const url = `https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
   };
 
-  // Action: Create and Send Offer
+  // Action: Create and Send Offer (Single Customer or All Customers)
   const handleCreateAndSendOffer = async (e) => {
     e?.preventDefault();
-    if (!currentCustomer) return;
 
-    if (offerSelectedProductIds.length === 0) {
-      alert('Kripya offer me shamil karne ke liye kam se kam 1 product select karein.');
+    if (targetAudience === 'single' && !currentCustomer) {
+      alert('Please select a customer.');
+      return;
+    }
+
+    if (productScope === 'cart_watchlist' && offerSelectedProductIds.length === 0) {
+      alert('Please select at least 1 product for this offer.');
       return;
     }
 
@@ -262,8 +355,12 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
       value: offerForm.type === 'perk' ? 0 : Number(offerForm.value || 0),
       perk: offerForm.perkText.trim(),
       note: offerForm.note.trim(),
-      validTill: offerForm.validTill || '2026-11-15',
-      selectedProductIds: offerSelectedProductIds,
+      validTill: offerForm.validTill || '2026-11-20',
+      targetAudience: targetAudience,
+      productScope: productScope,
+      specificProductId: productScope === 'specific_catalog_product' ? currentCatalogProduct?.id : null,
+      specificProductName: productScope === 'specific_catalog_product' ? currentCatalogProduct?.name : null,
+      selectedProductIds: productScope === 'cart_watchlist' ? offerSelectedProductIds : (productScope === 'specific_catalog_product' ? [currentCatalogProduct?.id] : []),
       selectedProductNames: selectedOfferProducts.map(p => p.name),
       regularAmount: selectedOfferRegularTotal,
       discountAmount: calculatedOfferDiscount,
@@ -278,56 +375,70 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
       sentBy: 'Rajesh (HQ Admin)'
     };
 
-    // Optimistic UI update
-    setCustomerCarts(prev => prev.map(c => {
-      if (c.customerId !== currentCustomer.customerId) return c;
-      const history = c.offersHistory || [];
-      return {
-        ...c,
-        activeOffer: offerPayload,
-        offer: offerPayload,
-        offersHistory: [offerPayload, ...history]
-      };
-    }));
+    setLastDispatchedOffer(offerPayload);
 
-    // Trigger WhatsApp if selected
-    if (offerForm.sendWhatsApp && currentCustomer.phone) {
-      sendWhatsAppOfferMessage(offerPayload);
-    }
-
-    // Call API to persist offer & email campaign log
     try {
-      await fetch('/api/cart-watchlist', {
+      const res = await fetch('/api/cart-watchlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'create_and_send_offer',
-          customerId: currentCustomer.customerId,
+          targetAudience: targetAudience,
+          customerId: targetAudience === 'all' ? 'all' : currentCustomer.customerId,
+          phone: targetAudience === 'single' ? currentCustomer.phone : null,
           offer: offerPayload,
           sendEmail: offerForm.sendEmail,
           sentBy: 'Rajesh (HQ Admin)'
         })
       });
+      const data = await res.json();
+
+      if (data.success) {
+        if (targetAudience === 'all') {
+          setStorewideOffer(offerPayload);
+          setCustomerCarts(prev => prev.map(c => ({
+            ...c,
+            activeOffer: offerPayload,
+            offer: offerPayload
+          })));
+          showToast('Storewide Offer Broadcasted! 📢', `Offer "${offerPayload.title}" has been activated for all ${customerCarts.length} customers.`);
+
+          if (offerForm.sendWhatsApp) {
+            setShowBroadcastModal(true);
+          }
+        } else {
+          setCustomerCarts(prev => prev.map(c => {
+            if (c.customerId !== currentCustomer.customerId) return c;
+            return {
+              ...c,
+              activeOffer: offerPayload,
+              offer: offerPayload,
+              offersHistory: [offerPayload, ...(c.offersHistory || [])]
+            };
+          }));
+          showToast('Offer Sent Successfully! 🚀', `Offer "${offerPayload.title}" sent to ${currentCustomer.customerName}.`);
+
+          if (offerForm.sendWhatsApp && currentCustomer.phone) {
+            sendWhatsAppOfferMessage(currentCustomer, offerPayload);
+          }
+        }
+      }
     } catch (err) {
-      console.warn('Failed to dispatch offer via API:', err);
+      console.warn('Failed to dispatch offer:', err);
+      showToast('Error', 'Failed to dispatch offer. Please check connection.', 'error');
     } finally {
       setIsSendingOffer(false);
       setIsOfferModalOpen(false);
-      showToast('Offer Sent Successfully! 🚀', `Offer "${offerPayload.title}" customer ${currentCustomer.customerName} ko dispatch kar diya gaya hai.`);
     }
   };
 
-  // Action: Revoke Offer
-  const handleRevokeOffer = async () => {
-    if (!currentCustomer) return;
-    if (!window.confirm('Kya aap is customer ka active offer cancel / revoke karna chahte hain?')) return;
+  // Action: Revoke Offer (Single or Storewide)
+  const handleRevokeOffer = async (isStorewide = false) => {
+    const confirmMsg = isStorewide
+      ? 'Are you sure you want to revoke the active storewide broadcast offer from ALL customers?'
+      : `Are you sure you want to revoke the active offer for ${currentCustomer?.customerName}?`;
 
-    setCustomerCarts(prev => prev.map(c => {
-      if (c.customerId !== currentCustomer.customerId) return c;
-      return { ...c, activeOffer: null, offer: null };
-    }));
-
-    showToast('Offer Revoked', 'Customer ka special offer cancel kar diya gaya.');
+    if (!window.confirm(confirmMsg)) return;
 
     try {
       await fetch('/api/cart-watchlist', {
@@ -335,24 +446,39 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'revoke_offer',
-          customerId: currentCustomer.customerId
+          targetAudience: isStorewide ? 'all' : 'single',
+          customerId: isStorewide ? 'all' : currentCustomer.customerId,
+          phone: !isStorewide ? currentCustomer.phone : null
         })
       });
-    } catch (e) {}
+
+      if (isStorewide) {
+        setStorewideOffer(null);
+        setCustomerCarts(prev => prev.map(c => ({ ...c, activeOffer: null, offer: null })));
+        showToast('Storewide Offer Revoked', 'Storewide offer has been deactivated.');
+      } else {
+        setCustomerCarts(prev => prev.map(c => {
+          if (c.customerId !== currentCustomer.customerId) return c;
+          return { ...c, activeOffer: null, offer: null };
+        }));
+        showToast('Offer Revoked', `Offer for ${currentCustomer.customerName} has been revoked.`);
+      }
+    } catch (e) {
+      console.warn('Error revoking offer:', e);
+    }
   };
 
   // Action: 1-Click Generate Quotation from Cart & Applied Offer
   const handleGenerateQuotation = () => {
     if (!currentCustomer) return;
     if (cartItems.length === 0 && watchlistItems.length === 0) {
-      alert('Is customer ke cart ya watchlist me koi product nahi hai.');
+      alert('This customer has no products in cart or watchlist.');
       return;
     }
 
-    // Use products in cart, or offer products if set
     const quoteItems = cartItems.length > 0 ? cartItems : selectedOfferProducts;
     const subtotal = quoteItems.reduce((acc, i) => acc + (Number(i.price || 0) * (i.quantity || 1)), 0);
-    const discountAmt = activeOffer ? activeOffer.discountAmount : 0;
+    const discountAmt = activeOffer ? (activeOffer.discountAmount || 0) : 0;
     const finalTotal = Math.max(0, subtotal - discountAmt);
 
     const quotationDraft = {
@@ -387,7 +513,7 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
       } catch (e) {}
     }
 
-    showToast('Opening Web Quotation', `Quotation draft tayar ho gaya hai. Redirecting...`);
+    showToast('Opening Web Quotation', `Quotation draft ready with applied offer. Redirecting...`);
     setTimeout(() => {
       onNavigateTab('quotation');
       if (typeof window !== 'undefined') {
@@ -415,12 +541,59 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
       )}
 
       {/* =========================================================================
+          STOREWIDE BROADCAST BANNER (When Active)
+          ========================================================================= */}
+      {isStorewideActive && (
+        <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0">
+              <Sparkles size={20} className="text-amber-100" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-extrabold text-sm sm:text-base tracking-tight">
+                  📢 Active Storewide Offer: {storewideOffer.title}
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-mono font-black uppercase">
+                  {storewideOffer.type === 'percentage' ? `${storewideOffer.value}% OFF` : `-₹${Number(storewideOffer.value).toLocaleString('en-IN')}`}
+                </span>
+              </div>
+              <p className="text-xs text-amber-100 mt-0.5">
+                Active for all customers on rajbiosis.com • Valid till {storewideOffer.validTill || 'Limited Period'} • {storewideOffer.productScope === 'all_catalog' ? 'Entire Catalog' : 'Selected Products'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                setLastDispatchedOffer(storewideOffer);
+                setShowBroadcastModal(true);
+              }}
+              className="px-3.5 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
+            >
+              <Share2 size={13} />
+              <span>Broadcast WhatsApp</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleRevokeOffer(true)}
+              className="px-3.5 py-2 rounded-xl bg-black/20 hover:bg-black/30 text-white text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
+            >
+              <X size={13} />
+              <span>Revoke</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
           TOP CUSTOMER & OFFER BAR (Clean, Spacious, Zero-Clutter Design)
           ========================================================================= */}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-4">
 
-        {/* Bar Row 1: Customer Selector Dropdown + Refresh */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+        {/* Bar Row 1: Customer Selector + Broadcast Action Buttons */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100">
           
           <div className="flex items-center gap-2.5 flex-1 min-w-0">
             <span className="text-xs font-bold text-slate-400 shrink-0 uppercase tracking-wider">
@@ -441,7 +614,31 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            {/* Broadcast Offer to ALL Customers Button */}
+            <button
+              type="button"
+              onClick={() => handleOpenOfferModal({ audience: 'all', scope: 'all_catalog' })}
+              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+              title="Broadcast special discount to ALL customers across catalog or selected products"
+            >
+              <Users size={14} />
+              <span>📢 Offer to All Customers</span>
+            </button>
+
+            {/* Offer on Entire Catalog for THIS Customer */}
+            {currentCustomer && (
+              <button
+                type="button"
+                onClick={() => handleOpenOfferModal({ audience: 'single', scope: 'all_catalog' })}
+                className="px-3.5 py-2 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
+                title="Apply discount on ALL catalog products for this customer"
+              >
+                <Globe size={13} />
+                <span>All Products for {currentCustomer.customerName.split(' ')[0]}</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={fetchCarts}
@@ -469,6 +666,12 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
                 <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-200/80">
                   Verified Buyer
                 </span>
+                {currentCustomer.activeOffer && (
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+                    <Tag size={11} className="text-emerald-600" />
+                    <span>Special Offer Active</span>
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center gap-3 flex-wrap text-xs text-slate-600">
@@ -503,6 +706,11 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
                   <Building2 size={13} className="text-sky-600" />
                   <span>{currentCustomer.hospitalName || 'Institution'}</span>
                 </div>
+
+                {/* Location */}
+                <div className="text-slate-500 font-medium">
+                  <span>📍 {currentCustomer.district || 'Rajasthan'}</span>
+                </div>
               </div>
             </div>
 
@@ -510,30 +718,30 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
               
               {/* Offer & Pricing Card */}
-              <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-3 min-w-[260px]">
+              <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-3 min-w-[280px]">
                 {activeOffer ? (
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-md">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-md truncate max-w-[200px]" title={activeOffer.title}>
                         <Tag size={12} />
-                        <span>{activeOffer.title}</span>
+                        <span className="truncate">{activeOffer.title}</span>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 shrink-0">
                         <button
                           type="button"
-                          onClick={() => handleOpenOfferModal()}
+                          onClick={() => handleOpenOfferModal({ audience: activeOffer.targetAudience || 'single', scope: activeOffer.productScope || 'cart_watchlist' })}
                           className="p-1 text-slate-400 hover:text-slate-700 rounded transition cursor-pointer"
                           title="Modify Offer"
                         >
-                          <Edit3Icon size={12} />
+                          <Edit3 size={13} />
                         </button>
                         <button
                           type="button"
-                          onClick={handleRevokeOffer}
+                          onClick={() => handleRevokeOffer(activeOffer.targetAudience === 'all')}
                           className="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
                           title="Revoke Offer"
                         >
-                          <X size={12} />
+                          <X size={13} />
                         </button>
                       </div>
                     </div>
@@ -554,11 +762,11 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
 
                     <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-200/60">
                       <span className="text-slate-500 font-medium">
-                        Sent via {Array.isArray(activeOffer.sentVia) ? activeOffer.sentVia.join(', ') : 'WhatsApp & Email'}
+                        Valid till {activeOffer.validTill || '2026-11-20'}
                       </span>
                       <button
                         type="button"
-                        onClick={() => sendWhatsAppOfferMessage(activeOffer)}
+                        onClick={() => sendWhatsAppOfferMessage(currentCustomer, activeOffer)}
                         className="text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-1 cursor-pointer"
                         title="Resend on WhatsApp"
                       >
@@ -581,9 +789,9 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
                     {/* Prominent Create Offer Button */}
                     <button
                       type="button"
-                      onClick={() => handleOpenOfferModal()}
+                      onClick={() => handleOpenOfferModal({ audience: 'single', scope: 'cart_watchlist' })}
                       className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold shadow-2xs hover:shadow-xs transition cursor-pointer"
-                      title="Is customer ke selected products par special offer banayein aur bhein"
+                      title="Create and send special offer to this customer"
                     >
                       <Gift size={13} />
                       <span>🚀 Create &amp; Send Offer</span>
@@ -598,7 +806,7 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
                 onClick={handleGenerateQuotation}
                 disabled={cartItems.length === 0 && watchlistItems.length === 0}
                 className="h-full px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-2xs hover:shadow-sm cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shrink-0"
-                title="Quotation generate karein"
+                title="Generate quotation directly with applied offer"
               >
                 <Sparkles size={14} className="text-amber-200" />
                 <span>Make Quotation</span>
@@ -610,16 +818,14 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
           </div>
         ) : (
           <div className="py-4 text-center text-slate-400 text-xs">
-            No customer selected.
+            No dynamic customer carts available.
           </div>
         )}
 
       </div>
 
       {/* =========================================================================
-          TWO-COLUMN PRODUCT SECTION (Customer's Live Selections)
-          Note: Admin/Employee cannot move items between Cart & Watchlist!
-          Instead, Admin can create & send offers directly on them.
+          TWO-COLUMN PRODUCT SECTION (Customer's Live Dynamic Selections)
           ========================================================================= */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
 
@@ -696,9 +902,9 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
                   <div className="flex items-center gap-2 shrink-0">
                     <button
                       type="button"
-                      onClick={() => handleOpenOfferModal(item)}
+                      onClick={() => handleOpenOfferModal({ audience: 'single', scope: 'cart_watchlist', singleProduct: item })}
                       className="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 text-[11px] font-bold border border-amber-200/80 transition cursor-pointer flex items-center gap-1"
-                      title="Is product par customer ko special offer dein"
+                      title="Send special offer on this item"
                     >
                       <Gift size={11} className="text-amber-600" />
                       <span>Send Offer</span>
@@ -785,9 +991,9 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
                   <div className="flex items-center gap-2 shrink-0">
                     <button
                       type="button"
-                      onClick={() => handleOpenOfferModal(item)}
+                      onClick={() => handleOpenOfferModal({ audience: 'single', scope: 'cart_watchlist', singleProduct: item })}
                       className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-900 text-[11px] font-bold border border-indigo-200/80 transition cursor-pointer flex items-center gap-1"
-                      title="Is watchlist product par customer ko special offer dein"
+                      title="Send special offer on this item"
                     >
                       <Gift size={11} className="text-indigo-600" />
                       <span>Send Offer</span>
@@ -804,11 +1010,11 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
       </div>
 
       {/* =========================================================================
-          CREATE & SEND SPECIAL OFFER MODAL ("or chla jaye")
+          CREATE & DISPATCH SPECIAL OFFER MODAL (Comprehensive B2B Offer Desk)
           ========================================================================= */}
       {isOfferModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] shadow-2xl border border-slate-200 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
             
             {/* Modal Header */}
             <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80 shrink-0">
@@ -823,8 +1029,10 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
                       Live Delivery
                     </span>
                   </h3>
-                  <p className="text-[11px] text-slate-400">
-                    Recipient: <strong className="text-slate-700">{currentCustomer?.customerName}</strong> • {currentCustomer?.hospitalName} ({currentCustomer?.phone})
+                  <p className="text-[11px] text-slate-500">
+                    {targetAudience === 'all'
+                      ? `Broadcast to ALL ${customerCarts.length} Active Customers`
+                      : `Recipient: ${currentCustomer?.customerName} • ${currentCustomer?.hospitalName} (${currentCustomer?.phone})`}
                   </p>
                 </div>
               </div>
@@ -840,83 +1048,224 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
             {/* Modal Body Form */}
             <form onSubmit={handleCreateAndSendOffer} className="p-5 overflow-y-auto space-y-4 text-xs flex-1">
 
-              {/* 1. Product Selection */}
+              {/* 1. Target Audience Selection */}
               <div>
-                <div className="flex items-center justify-between pb-1.5">
-                  <label className="font-bold text-slate-800">
-                    1. Select Products for this Offer ({offerSelectedProductIds.length}/{allCustomerProducts.length}):
-                  </label>
-                  <div className="flex items-center gap-1.5 text-[10px]">
-                    <button
-                      type="button"
-                      onClick={handleSelectAllInOffer}
-                      className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer"
-                    >
-                      All ({allCustomerProducts.length})
-                    </button>
-                    {cartItems.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={handleSelectCartOnlyInOffer}
-                        className="px-2 py-0.5 rounded bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold cursor-pointer"
-                      >
-                        Cart Only ({cartItems.length})
-                      </button>
-                    )}
-                    {watchlistItems.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={handleSelectWatchlistOnlyInOffer}
-                        className="px-2 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-bold cursor-pointer"
-                      >
-                        Watchlist Only ({watchlistItems.length})
-                      </button>
-                    )}
-                  </div>
-                </div>
+                <label className="font-bold text-slate-800 block mb-1.5">
+                  1. Target Audience (Who should receive this offer?):
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setTargetAudience('single')}
+                    className={`p-3 rounded-xl border text-left transition cursor-pointer flex items-center gap-2.5 ${
+                      targetAudience === 'single'
+                        ? 'border-amber-500 bg-amber-50/70 text-amber-950 font-bold'
+                        : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                    }`}
+                  >
+                    <User size={16} className={targetAudience === 'single' ? 'text-amber-600' : 'text-slate-400'} />
+                    <div className="min-w-0">
+                      <div className="font-bold truncate">{currentCustomer?.customerName || 'Single Customer'}</div>
+                      <div className="text-[10px] text-slate-500 truncate">{currentCustomer?.hospitalName}</div>
+                    </div>
+                  </button>
 
-                <div className="border border-slate-200 rounded-xl max-h-36 overflow-y-auto divide-y divide-slate-100 bg-slate-50/40">
-                  {allCustomerProducts.map((p) => {
-                    const isSelected = offerSelectedProductIds.includes(p.productId);
-                    const qty = p.origin === 'cart' ? (p.quantity || 1) : 1;
-                    return (
-                      <div
-                        key={p.productId}
-                        onClick={() => handleToggleProductInOffer(p.productId)}
-                        className={`p-2.5 flex items-center justify-between gap-3 cursor-pointer transition ${
-                          isSelected ? 'bg-amber-50/60' : 'hover:bg-slate-100/50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => {}}
-                            className="rounded text-amber-600 cursor-pointer"
-                          />
-                          <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold font-mono ${
-                            p.origin === 'cart' ? 'bg-amber-100 text-amber-900' : 'bg-indigo-100 text-indigo-900'
-                          }`}>
-                            {p.origin === 'cart' ? '🛒 Cart' : '⭐ Watchlist'}
-                          </span>
-                          <span className="font-bold text-slate-800 truncate" title={p.name}>
-                            {p.name}
-                          </span>
-                        </div>
-                        <div className="font-mono font-bold text-slate-700 shrink-0 text-right">
-                          ₹{(Number(p.price || 0) * qty).toLocaleString('en-IN')}
-                          {qty > 1 && <span className="text-[10px] text-slate-400 block font-sans">Qty: {qty}</span>}
-                        </div>
-                      </div>
-                    );
-                  })}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTargetAudience('all');
+                      if (productScope === 'cart_watchlist') setProductScope('all_catalog');
+                    }}
+                    className={`p-3 rounded-xl border text-left transition cursor-pointer flex items-center gap-2.5 ${
+                      targetAudience === 'all'
+                        ? 'border-amber-500 bg-amber-50/70 text-amber-950 font-bold'
+                        : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                    }`}
+                  >
+                    <Users size={16} className={targetAudience === 'all' ? 'text-amber-600' : 'text-slate-400'} />
+                    <div>
+                      <div className="font-bold">All Customers (Broadcast)</div>
+                      <div className="text-[10px] text-slate-500">All {customerCarts.length} active hospital buyers</div>
+                    </div>
+                  </button>
                 </div>
               </div>
 
-              {/* 2. Offer Type & Value */}
+              {/* 2. Product Scope Selection */}
               <div>
                 <label className="font-bold text-slate-800 block mb-1.5">
-                  2. Choose Discount &amp; Pricing Type:
+                  2. Product Scope (Which products should the offer apply to?):
+                </label>
+                <div className="grid grid-cols-3 gap-2 mb-2">
+                  <button
+                    type="button"
+                    disabled={targetAudience === 'all'}
+                    onClick={() => setProductScope('cart_watchlist')}
+                    className={`p-2 rounded-xl border text-center transition cursor-pointer text-[11px] ${
+                      targetAudience === 'all'
+                        ? 'opacity-40 cursor-not-allowed border-slate-200'
+                        : productScope === 'cart_watchlist'
+                          ? 'border-amber-500 bg-amber-50 text-amber-900 font-bold'
+                          : 'border-slate-200 hover:bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    <span>Cart &amp; Watchlist</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setProductScope('all_catalog')}
+                    className={`p-2 rounded-xl border text-center transition cursor-pointer text-[11px] ${
+                      productScope === 'all_catalog'
+                        ? 'border-amber-500 bg-amber-50 text-amber-900 font-bold'
+                        : 'border-slate-200 hover:bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    <span>🌐 All Catalog Products</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setProductScope('specific_catalog_product')}
+                    className={`p-2 rounded-xl border text-center transition cursor-pointer text-[11px] ${
+                      productScope === 'specific_catalog_product'
+                        ? 'border-amber-500 bg-amber-50 text-amber-900 font-bold'
+                        : 'border-slate-200 hover:bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    <span>📦 Specific Product</span>
+                  </button>
+                </div>
+
+                {/* Sub-view: Cart & Watchlist Items Selection */}
+                {productScope === 'cart_watchlist' && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between pb-1">
+                      <span className="text-[11px] font-bold text-slate-600">
+                        Select customer items ({offerSelectedProductIds.length}/{allCustomerProducts.length}):
+                      </span>
+                      <div className="flex items-center gap-1 text-[10px]">
+                        <button
+                          type="button"
+                          onClick={handleSelectAllInOffer}
+                          className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer"
+                        >
+                          All
+                        </button>
+                        {cartItems.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={handleSelectCartOnlyInOffer}
+                            className="px-2 py-0.5 rounded bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold cursor-pointer"
+                          >
+                            Cart Only
+                          </button>
+                        )}
+                        {watchlistItems.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={handleSelectWatchlistOnlyInOffer}
+                            className="px-2 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-bold cursor-pointer"
+                          >
+                            Watchlist Only
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="border border-slate-200 rounded-xl max-h-32 overflow-y-auto divide-y divide-slate-100 bg-slate-50/40">
+                      {allCustomerProducts.map((p) => {
+                        const isSelected = offerSelectedProductIds.includes(p.productId);
+                        const qty = p.origin === 'cart' ? (p.quantity || 1) : 1;
+                        return (
+                          <div
+                            key={p.productId}
+                            onClick={() => handleToggleProductInOffer(p.productId)}
+                            className={`p-2 flex items-center justify-between gap-3 cursor-pointer transition ${
+                              isSelected ? 'bg-amber-50/60' : 'hover:bg-slate-100/50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => {}}
+                                className="rounded text-amber-600 cursor-pointer"
+                              />
+                              <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold font-mono ${
+                                p.origin === 'cart' ? 'bg-amber-100 text-amber-900' : 'bg-indigo-100 text-indigo-900'
+                              }`}>
+                                {p.origin === 'cart' ? 'Cart' : 'Watchlist'}
+                              </span>
+                              <span className="font-bold text-slate-800 truncate" title={p.name}>
+                                {p.name}
+                              </span>
+                            </div>
+                            <div className="font-mono font-bold text-slate-700 shrink-0 text-right">
+                              ₹{(Number(p.price || 0) * qty).toLocaleString('en-IN')}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sub-view: Specific Catalog Product Selection */}
+                {productScope === 'specific_catalog_product' && (
+                  <div className="space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-slate-700">Choose Catalog Product:</span>
+                      <input
+                        type="text"
+                        placeholder="Search product..."
+                        value={catalogSearch}
+                        onChange={(e) => setCatalogSearch(e.target.value)}
+                        className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs outline-none w-44"
+                      />
+                    </div>
+                    <select
+                      value={selectedCatalogProductId}
+                      onChange={(e) => setSelectedCatalogProductId(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 outline-none"
+                    >
+                      {filteredCatalogProducts.map(p => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} — ₹{Number(p.price || 0).toLocaleString('en-IN')} ({p.category})
+                        </option>
+                      ))}
+                    </select>
+                    {currentCatalogProduct && (
+                      <div className="flex items-center gap-3 pt-1">
+                        <img
+                          src={currentCatalogProduct.image}
+                          alt={currentCatalogProduct.name}
+                          className="w-10 h-10 rounded-lg object-cover border border-slate-200 bg-white shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <div className="font-bold text-slate-900 truncate">{currentCatalogProduct.name}</div>
+                          <div className="text-[11px] text-slate-500 font-mono">Catalog MRP: ₹{Number(currentCatalogProduct.price || 0).toLocaleString('en-IN')}</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Sub-view: All Catalog Notice */}
+                {productScope === 'all_catalog' && (
+                  <div className="p-3 bg-sky-50 border border-sky-200 rounded-xl text-sky-950 text-xs flex items-center gap-2">
+                    <Globe size={16} className="text-sky-600 shrink-0" />
+                    <span>
+                      <strong>Entire Storefront Offer:</strong> This offer will apply as a management concession across all {PRODUCTS.length} medical products in the catalog for {targetAudience === 'all' ? 'all customers' : currentCustomer?.customerName}.
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* 3. Offer Type & Value */}
+              <div>
+                <label className="font-bold text-slate-800 block mb-1.5">
+                  3. Choose Discount &amp; Pricing Type:
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   <button
@@ -960,7 +1309,7 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
                 </div>
               </div>
 
-              {/* Offer Headline */}
+              {/* Offer Headline & Values */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">
@@ -1037,59 +1386,48 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
                   Quick Presets:
                 </span>
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={() => setOfferForm(f => ({
-                      ...f,
-                      title: '10% Institutional Discount',
-                      type: 'percentage',
-                      value: 10
-                    }))}
-                    className="px-2.5 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold cursor-pointer"
-                  >
-                    10% Off
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOfferForm(f => ({
-                      ...f,
-                      title: '15% Bulk Hospital Discount',
-                      type: 'percentage',
-                      value: 15
-                    }))}
-                    className="px-2.5 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold cursor-pointer"
-                  >
-                    15% Off
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOfferForm(f => ({
-                      ...f,
-                      title: 'Special Concession Flat ₹1,00,000 Off',
-                      type: 'flat',
-                      value: 100000
-                    }))}
-                    className="px-2.5 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold cursor-pointer"
-                  >
-                    Flat ₹1 Lakh Off
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOfferForm(f => ({
-                      ...f,
-                      title: 'Free 2-Yr Comprehensive AMC',
-                      type: 'perk',
-                      value: 0,
-                      perkText: 'Complimentary 2-Year Annual Maintenance Contract & Free On-Site Calibration'
-                    }))}
-                    className="px-2.5 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold cursor-pointer"
-                  >
-                    Free 2-Yr AMC
-                  </button>
+                  {[5, 10, 15, 20, 25].map(pct => (
+                    <button
+                      key={pct}
+                      type="button"
+                      onClick={() => setOfferForm(f => ({
+                        ...f,
+                        title: `${pct}% Institutional Discount`,
+                        type: 'percentage',
+                        value: pct
+                      }))}
+                      className={`px-2.5 py-0.5 rounded-lg text-[11px] font-semibold cursor-pointer transition ${
+                        offerForm.type === 'percentage' && offerForm.value === pct
+                          ? 'bg-amber-500 text-white font-bold'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                      }`}
+                    >
+                      {pct}% Off
+                    </button>
+                  ))}
+                  {[50000, 100000, 200000].map(amt => (
+                    <button
+                      key={amt}
+                      type="button"
+                      onClick={() => setOfferForm(f => ({
+                        ...f,
+                        title: `Special Concession Flat ₹${(amt / 1000).toLocaleString('en-IN')}k Off`,
+                        type: 'flat',
+                        value: amt
+                      }))}
+                      className={`px-2.5 py-0.5 rounded-lg text-[11px] font-semibold cursor-pointer transition ${
+                        offerForm.type === 'flat' && offerForm.value === amt
+                          ? 'bg-amber-500 text-white font-bold'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                      }`}
+                    >
+                      Flat ₹{(amt / 100000)} Lakh Off
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Extra Perk & Note */}
+              {/* Extra Perk & Validity */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">
@@ -1116,18 +1454,18 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
                 </div>
               </div>
 
-              {/* 3. Live Price Calculation Summary Box */}
+              {/* 4. Live Price Calculation Summary Box */}
               <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200 flex items-center justify-between font-mono">
                 <div>
                   <span className="text-[11px] font-bold text-emerald-900 block font-sans">
-                    Offer Financial Breakdown:
+                    Offer Financial Summary ({targetAudience === 'all' ? 'Storewide' : (currentCustomer?.customerName || 'Customer')}):
                   </span>
                   <span className="text-xs text-slate-500 line-through">
-                    Regular: ₹{selectedOfferRegularTotal.toLocaleString('en-IN')}
+                    Catalog Base: ₹{selectedOfferRegularTotal.toLocaleString('en-IN')}
                   </span>
                   {calculatedOfferDiscount > 0 && (
                     <span className="text-xs text-emerald-700 font-bold ml-2">
-                      (Discount: -₹{calculatedOfferDiscount.toLocaleString('en-IN')})
+                      (Concession: -₹{calculatedOfferDiscount.toLocaleString('en-IN')})
                     </span>
                   )}
                 </div>
@@ -1141,10 +1479,10 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
                 </div>
               </div>
 
-              {/* 4. Dispatch Channels ("or chla jaye") */}
+              {/* 5. Dispatch Channels */}
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
                 <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                  Send Channels (How should the offer be delivered?):
+                  Delivery Channels (How should the offer be sent?):
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <label className="flex items-center gap-2 text-xs font-semibold text-slate-800 cursor-pointer">
@@ -1154,7 +1492,7 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
                       onChange={(e) => setOfferForm(f => ({ ...f, sendWhatsApp: e.target.checked }))}
                       className="rounded text-emerald-600 cursor-pointer"
                     />
-                    <span>💬 Send WhatsApp</span>
+                    <span>💬 Direct WhatsApp</span>
                   </label>
 
                   <label className="flex items-center gap-2 text-xs font-semibold text-slate-800 cursor-pointer">
@@ -1174,7 +1512,7 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
                       onChange={(e) => setOfferForm(f => ({ ...f, sendPortal: e.target.checked }))}
                       className="rounded text-amber-600 cursor-pointer"
                     />
-                    <span>🌐 Live Customer Portal</span>
+                    <span>🌐 Live Storefront Portal</span>
                   </label>
                 </div>
               </div>
@@ -1190,11 +1528,17 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
                 </button>
                 <button
                   type="submit"
-                  disabled={isSendingOffer || offerSelectedProductIds.length === 0}
-                  className="px-6 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold cursor-pointer shadow-xs disabled:opacity-40 flex items-center gap-1.5"
+                  disabled={isSendingOffer}
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold cursor-pointer shadow-xs disabled:opacity-40 flex items-center gap-1.5"
                 >
                   <Send size={13} />
-                  <span>{isSendingOffer ? 'Dispatching Offer...' : 'Send Offer to Customer Now 🚀'}</span>
+                  <span>
+                    {isSendingOffer
+                      ? 'Dispatching Offer...'
+                      : targetAudience === 'all'
+                        ? `Broadcast Offer to All ${customerCarts.length} Customers 📢`
+                        : `Send Offer to ${currentCustomer?.customerName} 🚀`}
+                  </span>
                 </button>
               </div>
 
@@ -1204,10 +1548,95 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
         </div>
       )}
 
+      {/* =========================================================================
+          WHATSAPP BROADCAST ASSISTANT MODAL (For All Customers Broadcast)
+          ========================================================================= */}
+      {showBroadcastModal && lastDispatchedOffer && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl max-w-xl w-full max-h-[85vh] shadow-2xl border border-slate-200 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+            
+            {/* Header */}
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-emerald-50/70">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-2xs">
+                  <Share2 size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-extrabold text-slate-900">
+                    WhatsApp Broadcast Assistant
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Click each customer below to send personalized WhatsApp message
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowBroadcastModal(false)}
+                className="p-1 text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* List of Customers */}
+            <div className="p-5 overflow-y-auto space-y-3 flex-1 text-xs">
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs">
+                <strong>Offer:</strong> {lastDispatchedOffer.title} ({lastDispatchedOffer.type === 'percentage' ? `${lastDispatchedOffer.value}% OFF` : `-₹${Number(lastDispatchedOffer.value).toLocaleString('en-IN')}`}) • Valid till {lastDispatchedOffer.validTill}
+              </div>
+
+              <div className="space-y-2">
+                {customerCarts.map((customer, idx) => (
+                  <div
+                    key={customer.customerId || idx}
+                    className="p-3 rounded-xl border border-slate-200 hover:border-emerald-300 bg-slate-50 hover:bg-white transition flex items-center justify-between gap-3"
+                  >
+                    <div className="min-w-0">
+                      <div className="font-bold text-slate-900">{customer.customerName}</div>
+                      <div className="text-[11px] text-slate-500">{customer.hospitalName} ({customer.phone})</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => sendWhatsAppOfferMessage(customer, lastDispatchedOffer)}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shrink-0"
+                    >
+                      <Share2 size={12} />
+                      <span>Send WhatsApp</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50">
+              <button
+                type="button"
+                onClick={() => {
+                  const sampleMsg = buildWhatsAppMessage(customerCarts[0] || {}, lastDispatchedOffer);
+                  navigator.clipboard.writeText(sampleMsg);
+                  setCopiedBroadcastText(true);
+                  setTimeout(() => setCopiedBroadcastText(false), 3000);
+                }}
+                className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold text-xs transition cursor-pointer flex items-center gap-1.5"
+              >
+                <Copy size={12} />
+                <span>{copiedBroadcastText ? 'Copied to Clipboard!' : 'Copy Template Message'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowBroadcastModal(false)}
+                className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer"
+              >
+                Done / Close
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
-}
-
-function Edit3Icon(props) {
-  return <Edit3 size={props.size || 14} className={props.className} />;
 }

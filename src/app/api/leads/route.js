@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDatabase } from '../../../lib/mongodb';
+import { getLeadTimestamp, stableLeadSort } from '../../../lib/leadUtils';
 import fs from 'fs';
 import path from 'path';
 
@@ -29,8 +30,12 @@ function readLocalLeads() {
 }
 
 function writeLocalLeads(list) {
-  // Purely in-memory cache, DO NOT write to src/data/leads.json on disk
   global._biomedical_leads = list;
+  try {
+    fs.writeFileSync(LEADS_FILE, JSON.stringify(list, null, 2), 'utf-8');
+  } catch (e) {
+    console.warn('Failed to write local leads file:', e.message);
+  }
   return true;
 }
 
@@ -150,22 +155,17 @@ export async function GET() {
     });
 
     const seenLeadIds = new Set();
-    const seenCustomerEquipment = new Set();
     const uniqueLeads = [];
 
     for (const lead of sortedEnriched) {
       const cleanId = lead.id || String(lead._id);
-      const cleanPhone = (lead.phone || lead.customerPhone || lead.rawLeadData?.customerPhone || '').replace(/\D/g, '').slice(-10);
-      const cleanEquip = (lead.equipment || lead.productName || lead.rawLeadData?.productName || '').trim().toLowerCase();
-      const custEquipKey = cleanPhone && cleanEquip ? `${cleanPhone}::${cleanEquip}` : null;
-
       if (seenLeadIds.has(cleanId)) continue;
-      if (custEquipKey && seenCustomerEquipment.has(custEquipKey)) continue;
-
       seenLeadIds.add(cleanId);
-      if (custEquipKey) seenCustomerEquipment.add(custEquipKey);
       uniqueLeads.push(lead);
     }
+
+    // Guarantee absolute deterministic chronological ordering (newest arrival first)
+    uniqueLeads.sort(stableLeadSort);
 
     if (uniqueLeads.length > 0) {
       writeLocalLeads(uniqueLeads);
@@ -283,22 +283,17 @@ export async function GET() {
     });
 
     const seenMemIds = new Set();
-    const seenMemCustomerEquipment = new Set();
     const uniqueMemLeads = [];
 
     for (const lead of sortedMemEnriched) {
       const cleanId = lead.id || String(lead._id);
-      const cleanPhone = (lead.phone || lead.customerPhone || lead.rawLeadData?.customerPhone || '').replace(/\D/g, '').slice(-10);
-      const cleanEquip = (lead.equipment || lead.productName || lead.rawLeadData?.productName || '').trim().toLowerCase();
-      const custEquipKey = cleanPhone && cleanEquip ? `${cleanPhone}::${cleanEquip}` : null;
-
       if (seenMemIds.has(cleanId)) continue;
-      if (custEquipKey && seenMemCustomerEquipment.has(custEquipKey)) continue;
-
       seenMemIds.add(cleanId);
-      if (custEquipKey) seenMemCustomerEquipment.add(custEquipKey);
       uniqueMemLeads.push(lead);
     }
+
+    // Guarantee absolute deterministic chronological ordering (newest arrival first)
+    uniqueMemLeads.sort(stableLeadSort);
 
     return NextResponse.json({
       success: true,
@@ -332,22 +327,13 @@ export async function POST(request) {
       status: body.status || 'Pending RFQ'
     };
 
-    // 1. Always update local JSON file & memory with phone+equipment deduplication
+    // 1. Always update local JSON file & memory by exact lead ID
     const currentList = readLocalLeads();
-    const cleanPhone = (newLead.phone || newLead.customerPhone || newLead.rawLeadData?.customerPhone || '').replace(/\D/g, '').slice(-10);
-    const cleanEquip = (newLead.equipment || newLead.productName || newLead.rawLeadData?.productName || '').trim().toLowerCase();
-
-    const existingIdx = currentList.findIndex(l => {
-      if (l.id && l.id === leadId) return true;
-      const lPhone = (l.phone || l.customerPhone || l.rawLeadData?.customerPhone || '').replace(/\D/g, '').slice(-10);
-      const lEquip = (l.equipment || l.productName || l.rawLeadData?.productName || '').trim().toLowerCase();
-      return cleanPhone && cleanEquip && lPhone === cleanPhone && lEquip === cleanEquip;
-    });
+    const existingIdx = currentList.findIndex(l => l.id && l.id === leadId);
 
     let updatedList;
     if (existingIdx >= 0) {
       const existing = currentList[existingIdx];
-      newLead.id = existing.id || leadId; // Preserve original id so client & server remain in sync
       updatedList = [...currentList];
       updatedList[existingIdx] = { ...existing, ...newLead, updatedAt: nowIso };
     } else {
@@ -360,28 +346,23 @@ export async function POST(request) {
       const db = await getDatabase();
       const collection = db.collection('leads');
 
-      const cleanPhone = (newLead.phone || newLead.customerPhone || '').replace(/\D/g, '').slice(-10);
-      let targetLeadId = leadId;
+      const query = { id: leadId };
+      const { createdAt, _id, ...fieldsToSet } = newLead;
 
-      // Check if an existing lead exists for this customer (by phone) and same equipment
-      if (cleanPhone && newLead.equipment) {
-        const existingDoc = await collection.findOne({
-          $or: [
-            { id: leadId },
-            {
-              phone: { $regex: cleanPhone + '$' },
-              equipment: newLead.equipment
-            }
-          ]
-        });
-        if (existingDoc && existingDoc.id) {
-          targetLeadId = existingDoc.id;
-          newLead.id = existingDoc.id;
+      // Preserve previously locked approved price if customer negotiates lower (e.g. 1400 vs 1500)
+      if (typeof existingDoc !== 'undefined' && existingDoc && (existingDoc.approvedPrice || existingDoc.lockedApprovedPrice)) {
+        const prevApproved = parseFloat(existingDoc.lockedApprovedPrice || existingDoc.approvedPrice);
+        const incomingBid = parseFloat(newLead.expectedPrice || 0);
+        if (incomingBid > 0 && incomingBid < prevApproved) {
+          fieldsToSet.lockedApprovedPrice = prevApproved;
+          fieldsToSet.customerRevisedBid = incomingBid;
+          fieldsToSet.approvedPrice = prevApproved; // Base floor locked
+          fieldsToSet.price = prevApproved;
+          fieldsToSet.isPriceNegotiated = true;
+          fieldsToSet.negotiationStatus = 'approved';
+          fieldsToSet.adminNote = `Customer bargained for ₹${incomingBid.toLocaleString('en-IN')}. Floor locked at ₹${prevApproved.toLocaleString('en-IN')}. Bridge with ₹${(prevApproved - incomingBid).toLocaleString('en-IN')} complementary add-on.`;
         }
       }
-
-      const query = { id: targetLeadId };
-      const { createdAt, _id, ...fieldsToSet } = newLead;
       const updateResult = await collection.updateOne(
         query,
         {

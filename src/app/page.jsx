@@ -62,7 +62,8 @@ import {
   Lock,
   Archive,
   RotateCcw,
-  ShoppingCart
+  ShoppingCart,
+  Gift
 } from 'lucide-react';
 import { PRODUCTS } from '../data/products';
 import ProductCatalogManager from './components/ProductCatalogManager';
@@ -76,6 +77,14 @@ import CartWatchlistManager from './components/CartWatchlistManager';
 import AuthScreen from './components/AuthScreen';
 import { useAuth } from '../lib/AuthContext';
 import { ALL_INDIAN_STATES, POPULAR_DISTRICT_HUBS } from '../data/indianDistricts';
+import {
+  isPushNotificationSupported,
+  getPushPermissionStatus,
+  requestPushPermission,
+  triggerSystemPushNotification,
+  playPushNotificationSound
+} from '../lib/pushNotifications';
+import { getLeadTimestamp, stableLeadSort } from '../lib/leadUtils';
 
 // ============================================================================
 // 3 SENDER BIOMEDICAL COMPANIES (Raj Biosis, Human Biomedicals, Global Biomedical)
@@ -254,6 +263,7 @@ export default function AdminDashboardPage({ searchParams }) {
   };
 
   const [activeTab, setActiveTabRaw] = useState(resolveInitialTab);
+  const [activeQuotationDeskTab, setActiveQuotationDeskTab] = useState('leads');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [leadFilterDomain, setLeadFilterDomain] = useState('all');
   const {
@@ -277,6 +287,8 @@ export default function AdminDashboardPage({ searchParams }) {
   const [counterPriceInput, setCounterPriceInput] = useState('');
   const [counterNoteInput, setCounterNoteInput] = useState('');
   const [negotiationSubmitting, setNegotiationSubmitting] = useState(false);
+  const [adminFloorInput, setAdminFloorInput] = useState('');
+  const [adminCustomerBidInput, setAdminCustomerBidInput] = useState('');
   const [toastNotification, setToastNotification] = useState(null);
 
   // Auto-dismiss toast
@@ -286,16 +298,105 @@ export default function AdminDashboardPage({ searchParams }) {
     return () => clearTimeout(timer);
   }, [toastNotification]);
 
+  // Sync sidebar active state with quotation desk tabs
+  useEffect(() => {
+    const handleSwitch = (e) => {
+      if (e?.detail) setActiveQuotationDeskTab(e.detail);
+    };
+    window.addEventListener('switch_web_quotation_tab', handleSwitch);
+    window.addEventListener('reset_web_quotation_tab', handleSwitch);
+    return () => {
+      window.removeEventListener('switch_web_quotation_tab', handleSwitch);
+      window.removeEventListener('reset_web_quotation_tab', handleSwitch);
+    };
+  }, []);
+
 
 
   const openNegotiationModal = (lead) => {
     if (!lead) return;
     setNegotiationModalLead(lead);
     const actual = lead.actualPrice || 150000;
-    const expected = lead.expectedPrice || lead.price || 120000;
+    const expected = lead.customerRevisedBid || lead.expectedPrice || lead.price || 120000;
+    const approved = lead.lockedApprovedPrice || lead.approvedPrice || actual;
     const midpoint = Math.round((actual + expected) / 2);
     setCounterPriceInput(lead.adminCounterPrice ? String(lead.adminCounterPrice) : String(midpoint));
     setCounterNoteInput(lead.adminNote || 'Approved in-between institutional offer with warranty.');
+    setAdminFloorInput(String(lead.lockedApprovedPrice || lead.approvedPrice || actual));
+    setAdminCustomerBidInput(String(lead.customerRevisedBid || (lead.expectedPrice && approved > lead.expectedPrice ? lead.expectedPrice : Math.max(0, approved - 500))));
+  };
+
+  const handleLockFloorWithComplimentary = async (lead, floorVal, bargainedVal, noteVal) => {
+    if (!lead) return;
+    const floor = parseFloat(floorVal || 0);
+    const bargained = parseFloat(bargainedVal || 0);
+    const compGap = Math.max(0, floor - bargained);
+
+    if (!floor || !bargained || compGap <= 0) {
+      alert('Deal floor price must be greater than customer demanded base equipment price to allocate complimentary budget.');
+      return;
+    }
+
+    setNegotiationSubmitting(true);
+    try {
+      const numQty = parseInt(String(lead.quantity || '1').replace(/\D/g, ''), 10) || 1;
+      const totalAmount = floor * numQty;
+
+      const updateData = {
+        id: lead.id,
+        _id: lead._id,
+        isPriceNegotiated: true,
+        negotiationStatus: 'approved',
+        lockedApprovedPrice: floor,
+        customerRevisedBid: bargained,
+        approvedPrice: bargained,
+        price: bargained,
+        allowedComplementaryBudget: compGap,
+        quoteAmount: `₹${totalAmount.toLocaleString('en-IN')}`,
+        estimatedValue: totalAmount,
+        adminNote: noteVal || `Deal floor locked at ₹${floor.toLocaleString('en-IN')} with ₹${compGap.toLocaleString('en-IN')} complimentary perk.`,
+        approvedBy: user?.name || user?.email || 'Admin',
+        approvedAt: new Date().toISOString(),
+        status: `Floor Locked ₹${floor.toLocaleString('en-IN')} (+₹${compGap.toLocaleString('en-IN')} Comp)`
+      };
+
+      await fetch('/api/leads', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData)
+      });
+
+      setLeads(prev => prev.map(l => (l.id === lead.id || (lead._id && l._id === lead._id)) ? { ...l, ...updateData } : l));
+
+      try {
+        const channel = new BroadcastChannel('biomedical_leads_channel');
+        channel.postMessage({ type: 'LEAD_PRICE_UPDATED', lead: { ...lead, ...updateData } });
+        setTimeout(() => { try { channel.close(); } catch (e) { } }, 5000);
+      } catch (e) { }
+
+      setToastNotification({
+        title: 'Deal Floor Locked with Complimentary Perk!',
+        message: `Deal locked at ₹${floor.toLocaleString('en-IN')} with ₹${compGap.toLocaleString('en-IN')} complimentary budget for ${lead.hospital || lead.equipment}.`
+      });
+
+      if (typeof window !== 'undefined') {
+        try {
+          const channel = new BroadcastChannel('rbpl_system_notifications');
+          channel.postMessage({
+            type: 'lead_deal_floor_approved',
+            lead: { ...lead, ...updateData },
+            timestamp: Date.now()
+          });
+          channel.close();
+        } catch (e) {}
+      }
+      setNegotiationModalLead(null);
+    } catch (err) {
+      console.error('Lock floor error:', err);
+      alert('Error locking floor price: ' + err.message);
+    } finally {
+      setNegotiationSubmitting(false);
+    }
   };
 
   const handleApproveCustomerPrice = async (lead) => {
@@ -338,6 +439,15 @@ export default function AdminDashboardPage({ searchParams }) {
       setToastNotification({
         title: 'Price Approved Successfully!',
         message: `₹${approvedAmount.toLocaleString('en-IN')} approved for ${lead.hospital || lead.equipment}. Sales employees can now make the quotation.`
+      });
+
+      broadcastSystemNotification({
+        type: 'lead_deal_floor_approved',
+        targetRole: 'sales',
+        approvalType: 'customer_expected_price',
+        approvedAmount: approvedAmount,
+        lead: { ...lead, ...updateData },
+        approvedBy: user?.fullName || user?.name || 'Admin'
       });
       setNegotiationModalLead(null);
     } catch (err) {
@@ -393,6 +503,15 @@ export default function AdminDashboardPage({ searchParams }) {
         title: 'Counter Offer Set!',
         message: `In-between rate ₹${numPrice.toLocaleString('en-IN')} set for ${lead.hospital || lead.equipment}. Sales employees can now proceed with quotation.`
       });
+
+      broadcastSystemNotification({
+        type: 'lead_deal_floor_approved',
+        targetRole: 'sales',
+        approvalType: 'in_between_rate',
+        approvedAmount: numPrice,
+        lead: { ...lead, ...updateData },
+        approvedBy: user?.fullName || user?.name || 'Admin'
+      });
       setNegotiationModalLead(null);
     } catch (err) {
       console.error('Counter price error:', err);
@@ -402,10 +521,45 @@ export default function AdminDashboardPage({ searchParams }) {
     }
   };
 
-  const handleRequestAdminApproval = (lead) => {
+  const handleRequestAdminApproval = async (lead) => {
+    if (!lead) return;
+    const leadId = lead.id || lead._id;
+    const updateData = {
+      id: leadId,
+      _id: lead._id,
+      isPriceNegotiated: true,
+      negotiationStatus: 'pending_approval',
+      approvalRequestedAt: new Date().toISOString(),
+      approvalRequestedBy: user?.fullName || user?.name || 'Sales Team (shree)'
+    };
+    try {
+      await fetch('/api/leads', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData)
+      });
+    } catch (e) {}
+    setLeads(prev => prev.map(l => (l.id === leadId || (lead._id && l._id === lead._id)) ? { ...l, ...updateData } : l));
+
+    // Trigger Native Push Notification with Sound
+    triggerSystemPushNotification({
+      title: `🏷️ Price Approval Requested - ${lead.hospital || lead.customerName || 'Customer'}`,
+      body: `Target Bid ₹${Number(lead.expectedPrice || lead.price || 0).toLocaleString('en-IN')} requested for ${lead.equipment || 'Equipment'}. Awaiting Admin authorization.`,
+      tag: `lead-bargain-${leadId}`,
+      onClick: () => {
+        if (typeof window !== 'undefined') window.focus();
+      }
+    });
+
+    broadcastSystemNotification({
+      type: 'lead_bargain_requested',
+      targetRole: 'admin',
+      lead: { ...lead, ...updateData },
+      requestedBy: user?.fullName || user?.name || 'Sales Team (shree)'
+    });
     setToastNotification({
       title: 'Admin Approval Request Submitted',
-      message: `Price approval request sent to Admin for ₹${(lead.expectedPrice || lead.price || 0).toLocaleString('en-IN')}. The Make Quotation button will unlock upon authorization.`
+      message: `Price approval request sent to Admin for ₹${(lead.expectedPrice || lead.price || 0).toLocaleString('en-IN')}.`
     });
   };
 
@@ -632,7 +786,156 @@ export default function AdminDashboardPage({ searchParams }) {
   const alertTimerRef = React.useRef(null);
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const knownLeadIdsRef = React.useRef(new Set());
+  const knownLeadNegotiationStatusRef = React.useRef(new Map());
   const isInitialLeadFetchRef = React.useRef(true);
+
+  // Real-Time Quotation Concession Alerts (Admin & Sales)
+  const [quotationAlerts, setQuotationAlerts] = useState([]);
+  const [quotationApprovedAlerts, setQuotationApprovedAlerts] = useState([]);
+  const knownQuoteConcessionsRef = React.useRef(new Map());
+  const isInitialQuoteFetchRef = React.useRef(true);
+  const [pushPermission, setPushPermission] = useState('default');
+
+  // Push Notification Permission check on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const status = getPushPermissionStatus();
+      setPushPermission(status);
+      if (status === 'default') {
+        requestPushPermission().then(res => setPushPermission(res));
+      }
+    }
+  }, []);
+
+  const handleTogglePushNotifications = async () => {
+    const status = await requestPushPermission();
+    setPushPermission(status);
+    if (status === 'granted') {
+      triggerSystemPushNotification({
+        title: '🔔 Desktop Push Alerts Active',
+        body: 'You will now receive native desktop notifications even when working on other applications or tabs.',
+        soundVariant: 'success'
+      });
+      setToastNotification({
+        type: 'success',
+        title: 'Push Notifications Enabled',
+        message: 'Real-time OS desktop alerts are now active!'
+      });
+    } else if (status === 'denied') {
+      alert('Desktop notifications are currently blocked in your browser. Please click the site settings / padlock icon in your address bar to allow notifications.');
+    }
+  };
+
+  const handleNavigateToConcessionReview = (quote) => {
+    if (!quote) return;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('active_concession_quote', JSON.stringify({ ...quote, openReviewModal: true }));
+        window.dispatchEvent(new CustomEvent('open_concession_review', { detail: { quote, openReviewModal: true } }));
+      } catch (e) {}
+    }
+    setActiveTab('quotation');
+    setQuotationAlerts(prev => prev.filter(x => (x.refNo || x.id) !== (quote.refNo || quote.id)));
+  };
+
+  const handleNavigateToConcessionRevision = (quote) => {
+    if (!quote) return;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('active_concession_quote', JSON.stringify({ ...quote, openRevision: true }));
+        window.dispatchEvent(new CustomEvent('open_concession_review', { detail: { quote, openRevision: true } }));
+      } catch (e) {}
+    }
+    setActiveTab('quotation');
+    setQuotationApprovedAlerts(prev => prev.filter(x => (x.refNo || x.id) !== (quote.refNo || quote.id)));
+  };
+
+  // Cross-Tab & Cross-Process System Notifications Broadcast Listener (Continuous Bidirectional Connection)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const processedEvents = new Set();
+
+    const handleIncomingNotification = (data) => {
+      if (!data || !data.type) return;
+      const eventKey = `${data.type}-${data.id || data.timestamp || ''}-${data.lead?.id || data.quote?.refNo || ''}`;
+      if (processedEvents.has(eventKey)) return;
+      processedEvents.add(eventKey);
+      setTimeout(() => processedEvents.delete(eventKey), 5000);
+
+      // 1. Sales -> Admin: Quotation Concession Requested
+      if (data.type === 'quotation_concession_requested') {
+        const q = data.quote;
+        triggerSystemPushNotification({
+          title: '⚠️ Price Concession Approval Required',
+          body: `Sales rep ${data.requestedBy || q?.concessionRequestedBy || 'Sales'} requested price drop for ${q?.customerName || 'Customer'} (Ref: ${q?.refNo}). Demanded: ₹${Number(q?.customerDemandedPrice || 0).toLocaleString('en-IN')} (Gap: ₹${Number(q?.concessionGap || 0).toLocaleString('en-IN')}). Click to review & decide.`,
+          tag: `quote-concession-${q?.refNo || q?.id}`,
+          onClick: () => handleNavigateToConcessionReview(q)
+        });
+      }
+      // 2. Admin -> Sales: Quotation Concession Authorized (Direct Discount or Complimentary Perk)
+      else if (data.type === 'quotation_concession_approved') {
+        const q = data.quote;
+        const isDirect = q?.concessionStatus === 'approved_direct_discount';
+        triggerSystemPushNotification({
+          title: isDirect ? '🎉 Quotation Concession Approved (Direct Discount)' : '🎁 Quotation Concession Approved (Complimentary Perk)',
+          body: `Admin approved concession for ${q?.customerName || 'Customer'} (${q?.refNo}). ${isDirect ? `Deal price reduced to ₹${Number(q?.approvedDealPrice || 0).toLocaleString('en-IN')}.` : `₹${Number(q?.allowedComplementaryBudget || 0).toLocaleString('en-IN')} complimentary perk authorized.`} Click to issue Revision 2.`,
+          tag: `quote-approved-${q?.refNo || q?.id}`,
+          onClick: () => handleNavigateToConcessionRevision(q)
+        });
+      }
+      // 3. Sales -> Admin: Lead Price Bargain Requested (From REQUEST ADMIN APPROVAL button)
+      else if (data.type === 'lead_bargain_requested') {
+        const l = data.lead;
+        setNewLeadAlerts(prev => [l, ...prev.filter(x => x.id !== l?.id)]);
+        triggerSystemPushNotification({
+          title: '🏷️ Lead Price Approval Requested!',
+          body: `Sales rep ${data.requestedBy || 'Sales'} requested price approval for ${l?.hospital || l?.doctorName || l?.customerName || 'Customer'} (${l?.equipment || l?.productName || 'Equipment'}). Target Bid: ₹${Number(l?.expectedPrice || l?.price || 0).toLocaleString('en-IN')}. Click to review & decide.`,
+          tag: `lead-bargain-${l?.id}`,
+          onClick: () => openNegotiationModal(l)
+        });
+      }
+      // 4. Admin -> Sales: Lead Deal Floor Approved (From Biomedical Equipment Price Approval Desk)
+      else if (data.type === 'lead_deal_floor_approved') {
+        const l = data.lead;
+        const isExpected = data.approvalType === 'customer_expected_price' || l?.negotiationStatus === 'approved';
+        const approvedVal = data.approvedAmount || l?.approvedPrice || l?.expectedPrice || l?.price || 0;
+        triggerSystemPushNotification({
+          title: isExpected ? '✅ Customer Expected Price Authorized!' : '🤝 In-Between Counter Rate Authorized!',
+          body: `Admin approved ₹${Number(approvedVal).toLocaleString('en-IN')} for ${l?.hospital || l?.doctorName || l?.customerName || 'Customer'} (${l?.equipment || l?.productName || 'Equipment'}). Ready to create quotation!`,
+          tag: `lead-approved-${l?.id}`,
+          onClick: () => {
+            if (typeof window !== 'undefined' && l) {
+              try {
+                localStorage.setItem('active_quotation_lead', JSON.stringify(l));
+              } catch (err) {}
+            }
+            setActiveTab('quotation');
+          }
+        });
+      }
+    };
+
+    let channel = null;
+    try {
+      channel = new BroadcastChannel('rbpl_system_notifications');
+      channel.onmessage = (e) => handleIncomingNotification(e.data);
+    } catch (err) {}
+
+    const storageHandler = (e) => {
+      if (e.key === 'rbpl_push_event_sync' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          handleIncomingNotification(parsed);
+        } catch (err) {}
+      }
+    };
+    window.addEventListener('storage', storageHandler);
+
+    return () => {
+      if (channel) try { channel.close(); } catch (e) {}
+      window.removeEventListener('storage', storageHandler);
+    };
+  }, [isAdmin]);
 
   // 4-second countdown auto-dismiss effect for top lead alert banner
   useEffect(() => {
@@ -713,9 +1016,10 @@ export default function AdminDashboardPage({ searchParams }) {
     loadDeletedRecordsCount();
     loadCartWatchlistCount();
 
-    // Periodic 2-second polling to capture incoming leads and customer profile edits
+    // Periodic 2-second polling to capture incoming leads, quotations, and concessions
     const pollTimer = setInterval(() => {
       loadLeadsFromDb();
+      loadQuotations();
       loadCustomerProfilesCount();
     }, 2000);
 
@@ -763,34 +1067,85 @@ export default function AdminDashboardPage({ searchParams }) {
       const res = await fetch('/api/leads');
       const data = await res.json();
       if (data.success && Array.isArray(data.leads)) {
-        // Guarantee newest leads are ALWAYS sorted at the very top
-        const sorted = [...data.leads].sort((a, b) => {
-          const timeA = new Date(a.createdAt || a.timestamp || 0).getTime();
-          const timeB = new Date(b.createdAt || b.timestamp || 0).getTime();
-          if (timeB !== timeA) return timeB - timeA;
-          return String(b.id || '').localeCompare(String(a.id || ''));
-        });
+        // Guarantee newest leads are ALWAYS sorted at the very top (100% deterministic & stable)
+        const sorted = [...data.leads].sort(stableLeadSort);
 
         if (isInitialLeadFetchRef.current) {
           sorted.forEach(l => {
-            if (l.id) knownLeadIdsRef.current.add(l.id);
+            if (l.id) {
+              knownLeadIdsRef.current.add(l.id);
+              knownLeadNegotiationStatusRef.current.set(l.id, l.negotiationStatus || 'none');
+            }
           });
           isInitialLeadFetchRef.current = false;
         } else {
-          // Detect newly arrived leads
+          // 1. Detect newly arrived leads
           const incoming = [];
           sorted.forEach(l => {
             if (l.id && !knownLeadIdsRef.current.has(l.id)) {
               knownLeadIdsRef.current.add(l.id);
+              knownLeadNegotiationStatusRef.current.set(l.id, l.negotiationStatus || 'none');
               incoming.push(l);
             }
           });
 
           if (incoming.length > 0) {
-            // Prepend new leads to persistent notification alerts (NO AUTO-HIDE!)
             setNewLeadAlerts(prev => [...incoming, ...prev]);
-            playLeadAlertSound();
+            const first = incoming[0];
+            triggerSystemPushNotification({
+              title: `🔔 New Web RFQ Lead Received! (${incoming.length})`,
+              body: `${first.doctorName || first.customerName || 'Hospital Purchase Officer'} from ${first.hospital || first.city || 'Healthcare Facility'} inquired for ${first.equipment || first.productName || 'Biomedical Equipment'}. Click to create quotation.`,
+              tag: `lead-${first.id}`,
+              onClick: () => {
+                if (typeof window !== 'undefined' && first) {
+                  try {
+                    localStorage.setItem('active_quotation_lead', JSON.stringify(first));
+                  } catch (e) {}
+                }
+                setActiveTab('quotation');
+                setNewLeadAlerts([]);
+              }
+            });
           }
+
+          // 2. Detect lead price negotiation status changes (Sales requested Admin approval!)
+          sorted.forEach(l => {
+            if (!l.id) return;
+            const prevStatus = knownLeadNegotiationStatusRef.current.get(l.id) || 'none';
+            const curStatus = l.negotiationStatus || 'none';
+
+            if (prevStatus !== curStatus) {
+              knownLeadNegotiationStatusRef.current.set(l.id, curStatus);
+
+              // Concession / Price approval requested by Sales -> Alert Admin with Push & Sound!
+              if (curStatus === 'pending_approval' && prevStatus !== 'pending_approval') {
+                setNewLeadAlerts(prev => [l, ...prev.filter(x => x.id !== l.id)]);
+                triggerSystemPushNotification({
+                  title: '🏷️ Lead Price Approval Requested!',
+                  body: `Sales rep requested price approval for ${l.hospital || l.doctorName || 'Customer'} (${l.equipment || 'Equipment'}). Target Bid: ₹${Number(l.expectedPrice || l.price || 0).toLocaleString('en-IN')}. Click to review & decide.`,
+                  tag: `lead-bargain-${l.id}`,
+                  onClick: () => openNegotiationModal(l)
+                });
+              }
+              // Admin authorized price -> Alert Sales!
+              else if ((curStatus === 'approved' || curStatus === 'counter_offered') &&
+                       prevStatus !== 'approved' && prevStatus !== 'counter_offered') {
+                const isExpected = curStatus === 'approved';
+                const approvedAmt = l.approvedPrice || l.adminCounterPrice || l.expectedPrice || l.price || 0;
+                triggerSystemPushNotification({
+                  title: isExpected ? '✅ Customer Expected Price Authorized!' : '🤝 In-Between Counter Offer Authorized!',
+                  body: `Admin approved ₹${Number(approvedAmt).toLocaleString('en-IN')} for ${l.hospital || l.doctorName || 'Customer'} (${l.equipment || 'Equipment'}). Ready to create quotation!`,
+                  tag: `lead-approved-${l.id}`,
+                  onClick: () => {
+                    try {
+                      localStorage.setItem('active_quotation_lead', JSON.stringify(l));
+                    } catch (e) {}
+                    setActiveTab('quotation');
+                  }
+                });
+              }
+            }
+          });
         }
 
         setLeads(sorted);
@@ -814,7 +1169,7 @@ export default function AdminDashboardPage({ searchParams }) {
   });
 
   const [deletedRecordsCount, setDeletedRecordsCount] = useState(0);
-  const [cartTotalBadge, setCartTotalBadge] = useState(4);
+  const [cartTotalBadge, setCartTotalBadge] = useState(0);
 
   const loadCartWatchlistCount = async () => {
     try {
@@ -845,8 +1200,54 @@ export default function AdminDashboardPage({ searchParams }) {
       const res = await fetch('/api/quotations');
       const data = await res.json();
       if (data.success && Array.isArray(data.quotations)) {
-        setQuotationsList(data.quotations);
-        try { localStorage.setItem('rbpl_cached_quotations', JSON.stringify(data.quotations)); } catch (e) { }
+        const quotes = data.quotations;
+        setQuotationsList(quotes);
+        try { localStorage.setItem('rbpl_cached_quotations', JSON.stringify(quotes)); } catch (e) { }
+
+        if (isInitialQuoteFetchRef.current) {
+          isInitialQuoteFetchRef.current = false;
+          quotes.forEach(q => {
+            const key = q.refNo || q.id || q._id;
+            knownQuoteConcessionsRef.current.set(key, q.concessionStatus || 'none');
+          });
+        } else {
+          // Compare previous status vs newly fetched status to trigger real-time notifications
+          quotes.forEach(q => {
+            const key = q.refNo || q.id || q._id;
+            const prevStatus = knownQuoteConcessionsRef.current.get(key) || 'none';
+            const newStatus = q.concessionStatus || 'none';
+
+            if (prevStatus !== newStatus) {
+              knownQuoteConcessionsRef.current.set(key, newStatus);
+
+              // Concession Requested -> Alert Admin!
+              if (newStatus === 'concession_requested' && prevStatus !== 'concession_requested') {
+                setQuotationAlerts(prev => [q, ...prev.filter(x => (x.refNo || x.id) !== key)]);
+                triggerSystemPushNotification({
+                  title: '⚠️ Price Concession Approval Required',
+                  body: `Quotation ${q.refNo} for ${q.customerName || 'Customer'} returned on call. Demanded: ₹${Number(q.customerDemandedPrice || 0).toLocaleString('en-IN')}. Click to review & decide.`,
+                  tag: `quote-concession-${key}`,
+                  soundVariant: 'concession',
+                  onClick: () => handleNavigateToConcessionReview(q)
+                });
+              }
+
+              // Concession Approved -> Alert Sales Team!
+              if ((newStatus === 'approved_direct_discount' || newStatus === 'approved_complimentary') &&
+                  prevStatus !== 'approved_direct_discount' && prevStatus !== 'approved_complimentary') {
+                setQuotationApprovedAlerts(prev => [q, ...prev.filter(x => (x.refNo || x.id) !== key)]);
+                const isDirect = newStatus === 'approved_direct_discount';
+                triggerSystemPushNotification({
+                  title: '🎉 Quotation Concession Approved!',
+                  body: `Admin approved ${isDirect ? 'Direct Price Discount' : 'Complimentary Perk'} for ${q.customerName || 'Customer'} (${q.refNo}). Click to issue Revision 2.`,
+                  tag: `quote-approved-${key}`,
+                  soundVariant: 'success',
+                  onClick: () => handleNavigateToConcessionRevision(q)
+                });
+              }
+            }
+          });
+        }
       }
     } catch (e) { }
   };
@@ -1186,26 +1587,15 @@ export default function AdminDashboardPage({ searchParams }) {
       }
       return true;
     })
-    .sort((a, b) => {
-      const timeA = new Date(a.createdAt || a.timestamp || 0).getTime();
-      const timeB = new Date(b.createdAt || b.timestamp || 0).getTime();
-      if (timeB !== timeA) return timeB - timeA;
-      return String(b.id || '').localeCompare(String(a.id || ''));
-    });
+    .sort(stableLeadSort);
 
-  // Strict Deduplication: Same customer phone + equipment only displays ONCE (latest entry)
-  const seenTableCustEquip = new Set();
+  // Deduplicate by Lead ID (preserving all distinct enquiries)
   const seenTableIds = new Set();
   const filteredLeads = [];
   for (const l of rawFilteredLeads) {
     const id = l.id || l._id;
     if (!id || seenTableIds.has(id)) continue;
-    const p = (l.phone || l.customerPhone || l.rawLeadData?.customerPhone || '').replace(/\D/g, '').slice(-10);
-    const eq = (l.equipment || l.productName || l.rawLeadData?.productName || '').trim().toLowerCase();
-    const key = p && eq ? `${p}::${eq}` : id;
-    if (seenTableCustEquip.has(key)) continue;
     seenTableIds.add(id);
-    seenTableCustEquip.add(key);
     filteredLeads.push(l);
   }
 
@@ -1366,6 +1756,7 @@ export default function AdminDashboardPage({ searchParams }) {
             <button
               onClick={() => {
                 setActiveTab('quotation');
+                setActiveQuotationDeskTab('leads');
                 if (typeof window !== 'undefined') {
                   window.dispatchEvent(new CustomEvent('reset_web_quotation_tab', { detail: 'leads' }));
                 }
@@ -1398,6 +1789,32 @@ export default function AdminDashboardPage({ searchParams }) {
                     PDF
                   </span>
                 </div>
+              )}
+            </button>
+
+            {/* Dedicated Complimentary Concessions Desk Tab */}
+            <button
+              onClick={() => {
+                setActiveTab('quotation');
+                setActiveQuotationDeskTab('complementary');
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new CustomEvent('switch_web_quotation_tab', { detail: 'complementary' }));
+                }
+              }}
+              title="Complimentary Concessions & Deal Floor Lock Desk"
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer relative group ${activeTab === 'quotation' && activeQuotationDeskTab === 'complementary'
+                ? 'bg-amber-50 text-amber-800 font-semibold border border-amber-300 shadow-xs ring-1 ring-amber-400/40'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
+                }`}
+            >
+              <span className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+                <Gift size={isSidebarCollapsed ? 19 : 16} className={activeTab === 'quotation' && activeQuotationDeskTab === 'complementary' ? 'text-amber-700' : 'text-amber-600'} />
+                {!isSidebarCollapsed && <span>Complimentary Desk</span>}
+              </span>
+              {!isSidebarCollapsed && (
+                <span className="text-[10px] bg-amber-100 text-amber-900 font-bold px-1.5 py-0.2 rounded border border-amber-200">
+                  🎁 Perk
+                </span>
               )}
             </button>
 
@@ -1570,21 +1987,6 @@ export default function AdminDashboardPage({ searchParams }) {
               </div>
             )}
 
-            {/* Sound Toggle Button */}
-            <button
-              type="button"
-              onClick={() => setIsSoundEnabled(!isSoundEnabled)}
-              title={isSoundEnabled ? "Lead Chime Sound: ON (Click to Mute)" : "Lead Chime Sound: MUTED (Click to Enable)"}
-              className={`text-xs px-3 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs ${isSoundEnabled
-                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
-                : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100'
-                }`}
-            >
-              {isSoundEnabled ? <Volume2 size={15} className="text-emerald-600 shrink-0" /> : <VolumeX size={15} className="text-slate-400 shrink-0" />}
-              <span className="text-[11px] font-bold">{isSoundEnabled ? 'Alert Chime ON' : 'Alert Chime OFF'}</span>
-            </button>
-
-
             {/* Global District & Territory Filter Selector */}
             <div className="hidden md:flex items-center gap-1.5 bg-slate-50 border border-slate-200/90 px-2.5 py-1.5 rounded-xl shadow-2xs">
               <MapPin size={13} className="text-rose-500 shrink-0" />
@@ -1689,6 +2091,8 @@ export default function AdminDashboardPage({ searchParams }) {
           </div>
         </header>
 
+
+
         {/* Persistent New Lead Notification Alert (DOES NOT AUTO-HIDE AS REQUESTED) */}
         {newLeadAlerts.length > 0 && (
           <div className="mx-6 mt-4 p-4 rounded-2xl bg-gradient-to-r from-rose-50 via-amber-50 to-orange-50 border-2 border-rose-300 shadow-md shadow-rose-100/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -1751,31 +2155,29 @@ export default function AdminDashboardPage({ searchParams }) {
                   </button>
                 )
               ) : (
-                isLeadProfileComplete(newLeadAlerts[0]) && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (typeof window !== 'undefined' && newLeadAlerts[0]) {
-                        try {
-                          localStorage.setItem('active_quotation_lead', JSON.stringify(newLeadAlerts[0]));
-                        } catch (e) { }
-                      }
-                      setActiveTab('quotation');
-                      setNewLeadAlerts([]);
-                    }}
-                    className="px-3.5 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Sparkles size={13} className="text-amber-200" />
-                    <span>
-                      {newLeadAlerts[0]?.negotiationStatus === 'approved'
-                        ? `Make Quotation (Approved: ₹${(newLeadAlerts[0].approvedPrice || newLeadAlerts[0].price)?.toLocaleString('en-IN')})`
-                        : newLeadAlerts[0]?.negotiationStatus === 'counter_offered'
-                          ? `Make Quotation (Counter: ₹${(newLeadAlerts[0].adminCounterPrice || newLeadAlerts[0].price)?.toLocaleString('en-IN')})`
-                          : 'Make Quotation'}
-                    </span>
-                    <ArrowRight size={13} />
-                  </button>
-                )
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof window !== 'undefined' && newLeadAlerts[0]) {
+                      try {
+                        localStorage.setItem('active_quotation_lead', JSON.stringify(newLeadAlerts[0]));
+                      } catch (e) { }
+                    }
+                    setActiveTab('quotation');
+                    setNewLeadAlerts([]);
+                  }}
+                  className="px-3.5 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Sparkles size={13} className="text-amber-200" />
+                  <span>
+                    {newLeadAlerts[0]?.negotiationStatus === 'approved'
+                      ? `Make Quotation (Approved: ₹${(newLeadAlerts[0].approvedPrice || newLeadAlerts[0].price)?.toLocaleString('en-IN')})`
+                      : newLeadAlerts[0]?.negotiationStatus === 'counter_offered'
+                        ? `Make Quotation (Counter: ₹${(newLeadAlerts[0].adminCounterPrice || newLeadAlerts[0].price)?.toLocaleString('en-IN')})`
+                        : 'Make Quotation'}
+                  </span>
+                  <ArrowRight size={13} />
+                </button>
               )}
               <button
                 type="button"
@@ -2663,6 +3065,70 @@ export default function AdminDashboardPage({ searchParams }) {
                           >
                             <span>Set In-Between Counter Offer (₹{parseFloat(counterPriceInput || 0).toLocaleString('en-IN')})</span>
                             <ArrowRight size={14} />
+                          </button>
+                        </div>
+
+                        {/* Choice 3: Option C - Lock Deal Floor & Authorize Complimentary Concession */}
+                        <div className="p-4 rounded-xl border-2 border-amber-400 bg-amber-50/70 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-xs font-bold text-amber-950 flex items-center gap-1.5 uppercase">
+                              <Gift size={15} className="text-amber-600 animate-bounce" />
+                              <span>Option C: Lock Floor & Authorize Complimentary Perk</span>
+                            </h4>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-950 font-mono">
+                              Deal Preserved
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-amber-900 font-medium">
+                            Lock quotation revenue at floor rate (e.g. ₹5,38,000) while setting base machine rate to customer demand (e.g. ₹5,37,500), unlocking the difference as complimentary perk.
+                          </p>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-700 uppercase block mb-1">
+                                Floor to Lock (₹)
+                              </label>
+                              <input
+                                type="number"
+                                value={adminFloorInput}
+                                onChange={(e) => setAdminFloorInput(e.target.value)}
+                                className="w-full px-2.5 py-1.5 text-xs font-mono font-bold bg-white border border-amber-300 rounded-lg outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-700 uppercase block mb-1">
+                                Base Machine (₹)
+                              </label>
+                              <input
+                                type="number"
+                                value={adminCustomerBidInput}
+                                onChange={(e) => setAdminCustomerBidInput(e.target.value)}
+                                className="w-full px-2.5 py-1.5 text-xs font-mono font-bold bg-white border border-amber-300 rounded-lg outline-none"
+                              />
+                            </div>
+                            <div className="p-2 rounded-lg bg-amber-100/90 border border-amber-300 flex flex-col justify-center">
+                              <span className="text-[9px] font-bold text-amber-900 uppercase">Perk Budget</span>
+                              <div className="text-sm font-black font-mono text-emerald-700">
+                                ₹{Math.max(0, (parseFloat(adminFloorInput || 0) - parseFloat(adminCustomerBidInput || 0))).toLocaleString('en-IN')}
+                              </div>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            disabled={negotiationSubmitting || (parseFloat(adminFloorInput || 0) <= parseFloat(adminCustomerBidInput || 0))}
+                            onClick={() => handleLockFloorWithComplimentary(
+                              negotiationModalLead,
+                              parseFloat(adminFloorInput),
+                              parseFloat(adminCustomerBidInput),
+                              `Deal floor locked at ₹${Number(adminFloorInput).toLocaleString('en-IN')} with ₹${(Number(adminFloorInput) - Number(adminCustomerBidInput)).toLocaleString('en-IN')} complimentary allowance.`
+                            )}
+                            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 hover:from-amber-700 hover:to-rose-700 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider disabled:opacity-50"
+                          >
+                            <Lock size={14} />
+                            <span>
+                              Lock Floor at ₹{Number(adminFloorInput || 0).toLocaleString('en-IN')} + Authorize ₹{Math.max(0, (parseFloat(adminFloorInput || 0) - parseFloat(adminCustomerBidInput || 0))).toLocaleString('en-IN')} Complimentary
+                            </span>
                           </button>
                         </div>
 

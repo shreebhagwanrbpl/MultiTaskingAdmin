@@ -27,7 +27,8 @@ import {
   BarChart3,
   Package,
   Award,
-  ArrowRight
+  ArrowRight,
+  ShieldCheck
 } from 'lucide-react';
 
 export default function ExecutiveOverviewDashboard({
@@ -531,18 +532,35 @@ export default function ExecutiveOverviewDashboard({
           {/* CARD 4: OFFICIAL QUOTATIONS ISSUED */}
           <div className="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-xs flex flex-col justify-between">
             <div>
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-                Total Quotations Issued
-              </span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+                  Total Quotations Issued
+                </span>
+                {quotations.filter(q => q.concessionStatus === 'concession_requested').length > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200 animate-pulse flex items-center gap-1">
+                    <ShieldCheck size={10} />
+                    <span>{quotations.filter(q => q.concessionStatus === 'concession_requested').length} Review Required</span>
+                  </span>
+                )}
+              </div>
               <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
                 {totalQuotationsCount} <span className="text-xs font-bold text-slate-400">Issued</span>
               </div>
             </div>
-            <div className="mt-3">
+            <div className="mt-3 flex items-center justify-between">
               <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${totalQuotationsCount > 0 ? 'bg-rose-50 text-rose-700 border border-rose-200/80' : 'bg-slate-50 text-slate-500 border border-slate-200'
                 }`}>
                 <span>{totalQuotationsCount > 0 ? '▼ 3.3% Dispatched' : '0 Quotes Issued'}</span>
               </span>
+              {quotations.filter(q => q.concessionStatus === 'concession_requested').length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => onNavigateTab('quotation')}
+                  className="text-[11px] font-bold text-amber-700 hover:text-amber-800 underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Review Pending Concessions →</span>
+                </button>
+              )}
             </div>
           </div>
 

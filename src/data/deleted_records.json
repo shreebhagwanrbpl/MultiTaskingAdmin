@@ -1,1 +1,5712 @@
-[]
+[
+  {
+    "_id": "6aec4969dda6ac8d5921fae2",
+    "id": "del-quot-quot-1793860245682-i2hr-1793870184997",
+    "originalId": "quot-1793860245682-i2hr",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-05T09:16:24.997Z",
+    "recordData": {
+      "id": "quot-1793860245682-i2hr"
+    }
+  },
+  {
+    "_id": "6aec4966dda6ac8d5921fae1",
+    "id": "del-quot-quot-1793870128227-36gh-1793870182786",
+    "originalId": "quot-1793870128227-36gh",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-05T09:16:22.786Z",
+    "recordData": {
+      "id": "quot-1793870128227-36gh"
+    }
+  },
+  {
+    "_id": "6aec4964dda6ac8d5921fae0",
+    "id": "del-quot-quot-1793869508485-qrrx-1793870180542",
+    "originalId": "quot-1793869508485-qrrx",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-05T09:16:20.542Z",
+    "recordData": {
+      "id": "quot-1793869508485-qrrx"
+    }
+  },
+  {
+    "_id": "6aec4962dda6ac8d5921fadf",
+    "id": "del-quot-quot-1793869508485-qrrx-1793870178368",
+    "originalId": "quot-1793869508485-qrrx",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-05T09:16:18.368Z",
+    "recordData": {
+      "id": "quot-1793869508485-qrrx"
+    }
+  },
+  {
+    "_id": "6aec227fdda6ac8d5921fade",
+    "id": "del-quot-quot-1793857704968-w1lq-1793860223670",
+    "originalId": "quot-1793857704968-w1lq",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-05T06:30:23.670Z",
+    "recordData": {
+      "id": "quot-1793857704968-w1lq"
+    }
+  },
+  {
+    "_id": "6aec227ddda6ac8d5921fadd",
+    "id": "del-quot-quot-1793859173639-7ojb-1793860221012",
+    "originalId": "quot-1793859173639-7ojb",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-05T06:30:21.012Z",
+    "recordData": {
+      "id": "quot-1793859173639-7ojb"
+    }
+  },
+  {
+    "_id": "6aec227adda6ac8d5921fadc",
+    "id": "del-quot-quot-1793860153416-0353-1793860218870",
+    "originalId": "quot-1793860153416-0353",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-05T06:30:18.870Z",
+    "recordData": {
+      "id": "quot-1793860153416-0353"
+    }
+  },
+  {
+    "_id": "6aec1e1bdda6ac8d5921fadb",
+    "id": "del-RFQ-876891-0u8h",
+    "originalId": "RFQ-876891",
+    "itemType": "lead",
+    "title": "Mulchand Medicals",
+    "doctorName": "Mulchand Tripathi",
+    "hospital": "Mulchand Medicals",
+    "phone": "+91 8547965896",
+    "email": "mulchand@gmail.com",
+    "equipment": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹76,720",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Pending RFQ",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-05T06:11:39.175Z",
+    "recordData": {
+      "_id": "6aec1954dd7d7f4a660f8cbb",
+      "id": "RFQ-876891",
+      "actualPrice": 68500,
+      "address": "",
+      "adminCounterPrice": null,
+      "adminNote": null,
+      "approvedPrice": 68500,
+      "brandName": "Raj Biosis",
+      "city": "Jaipur",
+      "createdAt": "2026-11-04T04:49:23.033Z",
+      "date": "05 Nov 2026",
+      "dateTime": "05 Nov 2026, 11:21 am",
+      "doctorName": "Mulchand Tripathi",
+      "email": "mulchand@gmail.com",
+      "equipment": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "expectedPrice": null,
+      "hospital": "Mulchand Medicals",
+      "isNegotiable": false,
+      "isPriceNegotiated": false,
+      "isProfileComplete": false,
+      "negotiationStatus": "none",
+      "phone": "+91 8547965896",
+      "price": 68500,
+      "quoteAmount": "₹76,720",
+      "rawLeadData": {
+        "id": "RFQ-876891",
+        "quoteNumber": "RB-QT-2026-8342",
+        "customerName": "Mulchand Tripathi",
+        "designation": "Procurement In-charge",
+        "hospitalName": "Mulchand Medicals",
+        "customerPhone": "+91 8547965896",
+        "customerEmail": "mulchand@gmail.com",
+        "district": "Jaipur",
+        "state": "Rajasthan",
+        "productName": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+        "productSku": "RAJ-ICU-604",
+        "qty": 1,
+        "unitPrice": 68500,
+        "actualPrice": 68500,
+        "expectedPrice": null,
+        "isNegotiable": false,
+        "isPriceNegotiated": false,
+        "negotiationStatus": "none",
+        "approvedPrice": null,
+        "adminCounterPrice": null,
+        "adminNote": null,
+        "isMultiItem": false,
+        "cartProducts": null,
+        "gstRate": "12%",
+        "gstAmount": 8220,
+        "grandTotal": 76720,
+        "status": "Pending RFQ",
+        "statusNote": "Official quotation request submitted for CardioPulse Multi-Para Patient Monitor 12.1\" and synced to Admin quotation queue.",
+        "createdAt": "2026-11-04T04:49:23.033Z",
+        "notes": []
+      },
+      "siteDomain": "rajbiosis.com",
+      "status": "Pending RFQ",
+      "time": "11:21 am",
+      "updatedAt": "2026-11-05T05:51:16.962Z"
+    }
+  },
+  {
+    "_id": "6aec1896dda6ac8d5921fada",
+    "id": "del-quot-quot-1793857521551-e3t6-1793857686466",
+    "originalId": "quot-1793857521551-e3t6",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-05T05:48:06.466Z",
+    "recordData": {
+      "id": "quot-1793857521551-e3t6"
+    }
+  },
+  {
+    "_id": "6aec17badda6ac8d5921fad9",
+    "id": "del-RFQ-1793857457064-3677",
+    "originalId": "RFQ-1793857457064",
+    "itemType": "lead",
+    "title": "Fortis Escorts Hospital",
+    "doctorName": "Dr. Subhash Verma",
+    "hospital": "Fortis Escorts Hospital",
+    "phone": "+91 9414099881",
+    "email": "subhash.verma@fortis.com",
+    "equipment": "RajBiosis-Vent Pro-X9 Turbine Mechanical Ventilator",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Pending Price Approval",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-05T05:44:26.486Z",
+    "recordData": {
+      "_id": "6aec17b1dd7d7f4a660f8caa",
+      "id": "RFQ-1793857457064",
+      "actualPrice": 485000,
+      "city": "Jaipur",
+      "createdAt": "2026-11-05T05:44:17.565Z",
+      "customerEmail": "subhash.verma@fortis.com",
+      "customerName": "Dr. Subhash Verma",
+      "customerPhone": "+91 9414099881",
+      "date": "05 Nov 2026",
+      "district": "Jaipur",
+      "email": "subhash.verma@fortis.com",
+      "equipment": "RajBiosis-Vent Pro-X9 Turbine Mechanical Ventilator",
+      "expectedPrice": 440000,
+      "hospitalName": "Fortis Escorts Hospital",
+      "isNegotiable": true,
+      "isPriceNegotiated": true,
+      "negotiationStatus": "pending_approval",
+      "phone": "+91 9414099881",
+      "productName": "RajBiosis-Vent Pro-X9 Turbine Mechanical Ventilator",
+      "productSku": "RAJ-ICU-8801",
+      "qty": 1,
+      "siteDomain": "rajbiosis.com",
+      "status": "Pending Price Approval",
+      "unitPrice": 485000,
+      "updatedAt": "2026-11-05T05:44:17.736Z",
+      "dateTime": "05 Nov 2026, 11:14 am",
+      "time": "11:14 am"
+    }
+  },
+  {
+    "_id": "6aec15bbdda6ac8d5921fad8",
+    "id": "del-RFQ-1793856944638-cb07",
+    "originalId": "RFQ-1793856944638",
+    "itemType": "lead",
+    "title": "Live Hospital",
+    "doctorName": "Live Test Customer",
+    "hospital": "Live Hospital",
+    "phone": "+91 9999988888",
+    "email": "livetest@example.com",
+    "equipment": "DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Pending Price Approval",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-05T05:35:55.105Z",
+    "recordData": {
+      "_id": "6aec15b0dd7d7f4a660f8c6f",
+      "id": "RFQ-1793856944638",
+      "actualPrice": 195000,
+      "city": "Jaipur",
+      "createdAt": "2026-11-05T05:35:44.920Z",
+      "customerEmail": "livetest@example.com",
+      "customerName": "Live Test Customer",
+      "customerPhone": "+91 9999988888",
+      "date": "Just now",
+      "district": "Jaipur",
+      "email": "livetest@example.com",
+      "equipment": "DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+      "expectedPrice": 180000,
+      "hospitalName": "Live Hospital",
+      "isNegotiable": true,
+      "isPriceNegotiated": true,
+      "negotiationStatus": "pending_approval",
+      "phone": "+91 9999988888",
+      "productName": "DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+      "productSku": "RAJ-ICU-360B",
+      "qty": 1,
+      "siteDomain": "rajbiosis.com",
+      "status": "Pending Price Approval",
+      "unitPrice": 195000,
+      "updatedAt": "2026-11-05T05:35:44.920Z"
+    }
+  },
+  {
+    "_id": "6aec1328dda6ac8d5921fad7",
+    "id": "del-quot-quot-1793774499201-7mkb-1793856296457",
+    "originalId": "quot-1793774499201-7mkb",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-05T05:24:56.457Z",
+    "recordData": {
+      "id": "quot-1793774499201-7mkb"
+    }
+  },
+  {
+    "_id": "6aec131edda6ac8d5921fad6",
+    "id": "del-quot-quot-1793774832682-spzs-1793856286865",
+    "originalId": "quot-1793774832682-spzs",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-05T05:24:46.865Z",
+    "recordData": {
+      "id": "quot-1793774832682-spzs"
+    }
+  },
+  {
+    "_id": "6aead397c105691108d60593",
+    "id": "del-quot-quot-1793772461300-0b6a-1793774487628",
+    "originalId": "quot-1793772461300-0b6a",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T06:41:27.628Z",
+    "recordData": {
+      "id": "quot-1793772461300-0b6a"
+    }
+  },
+  {
+    "_id": "6aead393c105691108d60592",
+    "id": "del-quot-quot-1793773186412-steam-1793774483802",
+    "originalId": "quot-1793773186412-steam",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T06:41:23.802Z",
+    "recordData": {
+      "id": "quot-1793773186412-steam"
+    }
+  },
+  {
+    "_id": "6aeacab1c105691108d6058f",
+    "id": "del-RFQ-203203-na3w",
+    "originalId": "RFQ-203203",
+    "itemType": "lead",
+    "title": "Mulchand Medicals",
+    "doctorName": "Mulchand Tripathi",
+    "hospital": "Mulchand Medicals",
+    "phone": "+91 8547965896",
+    "email": "mulchand@gmail.com",
+    "equipment": "ComfortCare 5-Function Motorized Electric ICU Bed",
+    "amount": "₹1,05,280",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Quotation Sent (Instant Authorized)",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T06:03:29.510Z",
+    "recordData": {
+      "_id": "6aeacaaba23c7c5e68a2b3e2",
+      "id": "RFQ-203203",
+      "actualPrice": 94000,
+      "address": "",
+      "adminCounterPrice": null,
+      "adminNote": null,
+      "approvedPrice": 94000,
+      "brandName": "Raj Biosis",
+      "city": "Jaipur",
+      "createdAt": "2026-11-04T06:03:23.203Z",
+      "date": "04 Nov 2026",
+      "dateTime": "04 Nov 2026, 11:33 am",
+      "doctorName": "Mulchand Tripathi",
+      "email": "mulchand@gmail.com",
+      "equipment": "ComfortCare 5-Function Motorized Electric ICU Bed",
+      "expectedPrice": null,
+      "hospital": "Mulchand Medicals",
+      "isNegotiable": false,
+      "isPriceNegotiated": false,
+      "isProfileComplete": false,
+      "negotiationStatus": "none",
+      "phone": "+91 8547965896",
+      "price": 94000,
+      "quoteAmount": "₹1,05,280",
+      "rawLeadData": {
+        "id": "RFQ-203203",
+        "quoteNumber": "RB-QT-2026-8394",
+        "customerName": "Mulchand Tripathi",
+        "designation": "Procurement In-charge",
+        "hospitalName": "Mulchand Medicals",
+        "customerPhone": "+91 8547965896",
+        "customerEmail": "mulchand@gmail.com",
+        "district": "Jaipur",
+        "state": "Rajasthan",
+        "productName": "ComfortCare 5-Function Motorized Electric ICU Bed",
+        "productSku": "RAJ-HOSP-BED5",
+        "qty": 1,
+        "unitPrice": 94000,
+        "actualPrice": 94000,
+        "expectedPrice": null,
+        "isNegotiable": false,
+        "isPriceNegotiated": false,
+        "negotiationStatus": "none",
+        "approvedPrice": null,
+        "adminCounterPrice": null,
+        "adminNote": null,
+        "isMultiItem": false,
+        "cartProducts": null,
+        "gstRate": "12%",
+        "gstAmount": 11280,
+        "grandTotal": 105280,
+        "status": "Quotation Sent (Instant Authorized)",
+        "statusNote": "Instant official quotation issued for ComfortCare 5-Function Motorized Electric ICU Bed and synced to your institutional profile.",
+        "createdAt": "2026-11-04T06:03:23.203Z",
+        "notes": []
+      },
+      "siteDomain": "rajbiosis.com",
+      "status": "Quotation Sent (Instant Authorized)",
+      "time": "11:33 am",
+      "updatedAt": "2026-11-04T06:03:23.233Z"
+    }
+  },
+  {
+    "_id": "6aeaca9fc105691108d6058e",
+    "id": "del-RFQ-647533-atyn",
+    "originalId": "RFQ-647533",
+    "itemType": "lead",
+    "title": "Mulchand Medicals",
+    "doctorName": "Mulchand Tripathi",
+    "hospital": "Mulchand Medicals",
+    "phone": "+91 8547965896",
+    "email": "mulchand@gmail.com",
+    "equipment": "ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery",
+    "amount": "₹1,84,800",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Quotation Sent (Profile Complete)",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T06:03:11.240Z",
+    "recordData": {
+      "_id": "6aeaca92a23c7c5e68a2b3de",
+      "id": "RFQ-647533",
+      "actualPrice": 165000,
+      "address": "",
+      "adminCounterPrice": null,
+      "adminNote": null,
+      "approvedPrice": 165000,
+      "brandName": "Raj Biosis",
+      "city": "Jaipur",
+      "createdAt": "2026-11-04T05:04:07.533Z",
+      "date": "04 Nov 2026",
+      "dateTime": "04 Nov 2026, 11:32 am",
+      "doctorName": "Mulchand Tripathi",
+      "email": "mulchand@gmail.com",
+      "equipment": "ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery",
+      "expectedPrice": null,
+      "hospital": "Mulchand Medicals",
+      "isNegotiable": false,
+      "isPriceNegotiated": false,
+      "isProfileComplete": false,
+      "negotiationStatus": "none",
+      "phone": "+91 8547965896",
+      "price": 165000,
+      "quoteAmount": "₹1,84,800",
+      "rawLeadData": {
+        "id": "RFQ-647533",
+        "quoteNumber": "RB-QT-2026-2654",
+        "customerName": "Mulchand Tripathi",
+        "designation": "Procurement In-charge",
+        "hospitalName": "Mulchand Medicals",
+        "customerPhone": "+91 8547965896",
+        "customerEmail": "mulchand@gmail.com",
+        "district": "Jaipur",
+        "state": "Rajasthan",
+        "productName": "ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery",
+        "productSku": "RAJ-SURG-ES400",
+        "qty": 1,
+        "unitPrice": 165000,
+        "actualPrice": 165000,
+        "expectedPrice": null,
+        "isNegotiable": false,
+        "isPriceNegotiated": false,
+        "negotiationStatus": "none",
+        "approvedPrice": null,
+        "adminCounterPrice": null,
+        "adminNote": null,
+        "isMultiItem": false,
+        "cartProducts": null,
+        "gstRate": "12%",
+        "gstAmount": 19800,
+        "grandTotal": 184800,
+        "status": "Quotation Sent (Profile Complete)",
+        "statusNote": "Instant official quotation issued for ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery and synced to your institutional profile.",
+        "createdAt": "2026-11-04T05:04:07.533Z",
+        "notes": []
+      },
+      "siteDomain": "rajbiosis.com",
+      "status": "Quotation Sent (Profile Complete)",
+      "time": "11:32 am",
+      "updatedAt": "2026-11-04T06:02:58.178Z"
+    }
+  },
+  {
+    "_id": "6aeaca61c105691108d6058d",
+    "id": "del-RFQ-647533-jtze",
+    "originalId": "RFQ-647533",
+    "itemType": "lead",
+    "title": "Mulchand Medicals",
+    "doctorName": "Mulchand Tripathi",
+    "hospital": "Mulchand Medicals",
+    "phone": "+91 8547965896",
+    "email": "mulchand@gmail.com",
+    "equipment": "ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery",
+    "amount": "₹1,84,800",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Quotation Sent (Profile Complete)",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T06:02:09.692Z",
+    "recordData": {
+      "_id": "6aeac364a23c7c5e68a2b3a9",
+      "id": "RFQ-647533",
+      "actualPrice": 165000,
+      "address": "",
+      "adminCounterPrice": null,
+      "adminNote": null,
+      "approvedPrice": 165000,
+      "brandName": "Raj Biosis",
+      "city": "Jaipur",
+      "createdAt": "2026-11-04T05:04:07.533Z",
+      "date": "04 Nov 2026",
+      "dateTime": "04 Nov 2026, 11:02 am",
+      "doctorName": "Mulchand Tripathi",
+      "email": "mulchand@gmail.com",
+      "equipment": "ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery",
+      "expectedPrice": null,
+      "hospital": "Mulchand Medicals",
+      "isNegotiable": false,
+      "isPriceNegotiated": false,
+      "isProfileComplete": false,
+      "negotiationStatus": "none",
+      "phone": "+91 8547965896",
+      "price": 165000,
+      "quoteAmount": "₹1,84,800",
+      "rawLeadData": {
+        "id": "RFQ-647533",
+        "quoteNumber": "RB-QT-2026-2654",
+        "customerName": "Mulchand Tripathi",
+        "designation": "Procurement In-charge",
+        "hospitalName": "Mulchand Medicals",
+        "customerPhone": "+91 8547965896",
+        "customerEmail": "mulchand@gmail.com",
+        "district": "Jaipur",
+        "state": "Rajasthan",
+        "productName": "ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery",
+        "productSku": "RAJ-SURG-ES400",
+        "qty": 1,
+        "unitPrice": 165000,
+        "actualPrice": 165000,
+        "expectedPrice": null,
+        "isNegotiable": false,
+        "isPriceNegotiated": false,
+        "negotiationStatus": "none",
+        "approvedPrice": null,
+        "adminCounterPrice": null,
+        "adminNote": null,
+        "isMultiItem": false,
+        "cartProducts": null,
+        "gstRate": "12%",
+        "gstAmount": 19800,
+        "grandTotal": 184800,
+        "status": "Quotation Sent (Profile Complete)",
+        "statusNote": "Instant official quotation issued for ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery and synced to your institutional profile.",
+        "createdAt": "2026-11-04T05:04:07.533Z",
+        "notes": []
+      },
+      "siteDomain": "rajbiosis.com",
+      "status": "Quotation Sent (Profile Complete)",
+      "time": "11:02 am",
+      "updatedAt": "2026-11-04T05:32:19.929Z"
+    }
+  },
+  {
+    "_id": "6aeaca5dc105691108d6058c",
+    "id": "del-RFQ-398245-r45e",
+    "originalId": "RFQ-398245",
+    "itemType": "lead",
+    "title": "Mulchand Medicals",
+    "doctorName": "Mulchand Tripathi",
+    "hospital": "Mulchand Medicals",
+    "phone": "+91 8547965896",
+    "email": "mulchand@gmail.com",
+    "equipment": "CellQuant 5-Part Differential Auto Hematology Analyzer",
+    "amount": "₹4,03,200",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Quotation Sent (Instant Authorized)",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T06:02:05.379Z",
+    "recordData": {
+      "_id": "6aeac39ea23c7c5e68a2b3ac",
+      "id": "RFQ-398245",
+      "actualPrice": 360000,
+      "address": "",
+      "adminCounterPrice": null,
+      "adminNote": null,
+      "approvedPrice": 360000,
+      "brandName": "Raj Biosis",
+      "city": "Jaipur",
+      "createdAt": "2026-11-04T05:33:18.245Z",
+      "date": "04 Nov 2026",
+      "dateTime": "04 Nov 2026, 11:03 am",
+      "doctorName": "Mulchand Tripathi",
+      "email": "mulchand@gmail.com",
+      "equipment": "CellQuant 5-Part Differential Auto Hematology Analyzer",
+      "expectedPrice": null,
+      "hospital": "Mulchand Medicals",
+      "isNegotiable": false,
+      "isPriceNegotiated": false,
+      "isProfileComplete": false,
+      "negotiationStatus": "none",
+      "phone": "+91 8547965896",
+      "price": 360000,
+      "quoteAmount": "₹4,03,200",
+      "rawLeadData": {
+        "id": "RFQ-398245",
+        "quoteNumber": "RB-QT-2026-5530",
+        "customerName": "Mulchand Tripathi",
+        "designation": "Procurement In-charge",
+        "hospitalName": "Mulchand Medicals",
+        "customerPhone": "+91 8547965896",
+        "customerEmail": "mulchand@gmail.com",
+        "district": "Jaipur",
+        "state": "Rajasthan",
+        "productName": "CellQuant 5-Part Differential Auto Hematology Analyzer",
+        "productSku": "RAJ-LAB-H500",
+        "qty": 1,
+        "unitPrice": 360000,
+        "actualPrice": 360000,
+        "expectedPrice": null,
+        "isNegotiable": false,
+        "isPriceNegotiated": false,
+        "negotiationStatus": "none",
+        "approvedPrice": null,
+        "adminCounterPrice": null,
+        "adminNote": null,
+        "isMultiItem": false,
+        "cartProducts": null,
+        "gstRate": "12%",
+        "gstAmount": 43200,
+        "grandTotal": 403200,
+        "status": "Quotation Sent (Instant Authorized)",
+        "statusNote": "Instant official quotation issued for CellQuant 5-Part Differential Auto Hematology Analyzer and synced to your institutional profile.",
+        "createdAt": "2026-11-04T05:33:18.245Z",
+        "notes": []
+      },
+      "siteDomain": "rajbiosis.com",
+      "status": "Quotation Sent (Instant Authorized)",
+      "time": "11:03 am",
+      "updatedAt": "2026-11-04T05:33:18.270Z"
+    }
+  },
+  {
+    "_id": "6aeac9efc105691108d6058b",
+    "id": "del-RFQ-TEST-1793771990829-k1uf",
+    "originalId": "RFQ-TEST-1793771990829",
+    "itemType": "lead",
+    "title": "City Care Hospital",
+    "doctorName": "Dr. Test Verification",
+    "hospital": "City Care Hospital",
+    "phone": "+91 9876543210",
+    "email": "test@citycare.org",
+    "equipment": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "?76,720",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Pending RFQ",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T06:00:15.719Z",
+    "recordData": {
+      "_id": "6aeac9d7a23c7c5e68a2b3da",
+      "id": "RFQ-TEST-1793771990829",
+      "actualPrice": 68500,
+      "city": "Jaipur",
+      "createdAt": "2026-11-04T05:59:51.102Z",
+      "customerEmail": "test@citycare.org",
+      "customerName": "Dr. Test Verification",
+      "customerPhone": "+91 9876543210",
+      "date": "04 Nov 2026",
+      "dateTime": "04 Nov 2026, 11:29 am",
+      "district": "Jaipur",
+      "email": "test@citycare.org",
+      "equipment": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "expectedPrice": null,
+      "hospitalName": "City Care Hospital",
+      "isNegotiable": false,
+      "isPriceNegotiated": false,
+      "negotiationStatus": "none",
+      "phone": "+91 9876543210",
+      "productName": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "productSku": "RAJ-ICU-604",
+      "qty": 1,
+      "quoteAmount": "?76,720",
+      "siteDomain": "rajbiosis.com",
+      "status": "Pending RFQ",
+      "time": "11:29 am",
+      "unitPrice": 68500,
+      "updatedAt": "2026-11-04T05:59:51.230Z"
+    }
+  },
+  {
+    "_id": "6aeac34da7932390fdf2fb29",
+    "id": "del-RFQ-309036-838l",
+    "originalId": "RFQ-309036",
+    "itemType": "lead",
+    "title": "Mulchand Medicals",
+    "doctorName": "Mulchand Tripathi",
+    "hospital": "Mulchand Medicals",
+    "phone": "+91 8547965896",
+    "email": "mulchand@gmail.com",
+    "equipment": "UltraLap 4K Ultra-HD Laparoscopy Surgical Tower System",
+    "amount": "₹10,97,600",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Quotation Sent (Instant Authorized)",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T05:31:57.764Z",
+    "recordData": {
+      "_id": "6aeac345a23c7c5e68a2b3a7",
+      "id": "RFQ-309036",
+      "actualPrice": 980000,
+      "address": "",
+      "adminCounterPrice": null,
+      "adminNote": null,
+      "approvedPrice": 980000,
+      "brandName": "Raj Biosis",
+      "city": "Jaipur",
+      "createdAt": "2026-11-04T05:31:49.036Z",
+      "date": "04 Nov 2026",
+      "dateTime": "04 Nov 2026, 11:01 am",
+      "doctorName": "Mulchand Tripathi",
+      "email": "mulchand@gmail.com",
+      "equipment": "UltraLap 4K Ultra-HD Laparoscopy Surgical Tower System",
+      "expectedPrice": null,
+      "hospital": "Mulchand Medicals",
+      "isNegotiable": false,
+      "isPriceNegotiated": false,
+      "isProfileComplete": false,
+      "negotiationStatus": "none",
+      "phone": "+91 8547965896",
+      "price": 980000,
+      "quoteAmount": "₹10,97,600",
+      "rawLeadData": {
+        "id": "RFQ-309036",
+        "quoteNumber": "RB-QT-2026-7525",
+        "customerName": "Mulchand Tripathi",
+        "designation": "Procurement In-charge",
+        "hospitalName": "Mulchand Medicals",
+        "customerPhone": "+91 8547965896",
+        "customerEmail": "mulchand@gmail.com",
+        "district": "Jaipur",
+        "state": "Rajasthan",
+        "productName": "UltraLap 4K Ultra-HD Laparoscopy Surgical Tower System",
+        "productSku": "RAJ-SURG-LAP4K",
+        "qty": 1,
+        "unitPrice": 980000,
+        "actualPrice": 980000,
+        "expectedPrice": null,
+        "isNegotiable": false,
+        "isPriceNegotiated": false,
+        "negotiationStatus": "none",
+        "approvedPrice": null,
+        "adminCounterPrice": null,
+        "adminNote": null,
+        "isMultiItem": false,
+        "cartProducts": null,
+        "gstRate": "12%",
+        "gstAmount": 117600,
+        "grandTotal": 1097600,
+        "status": "Quotation Sent (Instant Authorized)",
+        "statusNote": "Instant official quotation issued for UltraLap 4K Ultra-HD Laparoscopy Surgical Tower System and synced to your institutional profile.",
+        "createdAt": "2026-11-04T05:31:49.036Z",
+        "notes": []
+      },
+      "siteDomain": "rajbiosis.com",
+      "status": "Quotation Sent (Instant Authorized)",
+      "time": "11:01 am",
+      "updatedAt": "2026-11-04T05:31:49.056Z"
+    }
+  },
+  {
+    "_id": "6aeac342a7932390fdf2fb28",
+    "id": "del-RFQ-647533-ytar",
+    "originalId": "RFQ-647533",
+    "itemType": "lead",
+    "title": "Mulchand Medicals",
+    "doctorName": "Mulchand Tripathi",
+    "hospital": "Mulchand Medicals",
+    "phone": "+91 8547965896",
+    "email": "mulchand@gmail.com",
+    "equipment": "ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery",
+    "amount": "₹1,84,800",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Quotation Sent (Profile Complete)",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T05:31:46.889Z",
+    "recordData": {
+      "_id": "6aeac337a23c7c5e68a2b3a6",
+      "id": "RFQ-647533",
+      "actualPrice": 165000,
+      "address": "",
+      "adminCounterPrice": null,
+      "adminNote": null,
+      "approvedPrice": 165000,
+      "brandName": "Raj Biosis",
+      "city": "Jaipur",
+      "createdAt": "2026-11-04T05:04:07.533Z",
+      "date": "04 Nov 2026",
+      "dateTime": "04 Nov 2026, 11:01 am",
+      "doctorName": "Mulchand Tripathi",
+      "email": "mulchand@gmail.com",
+      "equipment": "ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery",
+      "expectedPrice": null,
+      "hospital": "Mulchand Medicals",
+      "isNegotiable": false,
+      "isPriceNegotiated": false,
+      "isProfileComplete": false,
+      "negotiationStatus": "none",
+      "phone": "+91 8547965896",
+      "price": 165000,
+      "quoteAmount": "₹1,84,800",
+      "rawLeadData": {
+        "id": "RFQ-647533",
+        "quoteNumber": "RB-QT-2026-2654",
+        "customerName": "Mulchand Tripathi",
+        "designation": "Procurement In-charge",
+        "hospitalName": "Mulchand Medicals",
+        "customerPhone": "+91 8547965896",
+        "customerEmail": "mulchand@gmail.com",
+        "district": "Jaipur",
+        "state": "Rajasthan",
+        "productName": "ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery",
+        "productSku": "RAJ-SURG-ES400",
+        "qty": 1,
+        "unitPrice": 165000,
+        "actualPrice": 165000,
+        "expectedPrice": null,
+        "isNegotiable": false,
+        "isPriceNegotiated": false,
+        "negotiationStatus": "none",
+        "approvedPrice": null,
+        "adminCounterPrice": null,
+        "adminNote": null,
+        "isMultiItem": false,
+        "cartProducts": null,
+        "gstRate": "12%",
+        "gstAmount": 19800,
+        "grandTotal": 184800,
+        "status": "Quotation Sent (Profile Complete)",
+        "statusNote": "Instant official quotation issued for ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery and synced to your institutional profile.",
+        "createdAt": "2026-11-04T05:04:07.533Z",
+        "notes": []
+      },
+      "siteDomain": "rajbiosis.com",
+      "status": "Quotation Sent (Profile Complete)",
+      "time": "11:01 am",
+      "updatedAt": "2026-11-04T05:31:35.834Z"
+    }
+  },
+  {
+    "_id": "6aeac320a7932390fdf2fb27",
+    "id": "del-quot-RFQ-096657-1793770272918",
+    "originalId": "RFQ-096657",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T05:31:12.918Z",
+    "recordData": {
+      "id": "RFQ-096657"
+    }
+  },
+  {
+    "_id": "6aeac31ea7932390fdf2fb26",
+    "id": "del-quot-RFQ-087818-1793770270407",
+    "originalId": "RFQ-087818",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T05:31:10.407Z",
+    "recordData": {
+      "id": "RFQ-087818"
+    }
+  },
+  {
+    "_id": "6aeabfeea7932390fdf2fb25",
+    "id": "del-quot-RFQ-096657-1793769454178",
+    "originalId": "RFQ-096657",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T05:17:34.178Z",
+    "recordData": {
+      "id": "RFQ-096657"
+    }
+  },
+  {
+    "_id": "6aeabfe4a7932390fdf2fb24",
+    "id": "del-RFQ-647533-ope9",
+    "originalId": "RFQ-647533",
+    "itemType": "quotation",
+    "title": "Mulchand Medicals",
+    "doctorName": "Mulchand Medicals",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T05:17:24.935Z",
+    "recordData": {
+      "_id": "6aeabfd6a23c7c5e68a2b38f",
+      "id": "RFQ-647533",
+      "actualPrice": 165000,
+      "createdAt": "2026-11-04T05:17:10.507Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 8547965896",
+      "customerName": "Mulchand Medicals",
+      "date": "04/11/2026",
+      "discountPercent": 0,
+      "expectedPrice": null,
+      "grandTotal": 184800,
+      "gstAmount": 19800,
+      "gstRate": "12%",
+      "isNegotiable": false,
+      "isPriceNegotiated": false,
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery",
+          "qty": 1,
+          "unitPrice": 165000,
+          "actualPrice": 165000,
+          "expectedPrice": null,
+          "isNegotiable": false,
+          "totalPrice": 165000
+        }
+      ],
+      "negotiationStatus": "none",
+      "refNo": "RB-QT-2026-2654",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery",
+      "subjectQuotation": "Purchase of ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery",
+      "subtotal": 165000,
+      "taxAmount": 19800,
+      "taxMode": "12",
+      "updatedAt": "2026-11-04T05:17:10.507Z"
+    }
+  },
+  {
+    "_id": "6aeabfe4a7932390fdf2fb23",
+    "id": "del-RFQ-647533-3l25",
+    "originalId": "RFQ-647533",
+    "itemType": "lead",
+    "title": "Mulchand Medicals",
+    "doctorName": "Mulchand Tripathi",
+    "hospital": "Mulchand Medicals",
+    "phone": "+91 8547965896",
+    "email": "mulchand@gmail.com",
+    "equipment": "ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery",
+    "amount": "₹1,84,800",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Quotation Sent (Profile Complete)",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T05:17:24.731Z",
+    "recordData": {
+      "_id": "6aeabfd6a23c7c5e68a2b390",
+      "id": "RFQ-647533",
+      "actualPrice": 165000,
+      "address": "",
+      "adminCounterPrice": null,
+      "adminNote": null,
+      "approvedPrice": 165000,
+      "brandName": "Raj Biosis",
+      "city": "Jaipur",
+      "createdAt": "2026-11-04T05:04:07.533Z",
+      "date": "04 Nov 2026",
+      "dateTime": "04 Nov 2026, 10:47 am",
+      "doctorName": "Mulchand Tripathi",
+      "email": "mulchand@gmail.com",
+      "equipment": "ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery",
+      "expectedPrice": null,
+      "hospital": "Mulchand Medicals",
+      "isNegotiable": false,
+      "isPriceNegotiated": false,
+      "isProfileComplete": false,
+      "negotiationStatus": "none",
+      "phone": "+91 8547965896",
+      "price": 165000,
+      "quoteAmount": "₹1,84,800",
+      "rawLeadData": {
+        "id": "RFQ-647533",
+        "quoteNumber": "RB-QT-2026-2654",
+        "customerName": "Mulchand Tripathi",
+        "designation": "Procurement In-charge",
+        "hospitalName": "Mulchand Medicals",
+        "customerPhone": "+91 8547965896",
+        "customerEmail": "mulchand@gmail.com",
+        "district": "Jaipur",
+        "state": "Rajasthan",
+        "productName": "ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery",
+        "productSku": "RAJ-SURG-ES400",
+        "qty": 1,
+        "unitPrice": 165000,
+        "actualPrice": 165000,
+        "expectedPrice": null,
+        "isNegotiable": false,
+        "isPriceNegotiated": false,
+        "negotiationStatus": "none",
+        "approvedPrice": null,
+        "adminCounterPrice": null,
+        "adminNote": null,
+        "isMultiItem": false,
+        "cartProducts": null,
+        "gstRate": "12%",
+        "gstAmount": 19800,
+        "grandTotal": 184800,
+        "status": "Quotation Sent (Profile Complete)",
+        "statusNote": "Instant official quotation issued for ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery and synced to your institutional profile.",
+        "createdAt": "2026-11-04T05:04:07.533Z",
+        "notes": []
+      },
+      "siteDomain": "rajbiosis.com",
+      "status": "Quotation Sent (Profile Complete)",
+      "time": "10:47 am",
+      "updatedAt": "2026-11-04T05:17:10.500Z"
+    }
+  },
+  {
+    "_id": "6aeabfc2a7932390fdf2fb22",
+    "id": "del-RFQ-647533-wzx5",
+    "originalId": "RFQ-647533",
+    "itemType": "lead",
+    "title": "Mulchand Medicals",
+    "doctorName": "Mulchand Tripathi",
+    "hospital": "Mulchand Medicals",
+    "phone": "+91 8547965896",
+    "email": "mulchand@gmail.com",
+    "equipment": "ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery",
+    "amount": "₹1,84,800",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Quotation Sent (Instant Authorized)",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T05:16:50.007Z",
+    "recordData": {
+      "_id": "6aeabcc7a23c7c5e68a2b367",
+      "id": "RFQ-647533",
+      "actualPrice": 165000,
+      "address": "",
+      "adminCounterPrice": null,
+      "adminNote": null,
+      "approvedPrice": 165000,
+      "brandName": "Raj Biosis",
+      "city": "Jaipur",
+      "createdAt": "2026-11-04T05:04:07.533Z",
+      "date": "04 Nov 2026",
+      "dateTime": "04 Nov 2026, 10:34 am",
+      "doctorName": "Mulchand Tripathi",
+      "email": "mulchand@gmail.com",
+      "equipment": "ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery",
+      "expectedPrice": null,
+      "hospital": "Mulchand Medicals",
+      "isNegotiable": false,
+      "isPriceNegotiated": false,
+      "isProfileComplete": false,
+      "negotiationStatus": "none",
+      "phone": "+91 8547965896",
+      "price": 165000,
+      "quoteAmount": "₹1,84,800",
+      "rawLeadData": {
+        "id": "RFQ-647533",
+        "quoteNumber": "RB-QT-2026-2654",
+        "customerName": "Mulchand Tripathi",
+        "designation": "Procurement In-charge",
+        "hospitalName": "Mulchand Medicals",
+        "customerPhone": "+91 8547965896",
+        "customerEmail": "mulchand@gmail.com",
+        "district": "Jaipur",
+        "state": "Rajasthan",
+        "productName": "ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery",
+        "productSku": "RAJ-SURG-ES400",
+        "qty": 1,
+        "unitPrice": 165000,
+        "actualPrice": 165000,
+        "expectedPrice": null,
+        "isNegotiable": false,
+        "isPriceNegotiated": false,
+        "negotiationStatus": "none",
+        "approvedPrice": null,
+        "adminCounterPrice": null,
+        "adminNote": null,
+        "isMultiItem": false,
+        "cartProducts": null,
+        "gstRate": "12%",
+        "gstAmount": 19800,
+        "grandTotal": 184800,
+        "status": "Quotation Sent (Instant Authorized)",
+        "statusNote": "Instant official quotation issued for ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery and synced to your institutional profile.",
+        "createdAt": "2026-11-04T05:04:07.533Z",
+        "notes": []
+      },
+      "siteDomain": "rajbiosis.com",
+      "status": "Quotation Sent (Instant Authorized)",
+      "time": "10:34 am",
+      "updatedAt": "2026-11-04T05:04:07.597Z"
+    }
+  },
+  {
+    "_id": "6aeabcb7a7932390fdf2fb21",
+    "id": "del-quot-quot-1793768604179-n83x-1793768631410",
+    "originalId": "quot-1793768604179-n83x",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T05:03:51.410Z",
+    "recordData": {
+      "id": "quot-1793768604179-n83x"
+    }
+  },
+  {
+    "_id": "6aeabcb3a7932390fdf2fb20",
+    "id": "del-quot-RFQ-592961-1793768627131",
+    "originalId": "RFQ-592961",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T05:03:47.131Z",
+    "recordData": {
+      "id": "RFQ-592961"
+    }
+  },
+  {
+    "_id": "6aeabcaea7932390fdf2fb1f",
+    "id": "del-quot-RFQ-763033-1793768622014",
+    "originalId": "RFQ-763033",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T05:03:42.014Z",
+    "recordData": {
+      "id": "RFQ-763033"
+    }
+  },
+  {
+    "_id": "6aeabb027ee2b620de65b32a",
+    "id": "del-quot-RFQ-087818-1793768194643",
+    "originalId": "RFQ-087818",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:56:34.643Z",
+    "recordData": {
+      "id": "RFQ-087818"
+    }
+  },
+  {
+    "_id": "6aeab9977ee2b620de65b329",
+    "id": "del-quot-RFQ-096657-1793767831609",
+    "originalId": "RFQ-096657",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:50:31.609Z",
+    "recordData": {
+      "id": "RFQ-096657"
+    }
+  },
+  {
+    "_id": "6aeab97c7ee2b620de65b328",
+    "id": "del-quot-RFQ-763033-1793767804151",
+    "originalId": "RFQ-763033",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:50:04.151Z",
+    "recordData": {
+      "id": "RFQ-763033"
+    }
+  },
+  {
+    "_id": "6aeab9797ee2b620de65b327",
+    "id": "del-quot-quot-1793767772739-7sd0-1793767801952",
+    "originalId": "quot-1793767772739-7sd0",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:50:01.952Z",
+    "recordData": {
+      "id": "quot-1793767772739-7sd0"
+    }
+  },
+  {
+    "_id": "6aeab9147ee2b620de65b326",
+    "id": "del-quot-RFQ-948847-1793767700411",
+    "originalId": "RFQ-948847",
+    "itemType": "quotation",
+    "title": "Kota Healthcare Institution",
+    "doctorName": "Kota Healthcare Institution",
+    "hospital": "Kota, Rajasthan",
+    "phone": "Contact: +91 8547965841",
+    "email": "",
+    "equipment": "Purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:48:20.411Z",
+    "recordData": {
+      "_id": "6adf30ed54a0d9d3da7447c2",
+      "createdAt": "2026-10-26T10:52:28.998Z",
+      "customerAddress1": "Kota, Rajasthan",
+      "customerAddress2": "Contact: +91 8547965841",
+      "customerName": "Kota Healthcare Institution",
+      "date": "26/10/2026",
+      "grandTotal": 1050200,
+      "id": "RFQ-948847",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+          "qty": 1,
+          "unitPrice": 890000,
+          "totalPrice": 1050200
+        }
+      ],
+      "refNo": "RB-QT-2026-1344",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+      "subjectQuotation": "Purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+      "updatedAt": "2026-10-26T10:52:28.998Z"
+    }
+  },
+  {
+    "_id": "6aeab9117ee2b620de65b325",
+    "id": "del-quot-RFQ-868864-1793767697100",
+    "originalId": "RFQ-868864",
+    "itemType": "quotation",
+    "title": "Jaipur Healthcare Institution",
+    "doctorName": "Jaipur Healthcare Institution",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 8546987456",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:48:17.100Z",
+    "recordData": {
+      "_id": "6ae03e2554a0d9d3da74ea96",
+      "createdAt": "2026-10-27T06:01:09.024Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 8546987456",
+      "customerName": "Jaipur Healthcare Institution",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-868864",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-5296",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T06:01:09.024Z"
+    }
+  },
+  {
+    "_id": "6aeab90d7ee2b620de65b324",
+    "id": "del-quot-RFQ-949189-1793767693707",
+    "originalId": "RFQ-949189",
+    "itemType": "quotation",
+    "title": "Jaipur Healthcare Institution",
+    "doctorName": "Jaipur Healthcare Institution",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 8596457256",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:48:13.707Z",
+    "recordData": {
+      "_id": "6ae0464554a0d9d3da74eb5b",
+      "createdAt": "2026-10-27T06:35:49.374Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 8596457256",
+      "customerName": "Jaipur Healthcare Institution",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-949189",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-7595",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T06:35:49.374Z"
+    }
+  },
+  {
+    "_id": "6aeab90a7ee2b620de65b323",
+    "id": "del-quot-RFQ-030640-1793767690530",
+    "originalId": "RFQ-030640",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:48:10.530Z",
+    "recordData": {
+      "id": "RFQ-030640"
+    }
+  },
+  {
+    "_id": "6aeab9057ee2b620de65b322",
+    "id": "del-quot-RFQ-029050-1793767685767",
+    "originalId": "RFQ-029050",
+    "itemType": "quotation",
+    "title": "Apex Hospital",
+    "doctorName": "Apex Hospital",
+    "hospital": "Kota, Rajasthan",
+    "phone": "Contact: +91 8547965841",
+    "email": "",
+    "equipment": "Purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:48:05.767Z",
+    "recordData": {
+      "_id": "6adf313d54a0d9d3da7447c6",
+      "createdAt": "2026-10-26T10:53:49.289Z",
+      "customerAddress1": "Kota, Rajasthan",
+      "customerAddress2": "Contact: +91 8547965841",
+      "customerName": "Apex Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 1050200,
+      "id": "RFQ-029050",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+          "qty": 1,
+          "unitPrice": 890000,
+          "totalPrice": 1050200
+        }
+      ],
+      "refNo": "RB-QT-2026-8140",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+      "subjectQuotation": "Purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+      "updatedAt": "2026-10-26T10:53:49.289Z"
+    }
+  },
+  {
+    "_id": "6aeab9027ee2b620de65b321",
+    "id": "del-quot-RFQ-952892-1793767682775",
+    "originalId": "RFQ-952892",
+    "itemType": "quotation",
+    "title": "Apex Hospital",
+    "doctorName": "Apex Hospital",
+    "hospital": "Kota, Rajasthan",
+    "phone": "Contact: +91 8547965841",
+    "email": "",
+    "equipment": "Purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:48:02.775Z",
+    "recordData": {
+      "_id": "6adf34dc54a0d9d3da744811",
+      "createdAt": "2026-10-26T11:09:15.979Z",
+      "customerAddress1": "Kota, Rajasthan",
+      "customerAddress2": "Contact: +91 8547965841",
+      "customerName": "Apex Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 1050200,
+      "id": "RFQ-952892",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+          "qty": 1,
+          "unitPrice": 890000,
+          "totalPrice": 1050200
+        }
+      ],
+      "refNo": "RB-QT-2026-6306",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+      "subjectQuotation": "Purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+      "updatedAt": "2026-10-26T11:09:15.979Z"
+    }
+  },
+  {
+    "_id": "6aeab9007ee2b620de65b320",
+    "id": "del-quot-RFQ-038664-1793767680216",
+    "originalId": "RFQ-038664",
+    "itemType": "quotation",
+    "title": "Apex Hospital",
+    "doctorName": "Apex Hospital",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 9856748525",
+    "email": "",
+    "equipment": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:48:00.216Z",
+    "recordData": {
+      "_id": "6adf3cff54a0d9d3da74496d",
+      "createdAt": "2026-10-26T11:43:59.580Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 9856748525",
+      "customerName": "Apex Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 1817200,
+      "id": "RFQ-038664",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+          "qty": 1,
+          "unitPrice": 1540000,
+          "totalPrice": 1817200
+        }
+      ],
+      "refNo": "RB-QT-2026-4844",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+      "subjectQuotation": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+      "updatedAt": "2026-10-26T11:43:59.580Z"
+    }
+  },
+  {
+    "_id": "6aeab8fd7ee2b620de65b31f",
+    "id": "del-quot-RFQ-072109-1793767677597",
+    "originalId": "RFQ-072109",
+    "itemType": "quotation",
+    "title": "Kamal Hospital",
+    "doctorName": "Kamal Hospital",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 9856748525",
+    "email": "",
+    "equipment": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:57.597Z",
+    "recordData": {
+      "_id": "6adf3d2054a0d9d3da744972",
+      "createdAt": "2026-10-26T11:44:32.536Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 9856748525",
+      "customerName": "Kamal Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 1817200,
+      "id": "RFQ-072109",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+          "qty": 1,
+          "unitPrice": 1540000,
+          "totalPrice": 1817200
+        }
+      ],
+      "refNo": "RB-QT-2026-6583",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+      "subjectQuotation": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+      "updatedAt": "2026-10-26T11:44:32.536Z"
+    }
+  },
+  {
+    "_id": "6aeab8fa7ee2b620de65b31e",
+    "id": "del-quot-RFQ-286213-1793767674864",
+    "originalId": "RFQ-286213",
+    "itemType": "quotation",
+    "title": "Om Medical",
+    "doctorName": "Om Medical",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 7485965874",
+    "email": "",
+    "equipment": "Purchase of DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:54.864Z",
+    "recordData": {
+      "_id": "6ae06ea654a0d9d3da74f105",
+      "createdAt": "2026-10-27T09:28:06.563Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 7485965874",
+      "customerName": "Om Medical",
+      "date": "27/10/2026",
+      "grandTotal": 218400,
+      "id": "RFQ-286213",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+          "qty": 1,
+          "unitPrice": 195000,
+          "totalPrice": 218400
+        }
+      ],
+      "refNo": "RB-QT-2026-5217",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+      "subjectQuotation": "Purchase of DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+      "updatedAt": "2026-10-27T09:28:06.564Z"
+    }
+  },
+  {
+    "_id": "6aeab8f87ee2b620de65b31d",
+    "id": "del-quot-RFQ-063971-1793767672038",
+    "originalId": "RFQ-063971",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:52.038Z",
+    "recordData": {
+      "id": "RFQ-063971"
+    }
+  },
+  {
+    "_id": "6aeab8f47ee2b620de65b31c",
+    "id": "del-quot-RFQ-133458-1793767668973",
+    "originalId": "RFQ-133458",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:48.973Z",
+    "recordData": {
+      "id": "RFQ-133458"
+    }
+  },
+  {
+    "_id": "6aeab8f27ee2b620de65b31b",
+    "id": "del-quot-RFQ-133463-1793767666811",
+    "originalId": "RFQ-133463",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:46.811Z",
+    "recordData": {
+      "id": "RFQ-133463"
+    }
+  },
+  {
+    "_id": "6aeab8f07ee2b620de65b31a",
+    "id": "del-quot-RFQ-124052-1793767664232",
+    "originalId": "RFQ-124052",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:44.232Z",
+    "recordData": {
+      "id": "RFQ-124052"
+    }
+  },
+  {
+    "_id": "6aeab8ed7ee2b620de65b319",
+    "id": "del-quot-RFQ-124048-1793767661703",
+    "originalId": "RFQ-124048",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:41.703Z",
+    "recordData": {
+      "id": "RFQ-124048"
+    }
+  },
+  {
+    "_id": "6aeab8eb7ee2b620de65b318",
+    "id": "del-quot-RFQ-160018-1793767659103",
+    "originalId": "RFQ-160018",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:39.103Z",
+    "recordData": {
+      "id": "RFQ-160018"
+    }
+  },
+  {
+    "_id": "6aeab8e87ee2b620de65b317",
+    "id": "del-quot-RFQ-307165-1793767656631",
+    "originalId": "RFQ-307165",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:36.631Z",
+    "recordData": {
+      "id": "RFQ-307165"
+    }
+  },
+  {
+    "_id": "6aeab8e67ee2b620de65b316",
+    "id": "del-quot-RFQ-534503-1793767654365",
+    "originalId": "RFQ-534503",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:34.365Z",
+    "recordData": {
+      "id": "RFQ-534503"
+    }
+  },
+  {
+    "_id": "6aeab8df7ee2b620de65b315",
+    "id": "del-quot-RFQ-704350-1793767647183",
+    "originalId": "RFQ-704350",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:27.183Z",
+    "recordData": {
+      "id": "RFQ-704350"
+    }
+  },
+  {
+    "_id": "6aeab8dc7ee2b620de65b314",
+    "id": "del-quot-RFQ-778512-1793767644964",
+    "originalId": "RFQ-778512",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:24.964Z",
+    "recordData": {
+      "id": "RFQ-778512"
+    }
+  },
+  {
+    "_id": "6aeab8da7ee2b620de65b313",
+    "id": "del-quot-RFQ-914468-1793767642553",
+    "originalId": "RFQ-914468",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:22.553Z",
+    "recordData": {
+      "id": "RFQ-914468"
+    }
+  },
+  {
+    "_id": "6aeab8d87ee2b620de65b312",
+    "id": "del-quot-RFQ-673407-1793767640017",
+    "originalId": "RFQ-673407",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:20.017Z",
+    "recordData": {
+      "id": "RFQ-673407"
+    }
+  },
+  {
+    "_id": "6aeab8d57ee2b620de65b311",
+    "id": "del-quot-RFQ-812800-1793767637540",
+    "originalId": "RFQ-812800",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:17.540Z",
+    "recordData": {
+      "id": "RFQ-812800"
+    }
+  },
+  {
+    "_id": "6aeab8d37ee2b620de65b310",
+    "id": "del-quot-RFQ-617485-1793767635454",
+    "originalId": "RFQ-617485",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:15.454Z",
+    "recordData": {
+      "id": "RFQ-617485"
+    }
+  },
+  {
+    "_id": "6aeab8d17ee2b620de65b30f",
+    "id": "del-quot-RFQ-619637-1793767633363",
+    "originalId": "RFQ-619637",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:13.363Z",
+    "recordData": {
+      "id": "RFQ-619637"
+    }
+  },
+  {
+    "_id": "6aeab8cf7ee2b620de65b30e",
+    "id": "del-quot-RFQ-760757-1793767631260",
+    "originalId": "RFQ-760757",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:11.260Z",
+    "recordData": {
+      "id": "RFQ-760757"
+    }
+  },
+  {
+    "_id": "6aeab8cc7ee2b620de65b30d",
+    "id": "del-quot-RFQ-613936-1793767628954",
+    "originalId": "RFQ-613936",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:08.954Z",
+    "recordData": {
+      "id": "RFQ-613936"
+    }
+  },
+  {
+    "_id": "6aeab8ca7ee2b620de65b30c",
+    "id": "del-quot-RFQ-471741-1793767626352",
+    "originalId": "RFQ-471741",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:06.352Z",
+    "recordData": {
+      "id": "RFQ-471741"
+    }
+  },
+  {
+    "_id": "6aeab8c87ee2b620de65b30b",
+    "id": "del-quot-RFQ-833660-1793767624036",
+    "originalId": "RFQ-833660",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:04.036Z",
+    "recordData": {
+      "id": "RFQ-833660"
+    }
+  },
+  {
+    "_id": "6aeab8c57ee2b620de65b30a",
+    "id": "del-quot-RFQ-286786-1793767621648",
+    "originalId": "RFQ-286786",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:47:01.648Z",
+    "recordData": {
+      "id": "RFQ-286786"
+    }
+  },
+  {
+    "_id": "6aeab8c37ee2b620de65b309",
+    "id": "del-quot-quot-1793444756287-licp-1793767619052",
+    "originalId": "quot-1793444756287-licp",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:59.052Z",
+    "recordData": {
+      "id": "quot-1793444756287-licp"
+    }
+  },
+  {
+    "_id": "6aeab8c07ee2b620de65b308",
+    "id": "del-quot-RFQ-821368-1793767616620",
+    "originalId": "RFQ-821368",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:56.620Z",
+    "recordData": {
+      "id": "RFQ-821368"
+    }
+  },
+  {
+    "_id": "6aeab8be7ee2b620de65b307",
+    "id": "del-quot-quot-1793444871810-u57u-1793767614570",
+    "originalId": "quot-1793444871810-u57u",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:54.570Z",
+    "recordData": {
+      "id": "quot-1793444871810-u57u"
+    }
+  },
+  {
+    "_id": "6aeab8bc7ee2b620de65b306",
+    "id": "del-quot-RFQ-473406-1793767612192",
+    "originalId": "RFQ-473406",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:52.192Z",
+    "recordData": {
+      "id": "RFQ-473406"
+    }
+  },
+  {
+    "_id": "6aeab8ba7ee2b620de65b305",
+    "id": "del-quot-quot-1793687828349-p4qx-1793767610137",
+    "originalId": "quot-1793687828349-p4qx",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:50.137Z",
+    "recordData": {
+      "id": "quot-1793687828349-p4qx"
+    }
+  },
+  {
+    "_id": "6aeab8b77ee2b620de65b304",
+    "id": "del-quot-RFQ-032742-1793767607754",
+    "originalId": "RFQ-032742",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:47.754Z",
+    "recordData": {
+      "id": "RFQ-032742"
+    }
+  },
+  {
+    "_id": "6aeab8b57ee2b620de65b303",
+    "id": "del-quot-quot-1793688071411-7hjc-1793767605444",
+    "originalId": "quot-1793688071411-7hjc",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:45.444Z",
+    "recordData": {
+      "id": "quot-1793688071411-7hjc"
+    }
+  },
+  {
+    "_id": "6aeab8b27ee2b620de65b302",
+    "id": "del-quot-RFQ-685140-1793767602842",
+    "originalId": "RFQ-685140",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:42.842Z",
+    "recordData": {
+      "id": "RFQ-685140"
+    }
+  },
+  {
+    "_id": "6aeab8ae7ee2b620de65b301",
+    "id": "del-quot-RFQ-087818-1793767598516",
+    "originalId": "RFQ-087818",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:38.516Z",
+    "recordData": {
+      "id": "RFQ-087818"
+    }
+  },
+  {
+    "_id": "6aeab8a87ee2b620de65b300",
+    "id": "del-quot-RFQ-096657-1793767592972",
+    "originalId": "RFQ-096657",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:32.972Z",
+    "recordData": {
+      "id": "RFQ-096657"
+    }
+  },
+  {
+    "_id": "6aeab8a57ee2b620de65b2ff",
+    "id": "del-quot-quot-1793707322805-9268-1793767589733",
+    "originalId": "quot-1793707322805-9268",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:29.733Z",
+    "recordData": {
+      "id": "quot-1793707322805-9268"
+    }
+  },
+  {
+    "_id": "6aeab8a37ee2b620de65b2fe",
+    "id": "del-quot-quot-1793687864206-vl4o-1793767587472",
+    "originalId": "quot-1793687864206-vl4o",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:27.472Z",
+    "recordData": {
+      "id": "quot-1793687864206-vl4o"
+    }
+  },
+  {
+    "_id": "6aeab89c7ee2b620de65b2fd",
+    "id": "del-quot-RFQ-072113-1793767580240",
+    "originalId": "RFQ-072113",
+    "itemType": "quotation",
+    "title": "Kamal Hospital",
+    "doctorName": "Kamal Hospital",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 9856748525",
+    "email": "",
+    "equipment": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:20.240Z",
+    "recordData": {
+      "_id": "6adf3d2054a0d9d3da744973",
+      "createdAt": "2026-10-26T11:44:32.540Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 9856748525",
+      "customerName": "Kamal Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 1817200,
+      "id": "RFQ-072113",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+          "qty": 1,
+          "unitPrice": 1540000,
+          "totalPrice": 1817200
+        }
+      ],
+      "refNo": "RB-QT-2026-6953",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+      "subjectQuotation": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+      "updatedAt": "2026-10-26T11:44:32.540Z"
+    }
+  },
+  {
+    "_id": "6aeab8997ee2b620de65b2fc",
+    "id": "del-quot-RFQ-952919-1793767577189",
+    "originalId": "RFQ-952919",
+    "itemType": "quotation",
+    "title": "Apex Hospital",
+    "doctorName": "Apex Hospital",
+    "hospital": "Kota, Rajasthan",
+    "phone": "Contact: +91 8547965841",
+    "email": "",
+    "equipment": "Purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:17.189Z",
+    "recordData": {
+      "_id": "6adf34dc54a0d9d3da744812",
+      "createdAt": "2026-10-26T11:09:15.983Z",
+      "customerAddress1": "Kota, Rajasthan",
+      "customerAddress2": "Contact: +91 8547965841",
+      "customerName": "Apex Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 1050200,
+      "id": "RFQ-952919",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+          "qty": 1,
+          "unitPrice": 890000,
+          "totalPrice": 1050200
+        }
+      ],
+      "refNo": "RB-QT-2026-8778",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+      "subjectQuotation": "Purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+      "updatedAt": "2026-10-26T11:09:15.983Z"
+    }
+  },
+  {
+    "_id": "6aeab8967ee2b620de65b2fb",
+    "id": "del-quot-RFQ-382376-1793767574953",
+    "originalId": "RFQ-382376",
+    "itemType": "quotation",
+    "title": "Kamal Hospital",
+    "doctorName": "Kamal Hospital",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 9856748525",
+    "email": "",
+    "equipment": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:14.953Z",
+    "recordData": {
+      "_id": "6adf3e5754a0d9d3da74499e",
+      "createdAt": "2026-10-26T11:49:42.931Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 9856748525",
+      "customerName": "Kamal Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 1817200,
+      "id": "RFQ-382376",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+          "qty": 1,
+          "unitPrice": 1540000,
+          "totalPrice": 1817200
+        }
+      ],
+      "refNo": "RB-QT-2026-3565",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+      "subjectQuotation": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+      "updatedAt": "2026-10-26T11:49:42.931Z"
+    }
+  },
+  {
+    "_id": "6aeab8967ee2b620de65b2fa",
+    "id": "del-quot-RFQ-382376-1793767574136",
+    "originalId": "RFQ-382376",
+    "itemType": "quotation",
+    "title": "Kamal Hospital",
+    "doctorName": "Kamal Hospital",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 9856748525",
+    "email": "",
+    "equipment": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:14.136Z",
+    "recordData": {
+      "_id": "6adf3e5754a0d9d3da74499e",
+      "createdAt": "2026-10-26T11:49:42.931Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 9856748525",
+      "customerName": "Kamal Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 1817200,
+      "id": "RFQ-382376",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+          "qty": 1,
+          "unitPrice": 1540000,
+          "totalPrice": 1817200
+        }
+      ],
+      "refNo": "RB-QT-2026-3565",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+      "subjectQuotation": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+      "updatedAt": "2026-10-26T11:49:42.931Z"
+    }
+  },
+  {
+    "_id": "6aeab8957ee2b620de65b2f9",
+    "id": "del-quot-RFQ-382376-1793767573464",
+    "originalId": "RFQ-382376",
+    "itemType": "quotation",
+    "title": "Kamal Hospital",
+    "doctorName": "Kamal Hospital",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 9856748525",
+    "email": "",
+    "equipment": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:13.464Z",
+    "recordData": {
+      "_id": "6adf3e5754a0d9d3da74499e",
+      "createdAt": "2026-10-26T11:49:42.931Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 9856748525",
+      "customerName": "Kamal Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 1817200,
+      "id": "RFQ-382376",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+          "qty": 1,
+          "unitPrice": 1540000,
+          "totalPrice": 1817200
+        }
+      ],
+      "refNo": "RB-QT-2026-3565",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+      "subjectQuotation": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+      "updatedAt": "2026-10-26T11:49:42.931Z"
+    }
+  },
+  {
+    "_id": "6aeab8947ee2b620de65b2f8",
+    "id": "del-quot-RFQ-259175-1793767572792",
+    "originalId": "RFQ-259175",
+    "itemType": "quotation",
+    "title": "Kamal Hospital",
+    "doctorName": "Kamal Hospital",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 9856748525",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:12.792Z",
+    "recordData": {
+      "_id": "6adf499354a0d9d3da744ae8",
+      "createdAt": "2026-10-26T12:37:39.313Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 9856748525",
+      "customerName": "Kamal Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-259175",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-9693",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-26T12:37:39.313Z"
+    }
+  },
+  {
+    "_id": "6aeab8947ee2b620de65b2f7",
+    "id": "del-quot-RFQ-259175-1793767572083",
+    "originalId": "RFQ-259175",
+    "itemType": "quotation",
+    "title": "Kamal Hospital",
+    "doctorName": "Kamal Hospital",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 9856748525",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:12.083Z",
+    "recordData": {
+      "_id": "6adf499354a0d9d3da744ae8",
+      "createdAt": "2026-10-26T12:37:39.313Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 9856748525",
+      "customerName": "Kamal Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-259175",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-9693",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-26T12:37:39.313Z"
+    }
+  },
+  {
+    "_id": "6aeab8937ee2b620de65b2f6",
+    "id": "del-quot-RFQ-259175-1793767571341",
+    "originalId": "RFQ-259175",
+    "itemType": "quotation",
+    "title": "Kamal Hospital",
+    "doctorName": "Kamal Hospital",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 9856748525",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:11.341Z",
+    "recordData": {
+      "_id": "6adf499354a0d9d3da744ae8",
+      "createdAt": "2026-10-26T12:37:39.313Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 9856748525",
+      "customerName": "Kamal Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-259175",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-9693",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-26T12:37:39.313Z"
+    }
+  },
+  {
+    "_id": "6aeab8927ee2b620de65b2f5",
+    "id": "del-quot-RFQ-294254-1793767570708",
+    "originalId": "RFQ-294254",
+    "itemType": "quotation",
+    "title": "Kamal Hospital",
+    "doctorName": "Kamal Hospital",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 9856748525",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:10.708Z",
+    "recordData": {
+      "_id": "6adf49b654a0d9d3da744aec",
+      "createdAt": "2026-10-26T12:38:14.596Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 9856748525",
+      "customerName": "Kamal Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-294254",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-2435",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-26T12:38:14.596Z"
+    }
+  },
+  {
+    "_id": "6aeab8927ee2b620de65b2f4",
+    "id": "del-quot-RFQ-294254-1793767570006",
+    "originalId": "RFQ-294254",
+    "itemType": "quotation",
+    "title": "Kamal Hospital",
+    "doctorName": "Kamal Hospital",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 9856748525",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:10.006Z",
+    "recordData": {
+      "_id": "6adf49b654a0d9d3da744aec",
+      "createdAt": "2026-10-26T12:38:14.596Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 9856748525",
+      "customerName": "Kamal Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-294254",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-2435",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-26T12:38:14.596Z"
+    }
+  },
+  {
+    "_id": "6aeab8917ee2b620de65b2f3",
+    "id": "del-quot-RFQ-294254-1793767569217",
+    "originalId": "RFQ-294254",
+    "itemType": "quotation",
+    "title": "Kamal Hospital",
+    "doctorName": "Kamal Hospital",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 9856748525",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:09.217Z",
+    "recordData": {
+      "_id": "6adf49b654a0d9d3da744aec",
+      "createdAt": "2026-10-26T12:38:14.596Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 9856748525",
+      "customerName": "Kamal Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-294254",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-2435",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-26T12:38:14.596Z"
+    }
+  },
+  {
+    "_id": "6aeab8907ee2b620de65b2f2",
+    "id": "del-quot-RFQ-107792-1793767568423",
+    "originalId": "RFQ-107792",
+    "itemType": "quotation",
+    "title": "Manish Kumawat's Medical Clinic",
+    "doctorName": "Manish Kumawat's Medical Clinic",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 8596457256",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:08.423Z",
+    "recordData": {
+      "_id": "6ae046e454a0d9d3da74eb67",
+      "createdAt": "2026-10-27T06:38:27.952Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 8596457256",
+      "customerName": "Manish Kumawat's Medical Clinic",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-107792",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-7737",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T06:38:27.952Z"
+    }
+  },
+  {
+    "_id": "6aeab88f7ee2b620de65b2f1",
+    "id": "del-quot-RFQ-107792-1793767567691",
+    "originalId": "RFQ-107792",
+    "itemType": "quotation",
+    "title": "Manish Kumawat's Medical Clinic",
+    "doctorName": "Manish Kumawat's Medical Clinic",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 8596457256",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:07.691Z",
+    "recordData": {
+      "_id": "6ae046e454a0d9d3da74eb67",
+      "createdAt": "2026-10-27T06:38:27.952Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 8596457256",
+      "customerName": "Manish Kumawat's Medical Clinic",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-107792",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-7737",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T06:38:27.952Z"
+    }
+  },
+  {
+    "_id": "6aeab88e7ee2b620de65b2f0",
+    "id": "del-quot-RFQ-107792-1793767566852",
+    "originalId": "RFQ-107792",
+    "itemType": "quotation",
+    "title": "Manish Kumawat's Medical Clinic",
+    "doctorName": "Manish Kumawat's Medical Clinic",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 8596457256",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:06.852Z",
+    "recordData": {
+      "_id": "6ae046e454a0d9d3da74eb67",
+      "createdAt": "2026-10-27T06:38:27.952Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 8596457256",
+      "customerName": "Manish Kumawat's Medical Clinic",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-107792",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-7737",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T06:38:27.952Z"
+    }
+  },
+  {
+    "_id": "6aeab88e7ee2b620de65b2ef",
+    "id": "del-quot-RFQ-999641-1793767566023",
+    "originalId": "RFQ-999641",
+    "itemType": "quotation",
+    "title": "Apex Hospital",
+    "doctorName": "Apex Hospital",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 8546987456",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:06.023Z",
+    "recordData": {
+      "_id": "6ae03ea754a0d9d3da74eaac",
+      "createdAt": "2026-10-27T06:03:19.787Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 8546987456",
+      "customerName": "Apex Hospital",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-999641",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-1461",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T06:03:19.787Z"
+    }
+  },
+  {
+    "_id": "6aeab88d7ee2b620de65b2ee",
+    "id": "del-quot-RFQ-107789-1793767565156",
+    "originalId": "RFQ-107789",
+    "itemType": "quotation",
+    "title": "Manish Kumawat's Medical Clinic",
+    "doctorName": "Manish Kumawat's Medical Clinic",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 8596457256",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:05.156Z",
+    "recordData": {
+      "_id": "6ae046e454a0d9d3da74eb66",
+      "createdAt": "2026-10-27T06:38:27.959Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 8596457256",
+      "customerName": "Manish Kumawat's Medical Clinic",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-107789",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-7966",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T06:38:27.959Z"
+    }
+  },
+  {
+    "_id": "6aeab88c7ee2b620de65b2ed",
+    "id": "del-quot-RFQ-107789-1793767564341",
+    "originalId": "RFQ-107789",
+    "itemType": "quotation",
+    "title": "Manish Kumawat's Medical Clinic",
+    "doctorName": "Manish Kumawat's Medical Clinic",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 8596457256",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:04.341Z",
+    "recordData": {
+      "_id": "6ae046e454a0d9d3da74eb66",
+      "createdAt": "2026-10-27T06:38:27.959Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 8596457256",
+      "customerName": "Manish Kumawat's Medical Clinic",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-107789",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-7966",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T06:38:27.959Z"
+    }
+  },
+  {
+    "_id": "6aeab8897ee2b620de65b2ec",
+    "id": "del-quot-RFQ-637617-1793767561503",
+    "originalId": "RFQ-637617",
+    "itemType": "quotation",
+    "title": "Manish Kumawat's Medical Clinic",
+    "doctorName": "Manish Kumawat's Medical Clinic",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 8596457256",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:01.503Z",
+    "recordData": {
+      "_id": "6ae048f554a0d9d3da74ebfb",
+      "createdAt": "2026-10-27T06:47:17.765Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 8596457256",
+      "customerName": "Manish Kumawat's Medical Clinic",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-637617",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-5952",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T06:47:17.765Z"
+    }
+  },
+  {
+    "_id": "6aeab8887ee2b620de65b2eb",
+    "id": "del-quot-RFQ-637617-1793767560549",
+    "originalId": "RFQ-637617",
+    "itemType": "quotation",
+    "title": "Manish Kumawat's Medical Clinic",
+    "doctorName": "Manish Kumawat's Medical Clinic",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 8596457256",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:46:00.549Z",
+    "recordData": {
+      "_id": "6ae048f554a0d9d3da74ebfb",
+      "createdAt": "2026-10-27T06:47:17.765Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 8596457256",
+      "customerName": "Manish Kumawat's Medical Clinic",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-637617",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-5952",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T06:47:17.765Z"
+    }
+  },
+  {
+    "_id": "6aeab8877ee2b620de65b2ea",
+    "id": "del-quot-RFQ-793293-1793767559792",
+    "originalId": "RFQ-793293",
+    "itemType": "quotation",
+    "title": "Mukesh Kumar's Medical Clinic",
+    "doctorName": "Mukesh Kumar's Medical Clinic",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 7485965874",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:59.792Z",
+    "recordData": {
+      "_id": "6ae064e954a0d9d3da74f0bf",
+      "createdAt": "2026-10-27T08:46:33.519Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 7485965874",
+      "customerName": "Mukesh Kumar's Medical Clinic",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-793293",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-4860",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T08:46:33.519Z"
+    }
+  },
+  {
+    "_id": "6aeab8877ee2b620de65b2e9",
+    "id": "del-quot-RFQ-793293-1793767559040",
+    "originalId": "RFQ-793293",
+    "itemType": "quotation",
+    "title": "Mukesh Kumar's Medical Clinic",
+    "doctorName": "Mukesh Kumar's Medical Clinic",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 7485965874",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:59.040Z",
+    "recordData": {
+      "_id": "6ae064e954a0d9d3da74f0bf",
+      "createdAt": "2026-10-27T08:46:33.519Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 7485965874",
+      "customerName": "Mukesh Kumar's Medical Clinic",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-793293",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-4860",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T08:46:33.519Z"
+    }
+  },
+  {
+    "_id": "6aeab8867ee2b620de65b2e8",
+    "id": "del-quot-RFQ-793293-1793767558118",
+    "originalId": "RFQ-793293",
+    "itemType": "quotation",
+    "title": "Mukesh Kumar's Medical Clinic",
+    "doctorName": "Mukesh Kumar's Medical Clinic",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 7485965874",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:58.118Z",
+    "recordData": {
+      "_id": "6ae064e954a0d9d3da74f0bf",
+      "createdAt": "2026-10-27T08:46:33.519Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 7485965874",
+      "customerName": "Mukesh Kumar's Medical Clinic",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-793293",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-4860",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T08:46:33.519Z"
+    }
+  },
+  {
+    "_id": "6aeab8857ee2b620de65b2e7",
+    "id": "del-quot-RFQ-895974-1793767557250",
+    "originalId": "RFQ-895974",
+    "itemType": "quotation",
+    "title": "Om Medical",
+    "doctorName": "Om Medical",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 7485965874",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:57.250Z",
+    "recordData": {
+      "_id": "6ae0655054a0d9d3da74f0c1",
+      "createdAt": "2026-10-27T08:48:16.698Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 7485965874",
+      "customerName": "Om Medical",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-895974",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-7995",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T08:48:16.698Z"
+    }
+  },
+  {
+    "_id": "6aeab8847ee2b620de65b2e6",
+    "id": "del-quot-RFQ-736246-1793767556528",
+    "originalId": "RFQ-736246",
+    "itemType": "quotation",
+    "title": "Manish Kumawat's Medical Clinic",
+    "doctorName": "Manish Kumawat's Medical Clinic",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 8596457256",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:56.528Z",
+    "recordData": {
+      "_id": "6ae0495854a0d9d3da74ec01",
+      "createdAt": "2026-10-27T06:48:56.408Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 8596457256",
+      "customerName": "Manish Kumawat's Medical Clinic",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-736246",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-9367",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T06:48:56.408Z"
+    }
+  },
+  {
+    "_id": "6aeab8837ee2b620de65b2e5",
+    "id": "del-quot-RFQ-895974-1793767555782",
+    "originalId": "RFQ-895974",
+    "itemType": "quotation",
+    "title": "Om Medical",
+    "doctorName": "Om Medical",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 7485965874",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:55.782Z",
+    "recordData": {
+      "_id": "6ae0655054a0d9d3da74f0c1",
+      "createdAt": "2026-10-27T08:48:16.698Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 7485965874",
+      "customerName": "Om Medical",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-895974",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-7995",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T08:48:16.698Z"
+    }
+  },
+  {
+    "_id": "6aeab8827ee2b620de65b2e4",
+    "id": "del-quot-RFQ-895977-1793767554869",
+    "originalId": "RFQ-895977",
+    "itemType": "quotation",
+    "title": "Om Medical",
+    "doctorName": "Om Medical",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 7485965874",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:54.869Z",
+    "recordData": {
+      "_id": "6ae0655054a0d9d3da74f0c2",
+      "createdAt": "2026-10-27T08:48:16.700Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 7485965874",
+      "customerName": "Om Medical",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-895977",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-8179",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T08:48:16.700Z"
+    }
+  },
+  {
+    "_id": "6aeab8827ee2b620de65b2e3",
+    "id": "del-quot-RFQ-672502-1793767554385",
+    "originalId": "RFQ-672502",
+    "itemType": "quotation",
+    "title": "Mukesh Kumar's Medical Clinic",
+    "doctorName": "Mukesh Kumar's Medical Clinic",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 7485965874",
+    "email": "",
+    "equipment": "Purchase of CardioTrace 12-Channel Diagnostic Resting ECG Machine",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:54.385Z",
+    "recordData": {
+      "_id": "6ae0647054a0d9d3da74f0bb",
+      "createdAt": "2026-10-27T08:44:36.751Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 7485965874",
+      "customerName": "Mukesh Kumar's Medical Clinic",
+      "date": "27/10/2026",
+      "grandTotal": 58240,
+      "id": "RFQ-672502",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioTrace 12-Channel Diagnostic Resting ECG Machine",
+          "qty": 1,
+          "unitPrice": 52000,
+          "totalPrice": 58240
+        }
+      ],
+      "refNo": "RB-QT-2026-7835",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioTrace 12-Channel Diagnostic Resting ECG Machine",
+      "subjectQuotation": "Purchase of CardioTrace 12-Channel Diagnostic Resting ECG Machine",
+      "updatedAt": "2026-10-27T08:44:36.751Z"
+    }
+  },
+  {
+    "_id": "6aeab8817ee2b620de65b2e2",
+    "id": "del-quot-RFQ-895977-1793767553895",
+    "originalId": "RFQ-895977",
+    "itemType": "quotation",
+    "title": "Om Medical",
+    "doctorName": "Om Medical",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 7485965874",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:53.895Z",
+    "recordData": {
+      "_id": "6ae0655054a0d9d3da74f0c2",
+      "createdAt": "2026-10-27T08:48:16.700Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 7485965874",
+      "customerName": "Om Medical",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-895977",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-8179",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T08:48:16.700Z"
+    }
+  },
+  {
+    "_id": "6aeab8817ee2b620de65b2e1",
+    "id": "del-quot-RFQ-895977-1793767553153",
+    "originalId": "RFQ-895977",
+    "itemType": "quotation",
+    "title": "Om Medical",
+    "doctorName": "Om Medical",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 7485965874",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:53.153Z",
+    "recordData": {
+      "_id": "6ae0655054a0d9d3da74f0c2",
+      "createdAt": "2026-10-27T08:48:16.700Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 7485965874",
+      "customerName": "Om Medical",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-895977",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-8179",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T08:48:16.700Z"
+    }
+  },
+  {
+    "_id": "6aeab87f7ee2b620de65b2e0",
+    "id": "del-quot-RFQ-672502-1793767551926",
+    "originalId": "RFQ-672502",
+    "itemType": "quotation",
+    "title": "Mukesh Kumar's Medical Clinic",
+    "doctorName": "Mukesh Kumar's Medical Clinic",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 7485965874",
+    "email": "",
+    "equipment": "Purchase of CardioTrace 12-Channel Diagnostic Resting ECG Machine",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:51.926Z",
+    "recordData": {
+      "_id": "6ae0647054a0d9d3da74f0bb",
+      "createdAt": "2026-10-27T08:44:36.751Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 7485965874",
+      "customerName": "Mukesh Kumar's Medical Clinic",
+      "date": "27/10/2026",
+      "grandTotal": 58240,
+      "id": "RFQ-672502",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioTrace 12-Channel Diagnostic Resting ECG Machine",
+          "qty": 1,
+          "unitPrice": 52000,
+          "totalPrice": 58240
+        }
+      ],
+      "refNo": "RB-QT-2026-7835",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioTrace 12-Channel Diagnostic Resting ECG Machine",
+      "subjectQuotation": "Purchase of CardioTrace 12-Channel Diagnostic Resting ECG Machine",
+      "updatedAt": "2026-10-27T08:44:36.751Z"
+    }
+  },
+  {
+    "_id": "6aeab87f7ee2b620de65b2df",
+    "id": "del-quot-RFQ-982727-1793767551385",
+    "originalId": "RFQ-982727",
+    "itemType": "quotation",
+    "title": "Om Medical",
+    "doctorName": "Om Medical",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 7485965874",
+    "email": "",
+    "equipment": "Purchase of RajBiosis-Vent Pro-X9 Turbine Mechanical Ventilator",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:51.385Z",
+    "recordData": {
+      "_id": "6ae06d7e54a0d9d3da74f0fc",
+      "createdAt": "2026-10-27T09:23:12.561Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 7485965874",
+      "customerName": "Om Medical",
+      "date": "27/10/2026",
+      "grandTotal": 543200,
+      "id": "RFQ-982727",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "RajBiosis-Vent Pro-X9 Turbine Mechanical Ventilator",
+          "qty": 1,
+          "unitPrice": 485000,
+          "totalPrice": 543200
+        }
+      ],
+      "refNo": "RB-QT-2026-5302",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of RajBiosis-Vent Pro-X9 Turbine Mechanical Ventilator",
+      "subjectQuotation": "Purchase of RajBiosis-Vent Pro-X9 Turbine Mechanical Ventilator",
+      "updatedAt": "2026-10-27T09:23:12.561Z"
+    }
+  },
+  {
+    "_id": "6aeab87f7ee2b620de65b2de",
+    "id": "del-quot-RFQ-219710-1793767551260",
+    "originalId": "RFQ-219710",
+    "itemType": "quotation",
+    "title": "Om Medical",
+    "doctorName": "Om Medical",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 7485965874",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:51.260Z",
+    "recordData": {
+      "_id": "6ae06e6354a0d9d3da74f104",
+      "createdAt": "2026-10-27T09:26:59.889Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 7485965874",
+      "customerName": "Om Medical",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-219710",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-9441",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T09:26:59.889Z"
+    }
+  },
+  {
+    "_id": "6aeab87e7ee2b620de65b2dd",
+    "id": "del-quot-RFQ-982727-1793767550296",
+    "originalId": "RFQ-982727",
+    "itemType": "quotation",
+    "title": "Om Medical",
+    "doctorName": "Om Medical",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 7485965874",
+    "email": "",
+    "equipment": "Purchase of RajBiosis-Vent Pro-X9 Turbine Mechanical Ventilator",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:50.296Z",
+    "recordData": {
+      "_id": "6ae06d7e54a0d9d3da74f0fc",
+      "createdAt": "2026-10-27T09:23:12.561Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 7485965874",
+      "customerName": "Om Medical",
+      "date": "27/10/2026",
+      "grandTotal": 543200,
+      "id": "RFQ-982727",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "RajBiosis-Vent Pro-X9 Turbine Mechanical Ventilator",
+          "qty": 1,
+          "unitPrice": 485000,
+          "totalPrice": 543200
+        }
+      ],
+      "refNo": "RB-QT-2026-5302",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of RajBiosis-Vent Pro-X9 Turbine Mechanical Ventilator",
+      "subjectQuotation": "Purchase of RajBiosis-Vent Pro-X9 Turbine Mechanical Ventilator",
+      "updatedAt": "2026-10-27T09:23:12.561Z"
+    }
+  },
+  {
+    "_id": "6aeab87e7ee2b620de65b2dc",
+    "id": "del-quot-RFQ-219710-1793767550016",
+    "originalId": "RFQ-219710",
+    "itemType": "quotation",
+    "title": "Om Medical",
+    "doctorName": "Om Medical",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 7485965874",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:50.016Z",
+    "recordData": {
+      "_id": "6ae06e6354a0d9d3da74f104",
+      "createdAt": "2026-10-27T09:26:59.889Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 7485965874",
+      "customerName": "Om Medical",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-219710",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-9441",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T09:26:59.889Z"
+    }
+  },
+  {
+    "_id": "6aeab87d7ee2b620de65b2db",
+    "id": "del-quot-RFQ-406419-1793767549176",
+    "originalId": "RFQ-406419",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:49.176Z",
+    "recordData": {
+      "id": "RFQ-406419"
+    }
+  },
+  {
+    "_id": "6aeab87d7ee2b620de65b2da",
+    "id": "del-quot-RFQ-029052-1793767549070",
+    "originalId": "RFQ-029052",
+    "itemType": "quotation",
+    "title": "Apex Hospital",
+    "doctorName": "Apex Hospital",
+    "hospital": "Kota, Rajasthan",
+    "phone": "Contact: +91 8547965841",
+    "email": "",
+    "equipment": "Purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:49.070Z",
+    "recordData": {
+      "_id": "6adf313d54a0d9d3da7447c7",
+      "createdAt": "2026-10-26T11:10:37.077Z",
+      "customerAddress1": "Kota, Rajasthan",
+      "customerAddress2": "Contact: +91 8547965841",
+      "customerName": "Apex Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 1050200,
+      "id": "RFQ-029052",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+          "qty": 1,
+          "unitPrice": 0,
+          "totalPrice": 1050200
+        }
+      ],
+      "refNo": "RB-QT-2026-5304",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+      "subjectQuotation": "Purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+      "updatedAt": "2026-10-26T11:10:37.077Z"
+    }
+  },
+  {
+    "_id": "6aeab87c7ee2b620de65b2d9",
+    "id": "del-quot-RFQ-382459-1793767548638",
+    "originalId": "RFQ-382459",
+    "itemType": "quotation",
+    "title": "Kamal Hospital",
+    "doctorName": "Kamal Hospital",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 9856748525",
+    "email": "",
+    "equipment": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:48.638Z",
+    "recordData": {
+      "_id": "6adf3e5754a0d9d3da74499d",
+      "createdAt": "2026-10-26T11:49:42.934Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 9856748525",
+      "customerName": "Kamal Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 1817200,
+      "id": "RFQ-382459",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+          "qty": 1,
+          "unitPrice": 1540000,
+          "totalPrice": 1817200
+        }
+      ],
+      "refNo": "RB-QT-2026-1312",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+      "subjectQuotation": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+      "updatedAt": "2026-10-26T11:49:42.934Z"
+    }
+  },
+  {
+    "_id": "6aeab87c7ee2b620de65b2d8",
+    "id": "del-quot-RFQ-294270-1793767548323",
+    "originalId": "RFQ-294270",
+    "itemType": "quotation",
+    "title": "Kamal Hospital",
+    "doctorName": "Kamal Hospital",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 9856748525",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:48.323Z",
+    "recordData": {
+      "_id": "6adf49b654a0d9d3da744aeb",
+      "createdAt": "2026-10-26T12:38:14.600Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 9856748525",
+      "customerName": "Kamal Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-294270",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-4473",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-26T12:38:14.600Z"
+    }
+  },
+  {
+    "_id": "6aeab87c7ee2b620de65b2d7",
+    "id": "del-quot-RFQ-999644-1793767548072",
+    "originalId": "RFQ-999644",
+    "itemType": "quotation",
+    "title": "Apex Hospital",
+    "doctorName": "Apex Hospital",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 8546987456",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:48.072Z",
+    "recordData": {
+      "_id": "6ae03ea754a0d9d3da74eaab",
+      "createdAt": "2026-10-27T06:03:19.797Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 8546987456",
+      "customerName": "Apex Hospital",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-999644",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-3601",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T06:03:19.797Z"
+    }
+  },
+  {
+    "_id": "6aeab87b7ee2b620de65b2d6",
+    "id": "del-quot-RFQ-736249-1793767547858",
+    "originalId": "RFQ-736249",
+    "itemType": "quotation",
+    "title": "Manish Kumawat's Medical Clinic",
+    "doctorName": "Manish Kumawat's Medical Clinic",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 8596457256",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:47.858Z",
+    "recordData": {
+      "_id": "6ae0495854a0d9d3da74ec00",
+      "createdAt": "2026-10-27T06:48:56.415Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 8596457256",
+      "customerName": "Manish Kumawat's Medical Clinic",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-736249",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-9876",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T06:48:56.415Z"
+    }
+  },
+  {
+    "_id": "6aeab87b7ee2b620de65b2d5",
+    "id": "del-quot-RFQ-294270-1793767547379",
+    "originalId": "RFQ-294270",
+    "itemType": "quotation",
+    "title": "Kamal Hospital",
+    "doctorName": "Kamal Hospital",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 9856748525",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:47.379Z",
+    "recordData": {
+      "_id": "6adf49b654a0d9d3da744aeb",
+      "createdAt": "2026-10-26T12:38:14.600Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 9856748525",
+      "customerName": "Kamal Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-294270",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-4473",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-26T12:38:14.600Z"
+    }
+  },
+  {
+    "_id": "6aeab87b7ee2b620de65b2d4",
+    "id": "del-quot-RFQ-999644-1793767547371",
+    "originalId": "RFQ-999644",
+    "itemType": "quotation",
+    "title": "Apex Hospital",
+    "doctorName": "Apex Hospital",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 8546987456",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:47.371Z",
+    "recordData": {
+      "_id": "6ae03ea754a0d9d3da74eaab",
+      "createdAt": "2026-10-27T06:03:19.797Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 8546987456",
+      "customerName": "Apex Hospital",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-999644",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-3601",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T06:03:19.797Z"
+    }
+  },
+  {
+    "_id": "6aeab87a7ee2b620de65b2d3",
+    "id": "del-quot-RFQ-736249-1793767546104",
+    "originalId": "RFQ-736249",
+    "itemType": "quotation",
+    "title": "Manish Kumawat's Medical Clinic",
+    "doctorName": "Manish Kumawat's Medical Clinic",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 8596457256",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:46.104Z",
+    "recordData": {
+      "_id": "6ae0495854a0d9d3da74ec00",
+      "createdAt": "2026-10-27T06:48:56.415Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 8596457256",
+      "customerName": "Manish Kumawat's Medical Clinic",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-736249",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-9876",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T06:48:56.415Z"
+    }
+  },
+  {
+    "_id": "6aeab87a7ee2b620de65b2d2",
+    "id": "del-quot-RFQ-406419-1793767546096",
+    "originalId": "RFQ-406419",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:46.096Z",
+    "recordData": {
+      "id": "RFQ-406419"
+    }
+  },
+  {
+    "_id": "6aeab8797ee2b620de65b2d1",
+    "id": "del-quot-RFQ-029052-1793767545625",
+    "originalId": "RFQ-029052",
+    "itemType": "quotation",
+    "title": "Apex Hospital",
+    "doctorName": "Apex Hospital",
+    "hospital": "Kota, Rajasthan",
+    "phone": "Contact: +91 8547965841",
+    "email": "",
+    "equipment": "Purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:45.625Z",
+    "recordData": {
+      "_id": "6adf313d54a0d9d3da7447c7",
+      "createdAt": "2026-10-26T11:10:37.077Z",
+      "customerAddress1": "Kota, Rajasthan",
+      "customerAddress2": "Contact: +91 8547965841",
+      "customerName": "Apex Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 1050200,
+      "id": "RFQ-029052",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+          "qty": 1,
+          "unitPrice": 0,
+          "totalPrice": 1050200
+        }
+      ],
+      "refNo": "RB-QT-2026-5304",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+      "subjectQuotation": "Purchase of SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
+      "updatedAt": "2026-10-26T11:10:37.077Z"
+    }
+  },
+  {
+    "_id": "6aeab8797ee2b620de65b2d0",
+    "id": "del-quot-RFQ-382459-1793767545353",
+    "originalId": "RFQ-382459",
+    "itemType": "quotation",
+    "title": "Kamal Hospital",
+    "doctorName": "Kamal Hospital",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 9856748525",
+    "email": "",
+    "equipment": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:45.353Z",
+    "recordData": {
+      "_id": "6adf3e5754a0d9d3da74499d",
+      "createdAt": "2026-10-26T11:49:42.934Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 9856748525",
+      "customerName": "Kamal Hospital",
+      "date": "26/10/2026",
+      "grandTotal": 1817200,
+      "id": "RFQ-382459",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+          "qty": 1,
+          "unitPrice": 1540000,
+          "totalPrice": 1817200
+        }
+      ],
+      "refNo": "RB-QT-2026-1312",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+      "subjectQuotation": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+      "updatedAt": "2026-10-26T11:49:42.934Z"
+    }
+  },
+  {
+    "_id": "6aeab8787ee2b620de65b2cf",
+    "id": "del-quot-RFQ-285764-1793767544614",
+    "originalId": "RFQ-285764",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:44.614Z",
+    "recordData": {
+      "id": "RFQ-285764"
+    }
+  },
+  {
+    "_id": "6aeab8727ee2b620de65b2ce",
+    "id": "del-quot-RFQ-285764-1793767538360",
+    "originalId": "RFQ-285764",
+    "itemType": "quotation",
+    "title": "Official Quotation",
+    "doctorName": "",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:38.360Z",
+    "recordData": {
+      "id": "RFQ-285764"
+    }
+  },
+  {
+    "_id": "6aeab86e7ee2b620de65b2cd",
+    "id": "del-quot-RFQ-786101-1793767534081",
+    "originalId": "RFQ-786101",
+    "itemType": "quotation",
+    "title": "Jaipur Healthcare Institution",
+    "doctorName": "Jaipur Healthcare Institution",
+    "hospital": "Jaipur, Rajasthan",
+    "phone": "Contact: +91 8547896589",
+    "email": "",
+    "equipment": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:34.081Z",
+    "recordData": {
+      "_id": "6ae0498a54a0d9d3da74ec02",
+      "createdAt": "2026-10-27T06:49:46.251Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 8547896589",
+      "customerName": "Jaipur Healthcare Institution",
+      "date": "27/10/2026",
+      "grandTotal": 76720,
+      "id": "RFQ-786101",
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+          "qty": 1,
+          "unitPrice": 68500,
+          "totalPrice": 76720
+        }
+      ],
+      "refNo": "RB-QT-2026-6184",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "subjectQuotation": "Purchase of CardioPulse Multi-Para Patient Monitor 12.1\"",
+      "updatedAt": "2026-10-27T06:49:46.251Z"
+    }
+  },
+  {
+    "_id": "6aeab8667ee2b620de65b2cc",
+    "id": "del-RFQ-223024-zs4g",
+    "originalId": "RFQ-223024",
+    "itemType": "quotation",
+    "title": "Mulchand Medicals",
+    "doctorName": "Mulchand Medicals",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:26.873Z",
+    "recordData": {
+      "_id": "6ae9a9afa23c7c5e68a23d7e",
+      "id": "RFQ-223024",
+      "actualPrice": 195000,
+      "createdAt": "2026-11-03T09:30:23.079Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 8547965896",
+      "customerName": "Mulchand Medicals",
+      "date": "03/11/2026",
+      "discountPercent": 0,
+      "expectedPrice": 194800,
+      "grandTotal": 218176,
+      "gstAmount": 23376,
+      "gstRate": "12%",
+      "isNegotiable": true,
+      "isPriceNegotiated": true,
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+          "qty": 1,
+          "unitPrice": 194800,
+          "actualPrice": 195000,
+          "expectedPrice": 194800,
+          "isNegotiable": true,
+          "totalPrice": 194800
+        }
+      ],
+      "negotiationStatus": "pending_approval",
+      "refNo": "RB-QT-2026-2939",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+      "subjectQuotation": "Purchase of DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+      "subtotal": 194800,
+      "taxAmount": 23376,
+      "taxMode": "12",
+      "updatedAt": "2026-11-03T09:30:23.079Z"
+    }
+  },
+  {
+    "_id": "6aeab8667ee2b620de65b2cb",
+    "id": "del-RFQ-223024-944x",
+    "originalId": "RFQ-223024",
+    "itemType": "lead",
+    "title": "Mulchand Medicals",
+    "doctorName": "Mulchand Tripathi",
+    "hospital": "Mulchand Medicals",
+    "phone": "+91 8547965896",
+    "email": "mulchand@gmail.com",
+    "equipment": "DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+    "amount": "₹1,95,000",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Floor Locked ₹1,95,000 (+₹200 Comp)",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-04T04:45:26.624Z",
+    "recordData": {
+      "_id": "6ae9a9afa23c7c5e68a23d7d",
+      "id": "RFQ-223024",
+      "actualPrice": 195000,
+      "address": "",
+      "adminCounterPrice": null,
+      "adminNote": "Deal floor locked at ₹1,95,000 with ₹200 complimentary allowance.",
+      "approvedPrice": 194800,
+      "brandName": "Raj Biosis",
+      "city": "Jaipur",
+      "createdAt": "2026-11-03T09:30:23.025Z",
+      "date": "03 Nov 2026",
+      "dateTime": "03 Nov 2026, 03:00 pm",
+      "doctorName": "Mulchand Tripathi",
+      "email": "mulchand@gmail.com",
+      "equipment": "DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+      "expectedPrice": 194800,
+      "hospital": "Mulchand Medicals",
+      "isNegotiable": true,
+      "isPriceNegotiated": true,
+      "isProfileComplete": false,
+      "negotiationStatus": "approved",
+      "phone": "+91 8547965896",
+      "price": 194800,
+      "quoteAmount": "₹1,95,000",
+      "rawLeadData": {
+        "id": "RFQ-223024",
+        "quoteNumber": "RB-QT-2026-2939",
+        "customerName": "Mulchand Tripathi",
+        "designation": "Procurement In-charge",
+        "hospitalName": "Mulchand Medicals",
+        "customerPhone": "+91 8547965896",
+        "customerEmail": "mulchand@gmail.com",
+        "district": "Jaipur",
+        "state": "Rajasthan",
+        "productName": "DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+        "productSku": "RAJ-ICU-360B",
+        "qty": 1,
+        "unitPrice": 194800,
+        "actualPrice": 195000,
+        "expectedPrice": 194800,
+        "isNegotiable": true,
+        "isPriceNegotiated": true,
+        "negotiationStatus": "pending_approval",
+        "approvedPrice": null,
+        "adminCounterPrice": null,
+        "adminNote": null,
+        "isMultiItem": false,
+        "cartProducts": null,
+        "gstRate": "12%",
+        "gstAmount": 23376,
+        "grandTotal": 218176,
+        "status": "Pending Price Approval",
+        "statusNote": "Customer target offer of ₹1,94,800 submitted for DefiQuick Biphasic Defibrillator with Monitor & Pacer. Awaiting Admin authorization.",
+        "createdAt": "2026-11-03T09:30:23.025Z",
+        "notes": []
+      },
+      "siteDomain": "rajbiosis.com",
+      "status": "Floor Locked ₹1,95,000 (+₹200 Comp)",
+      "time": "03:00 pm",
+      "updatedAt": "2026-11-03T09:32:14.232Z",
+      "allowedComplementaryBudget": 200,
+      "approvedAt": "2026-11-03T09:32:14.207Z",
+      "approvedBy": "rajbiosis01@gmail.com",
+      "customerRevisedBid": 194800,
+      "estimatedValue": 195000,
+      "lockedApprovedPrice": 195000
+    }
+  },
+  {
+    "_id": "6ae9a34bc4603330bde270bd",
+    "id": "del-RFQ-063635-vl3r",
+    "originalId": "RFQ-063635",
+    "itemType": "quotation",
+    "title": "ShreeNath Hospital",
+    "doctorName": "ShreeNath Hospital",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-03T09:03:07.112Z",
+    "recordData": {
+      "_id": "6ae5cccba23c7c5e68a176c8",
+      "id": "RFQ-063635",
+      "actualPrice": 1540000,
+      "createdAt": "2026-10-31T11:11:05.011Z",
+      "customerAddress1": "Karnataka, Rajasthan",
+      "customerAddress2": "Contact: +91 8745963215",
+      "customerName": "ShreeNath Hospital",
+      "date": "31/10/2026",
+      "discountPercent": 0,
+      "expectedPrice": 1520000,
+      "grandTotal": 1793600,
+      "gstAmount": 273600,
+      "gstRate": "18%",
+      "isNegotiable": true,
+      "isPriceNegotiated": true,
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+          "qty": 1,
+          "unitPrice": 1520000,
+          "actualPrice": 1540000,
+          "expectedPrice": 1520000,
+          "isNegotiable": true,
+          "totalPrice": 1520000
+        }
+      ],
+      "negotiationStatus": "pending_approval",
+      "refNo": "RB-QT-2026-7708",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+      "subjectQuotation": "Purchase of ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+      "subtotal": 1520000,
+      "taxAmount": 273600,
+      "taxMode": "18",
+      "updatedAt": "2026-10-31T11:11:05.011Z"
+    }
+  },
+  {
+    "_id": "6ae9a34ac4603330bde270bc",
+    "id": "del-RFQ-063635-ebtz",
+    "originalId": "RFQ-063635",
+    "itemType": "lead",
+    "title": "ShreeNath Hospital",
+    "doctorName": "Parkash Singh",
+    "hospital": "ShreeNath Hospital",
+    "phone": "+91 8745963215",
+    "email": "parkash@gmail.com",
+    "equipment": "ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+    "amount": "₹15,30,000",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Counter Offered",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-03T09:03:06.859Z",
+    "recordData": {
+      "_id": "6ae5cccba23c7c5e68a176c9",
+      "id": "RFQ-063635",
+      "actualPrice": 1540000,
+      "address": "",
+      "adminCounterPrice": 1530000,
+      "adminNote": "Approved in-between institutional offer with 2-year warranty.",
+      "approvedPrice": 1530000,
+      "brandName": "Raj Biosis",
+      "city": "Karnataka",
+      "createdAt": "2026-10-31T11:11:03.636Z",
+      "date": "31 Oct 2026",
+      "dateTime": "31 Oct 2026, 04:41 pm",
+      "doctorName": "Parkash Singh",
+      "email": "parkash@gmail.com",
+      "equipment": "ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+      "expectedPrice": 1520000,
+      "hospital": "ShreeNath Hospital",
+      "isNegotiable": true,
+      "isPriceNegotiated": true,
+      "isProfileComplete": false,
+      "negotiationStatus": "counter_offered",
+      "phone": "+91 8745963215",
+      "price": 1530000,
+      "quoteAmount": "₹15,30,000",
+      "rawLeadData": {
+        "id": "RFQ-063635",
+        "quoteNumber": "RB-QT-2026-7708",
+        "customerName": "Parkash Singh",
+        "designation": "Procurement In-charge",
+        "hospitalName": "ShreeNath Hospital",
+        "customerPhone": "+91 8745963215",
+        "customerEmail": "parkash@gmail.com",
+        "district": "Karnataka",
+        "state": "Rajasthan",
+        "productName": "ApexMobile 9-Inch High Frequency Surgical C-Arm System",
+        "productSku": "RAJ-RAD-CARM",
+        "qty": 1,
+        "unitPrice": 1520000,
+        "actualPrice": 1540000,
+        "expectedPrice": 1520000,
+        "isNegotiable": true,
+        "isPriceNegotiated": true,
+        "negotiationStatus": "pending_approval",
+        "approvedPrice": null,
+        "adminCounterPrice": null,
+        "adminNote": null,
+        "isMultiItem": false,
+        "cartProducts": null,
+        "gstRate": "18%",
+        "gstAmount": 273600,
+        "grandTotal": 1793600,
+        "status": "Pending Price Approval",
+        "statusNote": "Customer target offer of ₹15,20,000 submitted for ApexMobile 9-Inch High Frequency Surgical C-Arm System. Awaiting Admin authorization.",
+        "createdAt": "2026-10-31T11:11:03.636Z",
+        "notes": []
+      },
+      "siteDomain": "rajbiosis.com",
+      "status": "Counter Offered",
+      "time": "04:41 pm",
+      "updatedAt": "2026-11-03T09:03:03.660Z",
+      "approvedAt": "2026-11-03T09:03:03.621Z",
+      "approvedBy": "rajbiosis01@gmail.com",
+      "estimatedValue": 1530000
+    }
+  },
+  {
+    "_id": "6ae9a339c4603330bde270bb",
+    "id": "del-RFQ-746939-cp4y",
+    "originalId": "RFQ-746939",
+    "itemType": "quotation",
+    "title": "Shree Medical",
+    "doctorName": "Shree Medical",
+    "hospital": "",
+    "phone": "",
+    "email": "",
+    "equipment": "",
+    "amount": "₹0",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Archived",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-03T09:02:49.950Z",
+    "recordData": {
+      "_id": "6ae9906ea23c7c5e68a2364d",
+      "id": "RFQ-746939",
+      "actualPrice": 540000,
+      "createdAt": "2026-11-03T07:42:29.069Z",
+      "customerAddress1": "Jaipur, Rajasthan",
+      "customerAddress2": "Contact: +91 8547963210",
+      "customerName": "Shree Medical",
+      "date": "03/11/2026",
+      "discountPercent": 0,
+      "expectedPrice": 538000,
+      "grandTotal": 634840,
+      "gstAmount": 96840,
+      "gstRate": "18%",
+      "isNegotiable": true,
+      "isPriceNegotiated": true,
+      "items": [
+        {
+          "id": "item-1",
+          "sr": 1,
+          "title": "ApexPorta-DR 100mA Mobile Bedside Digital X-Ray System",
+          "qty": 1,
+          "unitPrice": 538000,
+          "actualPrice": 540000,
+          "expectedPrice": 538000,
+          "isNegotiable": true,
+          "totalPrice": 538000
+        }
+      ],
+      "negotiationStatus": "pending_approval",
+      "refNo": "RB-QT-2026-4623",
+      "signatory": {
+        "name": "Bhupender Raj",
+        "role": "Sales & Mkt. Head",
+        "company": "Raj Biosis Pvt Ltd.",
+        "address1": "B-7, Aman Plaza, Plot No. 26,",
+        "address2": "Heera Nagar-A, Chitrakoot",
+        "city": "Jaipur-302021 Rajasthan",
+        "phone": "+91-998-3333-469"
+      },
+      "subjectLetter": "Quotation purchase of ApexPorta-DR 100mA Mobile Bedside Digital X-Ray System",
+      "subjectQuotation": "Purchase of ApexPorta-DR 100mA Mobile Bedside Digital X-Ray System",
+      "subtotal": 538000,
+      "taxAmount": 96840,
+      "taxMode": "18",
+      "updatedAt": "2026-11-03T07:42:29.069Z"
+    }
+  },
+  {
+    "_id": "6ae9a339c4603330bde270ba",
+    "id": "del-RFQ-746939-n4a5",
+    "originalId": "RFQ-746939",
+    "itemType": "lead",
+    "title": "Shree Medical",
+    "doctorName": "Raj Biosis Pvt Ltd",
+    "hospital": "Shree Medical",
+    "phone": "+91 8547963210",
+    "email": "rajbiosis12@gmail.com",
+    "equipment": "ApexPorta-DR 100mA Mobile Bedside Digital X-Ray System",
+    "amount": "₹5,38,000",
+    "sourceWebsite": "rajbiosis.com",
+    "status": "Floor Locked ₹5,38,000 (+₹500 Comp)",
+    "deletedBy": {
+      "name": "Admin",
+      "role": "HQ Admin",
+      "email": ""
+    },
+    "deletedAt": "2026-11-03T09:02:49.767Z",
+    "recordData": {
+      "_id": "6ae9906ea23c7c5e68a2364e",
+      "id": "RFQ-746939",
+      "actualPrice": 540000,
+      "address": "",
+      "adminCounterPrice": 539000,
+      "adminNote": "Deal floor locked at ₹5,38,000 with ₹500 complimentary allowance.",
+      "approvedPrice": 537500,
+      "brandName": "Raj Biosis",
+      "city": "Jaipur",
+      "createdAt": "2026-11-03T07:42:26.939Z",
+      "date": "03 Nov 2026",
+      "dateTime": "03 Nov 2026, 01:12 pm",
+      "doctorName": "Raj Biosis Pvt Ltd",
+      "email": "rajbiosis12@gmail.com",
+      "equipment": "ApexPorta-DR 100mA Mobile Bedside Digital X-Ray System",
+      "expectedPrice": 538000,
+      "hospital": "Shree Medical",
+      "isNegotiable": true,
+      "isPriceNegotiated": true,
+      "isProfileComplete": false,
+      "negotiationStatus": "approved",
+      "phone": "+91 8547963210",
+      "price": 537500,
+      "quoteAmount": "₹5,38,000",
+      "rawLeadData": {
+        "id": "RFQ-746939",
+        "quoteNumber": "RB-QT-2026-4623",
+        "customerName": "Raj Biosis Pvt Ltd",
+        "designation": "Procurement In-charge",
+        "hospitalName": "Shree Medical",
+        "customerPhone": "+91 8547963210",
+        "customerEmail": "rajbiosis12@gmail.com",
+        "district": "Jaipur",
+        "state": "Rajasthan",
+        "productName": "ApexPorta-DR 100mA Mobile Bedside Digital X-Ray System",
+        "productSku": "RAJ-RAD-MOB100",
+        "qty": 1,
+        "unitPrice": 538000,
+        "actualPrice": 540000,
+        "expectedPrice": 538000,
+        "isNegotiable": true,
+        "isPriceNegotiated": true,
+        "negotiationStatus": "pending_approval",
+        "approvedPrice": null,
+        "adminCounterPrice": null,
+        "adminNote": null,
+        "isMultiItem": false,
+        "cartProducts": null,
+        "gstRate": "18%",
+        "gstAmount": 96840,
+        "grandTotal": 634840,
+        "status": "Pending Price Approval",
+        "statusNote": "Customer target offer of ₹5,38,000 submitted for ApexPorta-DR 100mA Mobile Bedside Digital X-Ray System. Awaiting Admin authorization.",
+        "createdAt": "2026-11-03T07:42:26.939Z",
+        "notes": []
+      },
+      "siteDomain": "rajbiosis.com",
+      "status": "Floor Locked ₹5,38,000 (+₹500 Comp)",
+      "time": "01:12 pm",
+      "updatedAt": "2026-11-03T08:46:49.226Z",
+      "approvedAt": "2026-11-03T08:46:49.194Z",
+      "approvedBy": "rajbiosis01@gmail.com",
+      "estimatedValue": 538000,
+      "allowedComplementaryBudget": 500,
+      "customerRevisedBid": 537500,
+      "lockedApprovedPrice": 538000
+    }
+  }
+]
