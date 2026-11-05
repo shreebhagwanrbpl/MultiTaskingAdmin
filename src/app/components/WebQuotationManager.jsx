@@ -1,7 +1,7 @@
 'use client';
 
 import { triggerSystemPushNotification, broadcastSystemNotification, requestPushPermission, getPushPermissionStatus } from '../../lib/pushNotifications';
-import { getLeadTimestamp, stableLeadSort } from '../../lib/leadUtils';
+import { getLeadTimestamp, stableLeadSort, cleanLeadHospital } from '../../lib/leadUtils';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
@@ -67,7 +67,7 @@ export const COMPLIMENTARY_PERK_CATALOG = [
   // ₹50
   { id: 'perk-50-1', title: 'Sterile ECG Electrodes (Pack of 10)', price: 50, category: 'Consumables', desc: 'Disposable medical hydrogel diagnostic monitoring electrodes.' },
   { id: 'perk-50-2', title: 'Ultrasound Acoustic Probe Sheaths (5 Pcs)', price: 50, category: 'Protection', desc: 'Sterile latex-free acoustic transducer protective covers.' },
-  
+
   // ₹100
   { id: 'perk-100-1', title: 'Acoustic Transmission Ultrasound Gel (250ml)', price: 100, category: 'Consumables', desc: 'High-viscosity hypoallergenic ultrasound & Doppler transmission gel.' },
   { id: 'perk-100-2', title: 'NIBP Monitor Quick-Release Hose Coupling', price: 100, category: 'Hardware', desc: 'Medical-grade brass bayonet air hose connector for patient monitors.' },
@@ -253,13 +253,23 @@ export default function WebQuotationManager({
 
   // Web Leads State (Instant zero-latency from initialLeads & cache)
   const [webLeads, setWebLeads] = useState(() => {
-    if (initialLeads && initialLeads.length > 0) return initialLeads;
+    if (initialLeads && initialLeads.length > 0) {
+      return initialLeads.map(l => ({
+        ...l,
+        hospital: cleanLeadHospital(l.hospital || l.hospitalName)
+      }));
+    }
     if (typeof window !== 'undefined') {
       try {
         const cached = localStorage.getItem('rbpl_cached_leads');
         if (cached) {
           const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed.map(l => ({
+              ...l,
+              hospital: cleanLeadHospital(l.hospital || l.hospitalName)
+            }));
+          }
         }
       } catch (e) { }
     }
@@ -1433,18 +1443,19 @@ export default function WebQuotationManager({
     const raw = lead.rawLeadData || {};
 
     // 1. Customer & Hospital Information
-    const hospitalName = (
+    const rawHosp = (
       matchedCustomer?.hospitalName ||
       lead.hospital ||
       raw.hospitalName ||
       lead.hospitalName ||
-      lead.doctorName ||
-      raw.customerName ||
-      'Customer Hospital / Diagnostic Lab'
+      ''
     ).trim();
-    setCustomerName(hospitalName);
+    const cleanHospitalName = cleanLeadHospital(rawHosp);
 
-    const docName = matchedCustomer?.fullName || lead.doctorName || raw.customerName || '';
+    const docName = (matchedCustomer?.fullName || lead.doctorName || raw.customerName || lead.customerName || '').trim();
+    const finalCustomerName = cleanHospitalName || docName || 'Customer';
+    setCustomerName(finalCustomerName);
+
     const doctorPart = docName ? `Attn: ${docName}` : 'Attn: Procurement Officer';
     const phoneVal = matchedCustomer?.phone || lead.phone || raw.customerPhone || raw.phone;
     const phonePart = phoneVal ? `Mob: ${phoneVal}` : '';
@@ -2376,8 +2387,9 @@ export default function WebQuotationManager({
       }
 
       let name = (q.customerName || '').trim();
-      if (!name || name.toLowerCase() === 'healthcare institution') {
-        name = contact ? `${contact}'s Hospital` : 'Healthcare Customer';
+      const isGeneric = !name || /healthcare institution|health institute|customer hospital|general hospital|healthcare customer/i.test(name);
+      if (isGeneric) {
+        name = contact || 'Customer';
       }
 
       return { phone: digits, contact, city, email, name };
@@ -2795,7 +2807,9 @@ Thank you for choosing Raj Biosis!`;
                 pendingWebLeads.map((lead, idx) => {
                   const matchedCustomer = getMatchedCustomer(lead);
                   const complete = isProfileComplete(lead);
-                  const displayHospital = matchedCustomer?.hospitalName || lead.hospital || lead.doctorName || 'Customer Hospital / Lab';
+                  const rawHosp = (matchedCustomer?.hospitalName || lead.hospital || lead.hospitalName || lead.rawLeadData?.hospitalName || '').trim();
+                  const cleanHospital = cleanLeadHospital(rawHosp);
+                  const displayHospital = cleanHospital || matchedCustomer?.fullName || lead.doctorName || lead.customerName || 'Registered Customer';
                   const displayContact = matchedCustomer?.fullName || lead.doctorName || 'Procurement Officer';
                   const displayPhone = matchedCustomer?.phone || lead.phone;
                   const displayEmail = matchedCustomer?.email || lead.email;
@@ -3256,7 +3270,9 @@ Thank you for choosing Raj Biosis!`;
             ) : (
               pendingWebLeads.map((lead, idx) => {
                 const matchedCustomer = getMatchedCustomer(lead);
-                const displayHospital = matchedCustomer?.hospitalName || lead.hospital || lead.doctorName || 'Customer Hospital / Lab';
+                const rawHosp = (matchedCustomer?.hospitalName || lead.hospital || lead.hospitalName || lead.rawLeadData?.hospitalName || '').trim();
+                const cleanHospital = cleanLeadHospital(rawHosp);
+                const displayHospital = cleanHospital || matchedCustomer?.fullName || lead.doctorName || lead.customerName || 'Registered Customer';
                 const displayContact = matchedCustomer?.fullName || lead.doctorName || 'Procurement Officer';
                 const displayPhone = matchedCustomer?.phone || lead.phone;
                 const displayEmail = matchedCustomer?.email || lead.email;
@@ -4957,7 +4973,7 @@ Thank you for choosing Raj Biosis!`;
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
               {/* Left Column: Perk Catalog & Automatic Matching */}
               <div className="lg:col-span-7 space-y-3.5">
-                
+
                 {/* Filter Bar & Search */}
                 <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs space-y-2.5">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -5005,15 +5021,14 @@ Thank you for choosing Raj Biosis!`;
                           key={amt}
                           type="button"
                           onClick={() => setSelectedPerkFilter(amt)}
-                          className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold transition cursor-pointer ${
-                            selectedPerkFilter === amt
+                          className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold transition cursor-pointer ${selectedPerkFilter === amt
                               ? 'bg-amber-600 text-white shadow-2xs'
                               : isExactBudget
-                              ? 'bg-amber-100 text-amber-900 border border-amber-300 ring-1 ring-amber-400'
-                              : isOverBudget
-                              ? 'bg-slate-50 text-slate-400 border border-slate-200'
-                              : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                          }`}
+                                ? 'bg-amber-100 text-amber-900 border border-amber-300 ring-1 ring-amber-400'
+                                : isOverBudget
+                                  ? 'bg-slate-50 text-slate-400 border border-slate-200'
+                                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                            }`}
                         >
                           ₹{amt} {isExactBudget ? '★' : ''}
                         </button>
@@ -5049,13 +5064,12 @@ Thank you for choosing Raj Biosis!`;
                         return (
                           <div
                             key={perk.id}
-                            className={`p-3 rounded-xl border transition flex flex-col justify-between space-y-2 relative overflow-hidden ${
-                              isExactMatch
+                            className={`p-3 rounded-xl border transition flex flex-col justify-between space-y-2 relative overflow-hidden ${isExactMatch
                                 ? 'bg-amber-50/70 border-amber-400 shadow-2xs ring-1 ring-amber-400/50'
                                 : fitsInBudget
-                                ? 'bg-slate-50/60 hover:bg-slate-50 border-slate-200 hover:border-slate-300'
-                                : 'bg-slate-50/30 border-slate-200/70 opacity-50'
-                            }`}
+                                  ? 'bg-slate-50/60 hover:bg-slate-50 border-slate-200 hover:border-slate-300'
+                                  : 'bg-slate-50/30 border-slate-200/70 opacity-50'
+                              }`}
                           >
                             {/* Top Badge for Exact Match */}
                             {isExactMatch && (
@@ -5069,11 +5083,10 @@ Thank you for choosing Raj Biosis!`;
                                 <strong className="text-xs font-bold text-slate-900 leading-snug line-clamp-2">
                                   {perk.title}
                                 </strong>
-                                <span className={`font-mono text-xs font-black px-2 py-0.5 rounded-md shrink-0 ${
-                                  isExactMatch
+                                <span className={`font-mono text-xs font-black px-2 py-0.5 rounded-md shrink-0 ${isExactMatch
                                     ? 'bg-amber-200 text-amber-950 border border-amber-300'
                                     : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                                }`}>
+                                  }`}>
                                   ₹{perk.price}
                                 </span>
                               </div>
@@ -5092,13 +5105,12 @@ Thank you for choosing Raj Biosis!`;
                                 type="button"
                                 disabled={isOverBudget}
                                 onClick={() => handleAddComplimentaryProduct(perk.title, perk.price, perk.desc)}
-                                className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition flex items-center gap-1 ${
-                                  isOverBudget
+                                className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition flex items-center gap-1 ${isOverBudget
                                     ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
                                     : isExactMatch
-                                    ? 'bg-amber-600 hover:bg-amber-700 active:scale-95 text-white shadow-2xs cursor-pointer'
-                                    : 'bg-slate-900 hover:bg-slate-800 active:scale-95 text-white cursor-pointer'
-                                }`}
+                                      ? 'bg-amber-600 hover:bg-amber-700 active:scale-95 text-white shadow-2xs cursor-pointer'
+                                      : 'bg-slate-900 hover:bg-slate-800 active:scale-95 text-white cursor-pointer'
+                                  }`}
                               >
                                 <span>{isOverBudget ? 'Exceeds Allowance' : '+ Add'}</span>
                                 {!isOverBudget && <span>₹{perk.price}</span>}
@@ -5173,11 +5185,10 @@ Thank you for choosing Raj Biosis!`;
                         return (
                           <div
                             key={item.id || idx}
-                            className={`p-2.5 rounded-xl border transition space-y-1 ${
-                              isComp
+                            className={`p-2.5 rounded-xl border transition space-y-1 ${isComp
                                 ? 'bg-amber-50/70 border-amber-300 shadow-2xs'
                                 : 'bg-slate-50/70 border-slate-200'
-                            }`}
+                              }`}
                           >
                             <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0 flex-1">
@@ -6972,7 +6983,7 @@ Thank you for choosing Raj Biosis!`;
         return (
           <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
             <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-4 sm:p-5 space-y-3.5 text-slate-800 animate-in fade-in zoom-in-95">
-              
+
               {/* Modal Header */}
               <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
                 <div className="flex items-center gap-2.5">

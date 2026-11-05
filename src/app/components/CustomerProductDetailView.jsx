@@ -246,7 +246,7 @@ export default function CustomerProductDetailView({
             id: lead.id,
             refNo: refNo,
             date: lead.date || (lead.createdAt ? new Date(lead.createdAt).toLocaleDateString('en-IN') : 'Recent'),
-            customerName: customer.hospitalName || lead.hospital || 'Healthcare Institution',
+            customerName: customer.hospitalName || lead.hospital || customer.fullName || lead.doctorName || 'Customer',
             customerAddress1: `${customer.district || lead.city || 'Jaipur'}, ${customer.state || 'Rajasthan'}`,
             customerAddress2: `Contact: +91 ${customer.phone || lead.phone || ''}`,
             subjectLetter: `Quotation purchase of ${title}`,
@@ -811,7 +811,7 @@ export default function CustomerProductDetailView({
                     </span>
                   </div>
                   <p className="text-xs text-slate-500">
-                    {selectedProductForQuote.productName} • {customer.hospitalName || 'Healthcare Institution'}
+                    {selectedProductForQuote.productName}{customer.hospitalName ? ` • ${customer.hospitalName}` : ''}
                   </p>
                 </div>
               </div>

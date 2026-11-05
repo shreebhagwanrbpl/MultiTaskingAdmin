@@ -39,6 +39,23 @@ function writeLocalLeads(list) {
   return true;
 }
 
+export function cleanLeadHospital(hosp) {
+  if (!hosp || typeof hosp !== 'string') return '';
+  const trimmed = hosp.trim();
+  const lower = trimmed.toLowerCase();
+  if (
+    lower.includes('healthcare institution') ||
+    lower.includes('health institute') ||
+    lower.includes('healthcare facility') ||
+    lower.includes('customer hospital') ||
+    lower === 'general hospital' ||
+    lower === 'clinic / hospital'
+  ) {
+    return '';
+  }
+  return trimmed;
+}
+
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
@@ -70,6 +87,13 @@ export async function GET() {
     });
 
     const enrichedLeads = (leads || []).map(lead => {
+      const cleanH = cleanLeadHospital(lead.hospital || lead.hospitalName || lead.rawLeadData?.hospitalName);
+      lead.hospital = cleanH;
+      lead.hospitalName = cleanH;
+      if (lead.rawLeadData) {
+        lead.rawLeadData.hospitalName = cleanH;
+      }
+
       const phoneClean = (lead.phone || lead.customerPhone || lead.rawLeadData?.customerPhone || lead.rawLeadData?.phone || '').replace(/\D/g, '').slice(-10);
       const emailClean = (lead.email || lead.customerEmail || lead.rawLeadData?.customerEmail || '').trim().toLowerCase();
       const matched = customerByPhone.get(phoneClean) || customerByEmail.get(emailClean);
@@ -199,6 +223,13 @@ export async function GET() {
     });
 
     const enrichedMemLeads = (localLeads || []).map(lead => {
+      const cleanH = cleanLeadHospital(lead.hospital || lead.hospitalName || lead.rawLeadData?.hospitalName);
+      lead.hospital = cleanH;
+      lead.hospitalName = cleanH;
+      if (lead.rawLeadData) {
+        lead.rawLeadData.hospitalName = cleanH;
+      }
+
       const phoneClean = (lead.phone || lead.customerPhone || lead.rawLeadData?.customerPhone || lead.rawLeadData?.phone || '').replace(/\D/g, '').slice(-10);
       const emailClean = (lead.email || lead.customerEmail || lead.rawLeadData?.customerEmail || '').trim().toLowerCase();
       const matched = customerByPhone.get(phoneClean) || customerByEmail.get(emailClean);
@@ -316,8 +347,16 @@ export async function POST(request) {
     const formattedTime = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
     const formattedDateTime = `${formattedDate}, ${formattedTime}`;
 
+    const cleanHosp = cleanLeadHospital(body.hospital || body.hospitalName || body.rawLeadData?.hospitalName);
+
     const newLead = {
       ...body,
+      hospital: cleanHosp,
+      hospitalName: cleanHosp,
+      rawLeadData: body.rawLeadData ? {
+        ...body.rawLeadData,
+        hospitalName: cleanHosp
+      } : body.rawLeadData,
       id: leadId,
       date: body.date && body.date !== 'Just now' ? body.date : formattedDate,
       time: body.time || formattedTime,

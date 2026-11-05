@@ -1,6 +1,24 @@
 /**
- * Lead Utility Functions for Deterministic, Stable Chronological Ordering
+ * Lead Utility Functions for Deterministic, Stable Chronological Ordering & Sanitization
  */
+
+export function cleanLeadHospital(hosp) {
+  if (!hosp || typeof hosp !== 'string') return '';
+  const trimmed = hosp.trim();
+  const lower = trimmed.toLowerCase();
+  if (
+    lower.includes('healthcare institution') ||
+    lower.includes('health institute') ||
+    lower.includes('healthcare facility') ||
+    lower.includes('customer hospital') ||
+    lower === 'general hospital' ||
+    lower === 'clinic / hospital' ||
+    lower === 'hospital'
+  ) {
+    return '';
+  }
+  return trimmed;
+}
 
 export function safeParseDate(str) {
   if (!str) return 0;

@@ -64,7 +64,8 @@
     "time": "03:11 pm",
     "updatedAt": "2026-11-05T09:41:22.583Z",
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q83905NOV26"
+    "quotationRef": "RBPL/Q83905NOV26",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6aec4e6ddd7d7f4a660f9603",
@@ -131,7 +132,8 @@
     "time": "03:07 pm",
     "updatedAt": "2026-11-05T09:38:01.939Z",
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q57005NOV26"
+    "quotationRef": "RBPL/Q57005NOV26",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6aec3dafdd7d7f4a660f9538",
@@ -203,7 +205,8 @@
     "approvedBy": "shree1@gmail.com",
     "estimatedValue": 889500,
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q52805NOV26"
+    "quotationRef": "RBPL/Q52805NOV26",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6aec31c1dd7d7f4a660f9182",
@@ -275,7 +278,8 @@
     "approvedBy": "shree1@gmail.com",
     "estimatedValue": 889750,
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q52805NOV26"
+    "quotationRef": "RBPL/Q52805NOV26",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6aec2c49dd7d7f4a660f9127",
@@ -347,7 +351,8 @@
     "approvedBy": "shree1@gmail.com",
     "estimatedValue": 889500,
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q52805NOV26"
+    "quotationRef": "RBPL/Q52805NOV26",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6aec27cfdd7d7f4a660f90f2",
@@ -419,7 +424,8 @@
     "approvedBy": "shree1@gmail.com",
     "estimatedValue": 1249500,
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q56105NOV26"
+    "quotationRef": "RBPL/Q56105NOV26",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6aec2320dd7d7f4a660f9097",
@@ -489,7 +495,8 @@
     "approvedBy": "shree1@gmail.com",
     "estimatedValue": 1539500,
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q56005NOV26"
+    "quotationRef": "RBPL/Q56005NOV26",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6aec228bdd7d7f4a660f8d56",
@@ -556,7 +563,8 @@
     "time": "12:00 pm",
     "updatedAt": "2026-11-05T06:30:45.656Z",
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q11405NOV26"
+    "quotationRef": "RBPL/Q11405NOV26",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6aec1e3fdd7d7f4a660f8d25",
@@ -623,7 +631,8 @@
     "time": "11:42 am",
     "updatedAt": "2026-11-05T06:27:33.972Z",
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q51105NOV26"
+    "quotationRef": "RBPL/Q51105NOV26",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6aec1e2ddd7d7f4a660f8d24",
@@ -690,7 +699,8 @@
     "time": "11:41 am",
     "updatedAt": "2026-11-05T06:29:13.391Z",
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q34305NOV26"
+    "quotationRef": "RBPL/Q34305NOV26",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6aec1e1fdd7d7f4a660f8d23",
@@ -757,7 +767,8 @@
     "time": "11:41 am",
     "updatedAt": "2026-11-05T06:12:32.548Z",
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q26105NOV26"
+    "quotationRef": "RBPL/Q26105NOV26",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6aec189fdd7d7f4a660f8cb2",
@@ -824,7 +835,8 @@
     "time": "11:18 am",
     "updatedAt": "2026-11-05T05:48:24.946Z",
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q26105NOV26"
+    "quotationRef": "RBPL/Q26105NOV26",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6aec17e7dd7d7f4a660f8cac",
@@ -891,7 +903,8 @@
     "time": "11:15 am",
     "updatedAt": "2026-11-05T05:45:21.529Z",
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q31605NOV26"
+    "quotationRef": "RBPL/Q31605NOV26",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6aead4e7a23c7c5e68a2b431",
@@ -958,7 +971,8 @@
     "time": "10:58 am",
     "updatedAt": "2026-11-05T05:28:21.207Z",
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q25204NOV26"
+    "quotationRef": "RBPL/Q25204NOV26",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6ae9ad10a23c7c5e68a23da0",
@@ -1025,7 +1039,8 @@
     "time": "10:58 am",
     "updatedAt": "2026-11-05T05:28:06.993Z",
     "isQuotationCreated": true,
-    "quotationRef": "RB-QT-2026-1635"
+    "quotationRef": "RB-QT-2026-1635",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6aeab953a23c7c5e68a2b32c",
@@ -1092,7 +1107,8 @@
     "time": "10:57 am",
     "updatedAt": "2026-11-05T05:27:53.902Z",
     "isQuotationCreated": true,
-    "quotationRef": "RB-QT-2026-8342"
+    "quotationRef": "RB-QT-2026-8342",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6aeace77a23c7c5e68a2b3ff",
@@ -1159,7 +1175,8 @@
     "time": "12:17 pm",
     "updatedAt": "2026-11-04T06:47:38.945Z",
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q85504NOV26"
+    "quotationRef": "RBPL/Q85504NOV26",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6aead39ba23c7c5e68a2b427",
@@ -1226,7 +1243,8 @@
     "time": "12:11 pm",
     "updatedAt": "2026-11-04T06:41:39.193Z",
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q17304NOV26"
+    "quotationRef": "RBPL/Q17304NOV26",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6aeabc91a23c7c5e68a2b362",
@@ -1293,7 +1311,8 @@
     "time": "11:32 am",
     "updatedAt": "2026-11-04T06:02:47.247Z",
     "isQuotationCreated": true,
-    "quotationRef": "RB-QT-2026-1955"
+    "quotationRef": "RB-QT-2026-1955",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6aeac393a23c7c5e68a2b3ab",
@@ -1363,7 +1382,8 @@
     "approvedBy": "shree1@gmail.com",
     "estimatedValue": 539000,
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q85504NOV26"
+    "quotationRef": "RBPL/Q85504NOV26",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6ae98086a23c7c5e68a235cf",
@@ -1433,7 +1453,8 @@
     "approvedBy": "rajbiosis01@gmail.com",
     "estimatedValue": 480000,
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q79903NOV26"
+    "quotationRef": "RBPL/Q79903NOV26",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6ae9ad18a23c7c5e68a23da3",
@@ -1500,7 +1521,8 @@
     "time": "11:01 am",
     "updatedAt": "2026-11-04T05:31:17.228Z",
     "isQuotationCreated": true,
-    "quotationRef": "RB-QT-2026-1635"
+    "quotationRef": "RB-QT-2026-1635",
+    "hospitalName": "Mulchand Medicals"
   },
   {
     "_id": "6ae981e0a23c7c5e68a235e1",
@@ -1567,7 +1589,8 @@
     "approvedBy": "rajbiosis01@gmail.com",
     "estimatedValue": 1538000,
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q71803NOV26"
+    "quotationRef": "RBPL/Q71803NOV26",
+    "hospitalName": "Shree Medical"
   },
   {
     "_id": "6ae5d24aa23c7c5e68a1792c",
@@ -1634,7 +1657,8 @@
     "approvedBy": "admin@rajbiosis.com",
     "estimatedValue": 860000,
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q36103NOV26"
+    "quotationRef": "RBPL/Q36103NOV26",
+    "hospitalName": "ShreeNath Hospital"
   },
   {
     "_id": "6ae5c9c4a23c7c5e68a17695",
@@ -1698,6 +1722,7 @@
     "time": "04:29 pm",
     "updatedAt": "2026-10-31T11:07:54.076Z",
     "isQuotationCreated": true,
-    "quotationRef": "RBPL/Q35531OCT26"
+    "quotationRef": "RBPL/Q35531OCT26",
+    "hospitalName": "Apex Hospital"
   }
 ]
