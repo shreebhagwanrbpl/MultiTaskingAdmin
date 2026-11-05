@@ -2110,7 +2110,7 @@ export default function AdminDashboardPage({ searchParams }) {
                   </span>
                   <span className="text-xs text-slate-400">•</span>
                   <span className="text-xs font-semibold text-slate-800">
-                    {newLeadAlerts[0].hospital || newLeadAlerts[0].hospitalName || 'Healthcare Facility'}
+                    {newLeadAlerts[0].hospital || newLeadAlerts[0].hospitalName || newLeadAlerts[0].doctorName || 'Customer'}
                   </span>
                   <span className="text-[11px] font-mono bg-white px-2 py-0.5 rounded-md border border-rose-200 text-rose-800 font-bold">
                     {newLeadAlerts[0].equipment || newLeadAlerts[0].productName || 'Biomedical Equipment'}
@@ -2931,7 +2931,7 @@ export default function AdminDashboardPage({ searchParams }) {
                 <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
                   <div className="flex items-center justify-between font-medium">
                     <span className="text-slate-500">Hospital / Institution:</span>
-                    <strong className="text-slate-900 font-bold">{negotiationModalLead.hospital || negotiationModalLead.hospitalName || 'Healthcare Facility'}</strong>
+                    <strong className="text-slate-900 font-bold">{negotiationModalLead.hospital || negotiationModalLead.hospitalName || '— (Direct Customer)'}</strong>
                   </div>
                   <div className="flex items-center justify-between font-medium">
                     <span className="text-slate-500">Procurement Contact:</span>
@@ -3174,7 +3174,7 @@ export default function AdminDashboardPage({ searchParams }) {
                       <div className="min-w-0 pr-2">
                         <span className="font-mono font-bold text-slate-800 block text-[11px]">{l.id}</span>
                         <span className="text-slate-600 font-semibold truncate block text-[11px]">
-                          {l.hospital || l.hospitalName || 'Healthcare Facility'} — {l.doctorName || l.contact || 'Doctor'}
+                          {l.hospital || l.hospitalName ? `${l.hospital || l.hospitalName} — ${l.doctorName || l.contact || 'Doctor'}` : (l.doctorName || l.contact || 'Customer')}
                         </span>
                         <span className="text-slate-400 text-[10px] block truncate">
                           {l.equipment || l.productName || 'Equipment'}

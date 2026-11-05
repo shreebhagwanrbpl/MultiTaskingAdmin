@@ -500,7 +500,7 @@ export default function WebsiteDomainPreviewPage(props) {
     }
 
     const docName = (rfqDoctorName || '').trim() || 'Dr. Procurement Lead';
-    const hospName = (rfqHospital || '').trim() || 'Apollo Super Speciality Hospital';
+    const hospName = (rfqHospital || '').trim() || '';
     const cityName = (rfqCity || site?.city || '').trim() || 'Jaipur, Rajasthan';
     const prodTitle = rfqProduct?.name || 'Institutional Medical Devices & Equipment Batch';
     const prodSku = rfqProduct?.sku || 'BATCH-INSTITUTIONAL';
