@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Archive,
@@ -30,10 +29,8 @@ export default function DeletedRecordsManager({ user = null, onRecordRestored = 
   const [records, setRecords] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all'); // 'all', 'lead', 'quotation'
-  const [actorFilter, setActorFilter] = useState('all'); // 'all', 'admin', 'employee'
-
-  // Modal / Action states
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [actorFilter, setActorFilter] = useState('all');
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [restoringId, setRestoringId] = useState(null);
   const [purgingId, setPurgingId] = useState(null);
@@ -159,7 +156,7 @@ export default function DeletedRecordsManager({ user = null, onRecordRestored = 
       // Search Query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
-        const text = `
+        const text = `  
           ${r.originalId || ''} 
           ${r.title || ''} 
           ${r.hospital || ''} 

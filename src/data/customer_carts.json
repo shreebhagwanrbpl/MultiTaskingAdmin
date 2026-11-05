@@ -241,5 +241,138 @@
       "note": "10% Executive Concession approved for Manipal Hospital Procurement + Free 1-Yr AMC",
       "validTill": "2026-11-15"
     }
+  },
+  {
+    "_id": "6ae87a72a23c7c5e68a1ed10",
+    "cart": [
+      {
+        "productId": "prod-mon-12x",
+        "name": "CardioPulse Multi-Para Patient Monitor 12.1\"",
+        "sku": "RAJ-ICU-604",
+        "brand": "Raj Biosis OEM",
+        "category": "icu-critical-care",
+        "price": 68500,
+        "mrp": 89050,
+        "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80",
+        "quantity": 3,
+        "addedAt": "2026-11-02T11:57:02.263Z",
+        "specs": "Institutional Certified Equipment",
+        "sourceSite": "rajbiosis.com"
+      }
+    ],
+    "customerId": "cust-9829099887",
+    "customerName": "Dr. Vikas Goyal",
+    "district": "Jodhpur",
+    "email": "dr.vikas@goyalhospital.com",
+    "hospitalName": "Goyal Hospital & Research Center",
+    "lastActive": "Just now",
+    "phone": "9829099887",
+    "siteDomain": "rajbiosis.com",
+    "updatedAt": "2026-11-02T11:57:02.263Z",
+    "watchlist": [
+      {
+        "productId": "prod-vent-x9",
+        "name": "RajBiosis-Vent Pro-X9 Turbine Mechanical Ventilator",
+        "sku": "RAJ-ICU-8801",
+        "brand": "Raj Biosis OEM",
+        "category": "icu-critical-care",
+        "price": 485000,
+        "mrp": 630500,
+        "image": "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80",
+        "quantity": 1,
+        "addedAt": "2026-11-02T11:56:33.898Z",
+        "specs": "Institutional Certified Equipment",
+        "sourceSite": "rajbiosis.com",
+        "stockStatus": "In Stock"
+      }
+    ]
+  },
+  {
+    "_id": "6ae87bc2a23c7c5e68a1ed38",
+    "cart": [
+      {
+        "productId": "prod-defi-360",
+        "name": "DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+        "sku": "RAJ-ICU-360B",
+        "brand": "Raj Biosis OEM",
+        "category": "icu-critical-care",
+        "price": 195000,
+        "mrp": 253500,
+        "image": "https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&w=800&q=80",
+        "quantity": 1,
+        "addedAt": "2026-11-02T12:02:14.023Z",
+        "specs": "Institutional Certified Equipment",
+        "sourceSite": "rajbiosis.com"
+      }
+    ],
+    "customerId": "cust-8547963210",
+    "customerName": "Raj Biosis Pvt Ltd",
+    "district": "Jaipur",
+    "email": "rajbiosis12@gmail.com",
+    "hospitalName": "Shree Medical",
+    "lastActive": "Just now",
+    "phone": "8547963210",
+    "siteDomain": "rajbiosis.com",
+    "updatedAt": "2026-11-02T12:02:59.570Z",
+    "watchlist": [
+      {
+        "productId": "prod-defi-360",
+        "name": "DefiQuick Biphasic Defibrillator with Monitor & Pacer",
+        "sku": "RAJ-ICU-360B",
+        "brand": "Raj Biosis OEM",
+        "category": "icu-critical-care",
+        "price": 195000,
+        "mrp": 253500,
+        "image": "https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&w=800&q=80",
+        "quantity": 1,
+        "addedAt": "2026-11-02T12:02:59.570Z",
+        "specs": "Institutional Certified Equipment",
+        "sourceSite": "rajbiosis.com",
+        "stockStatus": "In Stock"
+      },
+      {
+        "productId": "prod-syr-pump",
+        "name": "PrecisionFlow Dual Syringe Infusion Pump",
+        "sku": "RAJ-ICU-SP20",
+        "brand": "Raj Biosis OEM",
+        "category": "icu-critical-care",
+        "price": 34500,
+        "mrp": 44850,
+        "image": "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=800&q=80",
+        "quantity": 1,
+        "addedAt": "2026-11-02T12:02:10.743Z",
+        "specs": "Institutional Certified Equipment",
+        "sourceSite": "rajbiosis.com",
+        "stockStatus": "In Stock"
+      }
+    ]
+  },
+  {
+    "_id": "6ae9a38aa23c7c5e68a23d5c",
+    "cart": [],
+    "customerId": "cust-9829012345",
+    "customerName": "Dr. Rajesh Sharma",
+    "district": "Jaipur",
+    "email": "doctor@hospital.org",
+    "hospitalName": "Apex Super Speciality Hospital",
+    "lastActive": "Just now",
+    "phone": "98290 12345",
+    "siteDomain": "rajbiosis.com",
+    "updatedAt": "2026-11-03T09:04:11.183Z",
+    "watchlist": []
+  },
+  {
+    "_id": "6aeac1aea23c7c5e68a2b397",
+    "cart": [],
+    "customerId": "cust-8547965896",
+    "customerName": "Mulchand Tripathi",
+    "district": "Jaipur",
+    "email": "mulchand@gmail.com",
+    "hospitalName": "Mulchand Medicals",
+    "lastActive": "Just now",
+    "phone": "8547965896",
+    "siteDomain": "rajbiosis.com",
+    "updatedAt": "2026-11-04T05:25:02.783Z",
+    "watchlist": []
   }
 ]
