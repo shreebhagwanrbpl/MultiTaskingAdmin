@@ -1453,7 +1453,7 @@ export default function WebQuotationManager({
     const cleanHospitalName = cleanLeadHospital(rawHosp);
 
     const docName = (matchedCustomer?.fullName || lead.doctorName || raw.customerName || lead.customerName || '').trim();
-    const finalCustomerName = cleanHospitalName || docName || 'Customer';
+    const finalCustomerName = (cleanHospitalName && cleanHospitalName !== 'NA') ? cleanHospitalName : (docName || 'NA');
     setCustomerName(finalCustomerName);
 
     const doctorPart = docName ? `Attn: ${docName}` : 'Attn: Procurement Officer';
@@ -2808,12 +2808,11 @@ Thank you for choosing Raj Biosis!`;
                   const matchedCustomer = getMatchedCustomer(lead);
                   const complete = isProfileComplete(lead);
                   const rawHosp = (matchedCustomer?.hospitalName || lead.hospital || lead.hospitalName || lead.rawLeadData?.hospitalName || '').trim();
-                  const cleanHospital = cleanLeadHospital(rawHosp);
-                  const displayHospital = cleanHospital || matchedCustomer?.fullName || lead.doctorName || lead.customerName || 'Registered Customer';
-                  const displayContact = matchedCustomer?.fullName || lead.doctorName || 'Procurement Officer';
-                  const displayPhone = matchedCustomer?.phone || lead.phone;
-                  const displayEmail = matchedCustomer?.email || lead.email;
-                  const displayLocation = matchedCustomer?.district || matchedCustomer?.address || lead.city || 'India';
+                  const displayHospital = cleanLeadHospital(rawHosp);
+                  const displayContact = matchedCustomer?.fullName || lead.doctorName || lead.customerName || 'NA';
+                  const displayPhone = matchedCustomer?.phone || lead.phone || 'NA';
+                  const displayEmail = matchedCustomer?.email || lead.email || 'NA';
+                  const displayLocation = matchedCustomer?.district || matchedCustomer?.address || lead.city || 'NA';
 
                   return (
                     <div
@@ -3271,12 +3270,11 @@ Thank you for choosing Raj Biosis!`;
               pendingWebLeads.map((lead, idx) => {
                 const matchedCustomer = getMatchedCustomer(lead);
                 const rawHosp = (matchedCustomer?.hospitalName || lead.hospital || lead.hospitalName || lead.rawLeadData?.hospitalName || '').trim();
-                const cleanHospital = cleanLeadHospital(rawHosp);
-                const displayHospital = cleanHospital || matchedCustomer?.fullName || lead.doctorName || lead.customerName || 'Registered Customer';
-                const displayContact = matchedCustomer?.fullName || lead.doctorName || 'Procurement Officer';
-                const displayPhone = matchedCustomer?.phone || lead.phone;
-                const displayEmail = matchedCustomer?.email || lead.email;
-                const displayLocation = matchedCustomer?.district || matchedCustomer?.address || lead.city || 'India';
+                const displayHospital = cleanLeadHospital(rawHosp);
+                const displayContact = matchedCustomer?.fullName || lead.doctorName || lead.customerName || 'NA';
+                const displayPhone = matchedCustomer?.phone || lead.phone || 'NA';
+                const displayEmail = matchedCustomer?.email || lead.email || 'NA';
+                const displayLocation = matchedCustomer?.district || matchedCustomer?.address || lead.city || 'NA';
                 const displayEquipment = lead.equipment || lead.productName || 'Medical Equipment';
                 const displayAmount = lead.quoteAmount ? String(lead.quoteAmount).replace(/^₹\s*/, '') : (lead.price ? Number(lead.price).toLocaleString('en-IN') : '1,50,000');
 

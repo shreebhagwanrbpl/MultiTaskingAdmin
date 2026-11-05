@@ -65,7 +65,7 @@
     "updatedAt": "2026-11-05T09:41:22.583Z",
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q83905NOV26",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6aec4e6ddd7d7f4a660f9603",
@@ -133,7 +133,7 @@
     "updatedAt": "2026-11-05T09:38:01.939Z",
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q57005NOV26",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6aec3dafdd7d7f4a660f9538",
@@ -206,7 +206,7 @@
     "estimatedValue": 889500,
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q52805NOV26",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6aec31c1dd7d7f4a660f9182",
@@ -279,7 +279,7 @@
     "estimatedValue": 889750,
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q52805NOV26",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6aec2c49dd7d7f4a660f9127",
@@ -352,7 +352,7 @@
     "estimatedValue": 889500,
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q52805NOV26",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6aec27cfdd7d7f4a660f90f2",
@@ -425,7 +425,7 @@
     "estimatedValue": 1249500,
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q56105NOV26",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6aec2320dd7d7f4a660f9097",
@@ -496,7 +496,7 @@
     "estimatedValue": 1539500,
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q56005NOV26",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6aec228bdd7d7f4a660f8d56",
@@ -564,7 +564,7 @@
     "updatedAt": "2026-11-05T06:30:45.656Z",
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q11405NOV26",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6aec1e3fdd7d7f4a660f8d25",
@@ -632,7 +632,7 @@
     "updatedAt": "2026-11-05T06:27:33.972Z",
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q51105NOV26",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6aec1e2ddd7d7f4a660f8d24",
@@ -700,7 +700,7 @@
     "updatedAt": "2026-11-05T06:29:13.391Z",
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q34305NOV26",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6aec1e1fdd7d7f4a660f8d23",
@@ -768,7 +768,7 @@
     "updatedAt": "2026-11-05T06:12:32.548Z",
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q26105NOV26",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6aec189fdd7d7f4a660f8cb2",
@@ -836,7 +836,7 @@
     "updatedAt": "2026-11-05T05:48:24.946Z",
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q26105NOV26",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6aec17e7dd7d7f4a660f8cac",
@@ -904,7 +904,7 @@
     "updatedAt": "2026-11-05T05:45:21.529Z",
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q31605NOV26",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6aead4e7a23c7c5e68a2b431",
@@ -972,7 +972,7 @@
     "updatedAt": "2026-11-05T05:28:21.207Z",
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q25204NOV26",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6ae9ad10a23c7c5e68a23da0",
@@ -1040,7 +1040,7 @@
     "updatedAt": "2026-11-05T05:28:06.993Z",
     "isQuotationCreated": true,
     "quotationRef": "RB-QT-2026-1635",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6aeab953a23c7c5e68a2b32c",
@@ -1108,7 +1108,7 @@
     "updatedAt": "2026-11-05T05:27:53.902Z",
     "isQuotationCreated": true,
     "quotationRef": "RB-QT-2026-8342",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6aeace77a23c7c5e68a2b3ff",
@@ -1176,7 +1176,7 @@
     "updatedAt": "2026-11-04T06:47:38.945Z",
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q85504NOV26",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6aead39ba23c7c5e68a2b427",
@@ -1244,7 +1244,7 @@
     "updatedAt": "2026-11-04T06:41:39.193Z",
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q17304NOV26",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6aeabc91a23c7c5e68a2b362",
@@ -1312,7 +1312,7 @@
     "updatedAt": "2026-11-04T06:02:47.247Z",
     "isQuotationCreated": true,
     "quotationRef": "RB-QT-2026-1955",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6aeac393a23c7c5e68a2b3ab",
@@ -1383,7 +1383,7 @@
     "estimatedValue": 539000,
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q85504NOV26",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6ae98086a23c7c5e68a235cf",
@@ -1454,7 +1454,7 @@
     "estimatedValue": 480000,
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q79903NOV26",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6ae9ad18a23c7c5e68a23da3",
@@ -1522,7 +1522,7 @@
     "updatedAt": "2026-11-04T05:31:17.228Z",
     "isQuotationCreated": true,
     "quotationRef": "RB-QT-2026-1635",
-    "hospitalName": "Mulchand Medicals"
+    "hospitalName": "NA"
   },
   {
     "_id": "6ae981e0a23c7c5e68a235e1",
@@ -1541,7 +1541,7 @@
     "email": "rajbiosis12@gmail.com",
     "equipment": "ApexMobile 9-Inch High Frequency Surgical C-Arm System",
     "expectedPrice": 1538000,
-    "hospital": "Shree Medical",
+    "hospital": "NA",
     "isNegotiable": true,
     "isPriceNegotiated": true,
     "isProfileComplete": false,
@@ -1554,7 +1554,7 @@
       "quoteNumber": "RB-QT-2026-8063",
       "customerName": "Raj Biosis Pvt Ltd",
       "designation": "Procurement In-charge",
-      "hospitalName": "Shree Medical",
+      "hospitalName": "NA",
       "customerPhone": "+91 8547963210",
       "customerEmail": "rajbiosis12@gmail.com",
       "district": "Jaipur",
@@ -1590,7 +1590,7 @@
     "estimatedValue": 1538000,
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q71803NOV26",
-    "hospitalName": "Shree Medical"
+    "hospitalName": "NA"
   },
   {
     "_id": "6ae5d24aa23c7c5e68a1792c",
@@ -1609,7 +1609,7 @@
     "email": "parkash@gmail.com",
     "equipment": "SonoVision Ultra-4D Color Doppler Ultrasound Scanner",
     "expectedPrice": 860000,
-    "hospital": "ShreeNath Hospital",
+    "hospital": "NA",
     "isNegotiable": true,
     "isPriceNegotiated": true,
     "isProfileComplete": false,
@@ -1622,7 +1622,7 @@
       "quoteNumber": "RB-QT-2026-9043",
       "customerName": "Parkash Singh",
       "designation": "Procurement In-charge",
-      "hospitalName": "ShreeNath Hospital",
+      "hospitalName": "NA",
       "customerPhone": "+91 8745963215",
       "customerEmail": "parkash@gmail.com",
       "district": "Karnataka",
@@ -1658,7 +1658,7 @@
     "estimatedValue": 860000,
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q36103NOV26",
-    "hospitalName": "ShreeNath Hospital"
+    "hospitalName": "NA"
   },
   {
     "_id": "6ae5c9c4a23c7c5e68a17695",
@@ -1677,7 +1677,7 @@
     "email": "parkash@gmail.com",
     "equipment": "CardioPulse Multi-Para Patient Monitor 12.1\"",
     "expectedPrice": null,
-    "hospital": "Apex Hospital",
+    "hospital": "NA",
     "isNegotiable": false,
     "isPriceNegotiated": false,
     "isProfileComplete": false,
@@ -1690,7 +1690,7 @@
       "quoteNumber": "RB-QT-2026-5471",
       "customerName": "Parkash Singh",
       "designation": "Procurement In-charge",
-      "hospitalName": "Apex Hospital",
+      "hospitalName": "NA",
       "customerPhone": "8745963215",
       "customerEmail": "parkash@gmail.com",
       "district": "Karnataka",
@@ -1723,6 +1723,6 @@
     "updatedAt": "2026-10-31T11:07:54.076Z",
     "isQuotationCreated": true,
     "quotationRef": "RBPL/Q35531OCT26",
-    "hospitalName": "Apex Hospital"
+    "hospitalName": "NA"
   }
 ]

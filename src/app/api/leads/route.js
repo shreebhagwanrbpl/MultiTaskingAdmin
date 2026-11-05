@@ -40,18 +40,27 @@ function writeLocalLeads(list) {
 }
 
 export function cleanLeadHospital(hosp) {
-  if (!hosp || typeof hosp !== 'string') return '';
+  if (!hosp || typeof hosp !== 'string') return 'NA';
   const trimmed = hosp.trim();
   const lower = trimmed.toLowerCase();
   if (
+    !trimmed ||
+    trimmed === 'NA' ||
+    trimmed === 'N/A' ||
+    trimmed === 'undefined' ||
+    trimmed === 'null' ||
     lower.includes('healthcare institution') ||
     lower.includes('health institute') ||
     lower.includes('healthcare facility') ||
+    lower.includes('healthcare center') ||
     lower.includes('customer hospital') ||
+    lower === 'hospital / healthcare center' ||
+    lower === 'hospital / healthcare institution' ||
+    lower === 'hospital' ||
     lower === 'general hospital' ||
     lower === 'clinic / hospital'
   ) {
-    return '';
+    return 'NA';
   }
   return trimmed;
 }
