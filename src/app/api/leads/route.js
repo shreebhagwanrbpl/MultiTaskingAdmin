@@ -30,12 +30,9 @@ function readLocalLeads() {
 }
 
 function writeLocalLeads(list) {
+  // Purely in-memory cache, DO NOT write to src/data/leads.json on disk.
+  // MongoDB is the sole persistent store.
   global._biomedical_leads = list;
-  try {
-    fs.writeFileSync(LEADS_FILE, JSON.stringify(list, null, 2), 'utf-8');
-  } catch (e) {
-    console.warn('Failed to write local leads file:', e.message);
-  }
   return true;
 }
 
@@ -472,21 +469,15 @@ async function archiveRecords(items, deletedBy, itemType = 'lead') {
     recordData: item
   }));
 
-  // 1. Local JSON write
+  // 1. In-memory archive update (MongoDB is the sole persistent store, do NOT write to disk)
   try {
-    let existing = [];
-    if (fs.existsSync(DELETED_RECORDS_FILE)) {
-      try {
-        existing = JSON.parse(fs.readFileSync(DELETED_RECORDS_FILE, 'utf-8'));
-      } catch (e) {}
-    }
-    const combined = [...recordsToArchive, ...(Array.isArray(existing) ? existing : [])];
-    const dir = path.dirname(DELETED_RECORDS_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(DELETED_RECORDS_FILE, JSON.stringify(combined, null, 2), 'utf-8');
+    const existing = (global._biomedical_deleted_records && Array.isArray(global._biomedical_deleted_records))
+      ? global._biomedical_deleted_records
+      : [];
+    const combined = [...recordsToArchive, ...existing];
     global._biomedical_deleted_records = combined;
   } catch (err) {
-    console.warn('Local archive save error:', err);
+    console.warn('Memory archive save error:', err);
   }
 
   // 2. MongoDB insert
@@ -626,43 +617,22 @@ export async function DELETE(request) {
       }
     } catch (e) {}
 
-    // 2. Remove from local leads (disk & memory)
+    // 2. Remove from in-memory leads (Do NOT write to src/data/leads.json)
     const filtered = currentList.filter(l => 
       !targetIds.includes(l.id) && 
       (!l._id || !targetIds.includes(String(l._id)))
     );
     writeLocalLeads(filtered);
-    try {
-      if (fs.existsSync(LEADS_FILE)) {
-        fs.writeFileSync(LEADS_FILE, JSON.stringify(filtered, null, 2), 'utf-8');
-      }
-    } catch (e) {}
 
-    // 3. Remove from quotations.json and memory global._biomedical_quotations
-    const QUOTATIONS_FILE = path.join(process.cwd(), 'src', 'data', 'quotations.json');
-    try {
-      if (fs.existsSync(QUOTATIONS_FILE)) {
-        const qContent = fs.readFileSync(QUOTATIONS_FILE, 'utf-8');
-        const qList = JSON.parse(qContent);
-        if (Array.isArray(qList)) {
-          const updatedQList = qList.filter(q => 
-            !targetIds.includes(q.leadId) && 
-            !targetIds.includes(q.id) && 
-            !quotationRefsToDelete.includes(q.refNo) &&
-            !quotationIdsToDelete.includes(q.id)
-          );
-          fs.writeFileSync(QUOTATIONS_FILE, JSON.stringify(updatedQList, null, 2), 'utf-8');
-        }
-      }
-      if (global._biomedical_quotations && Array.isArray(global._biomedical_quotations)) {
-        global._biomedical_quotations = global._biomedical_quotations.filter(q => 
-          !targetIds.includes(q.leadId) && 
-          !targetIds.includes(q.id) && 
-          !quotationRefsToDelete.includes(q.refNo) &&
-          !quotationIdsToDelete.includes(q.id)
-        );
-      }
-    } catch (e) {}
+    // 3. Remove from in-memory quotations (Do NOT write to src/data/quotations.json)
+    if (global._biomedical_quotations && Array.isArray(global._biomedical_quotations)) {
+      global._biomedical_quotations = global._biomedical_quotations.filter(q => 
+        !targetIds.includes(q.leadId) && 
+        !targetIds.includes(q.id) && 
+        !quotationRefsToDelete.includes(q.refNo) &&
+        !quotationIdsToDelete.includes(q.id)
+      );
+    }
 
     // 4. Delete from MongoDB leads collection & quotations collection permanently
     try {
@@ -712,11 +682,20 @@ export async function PUT(request) {
     const { id, _id, ...fieldsToUpdate } = body;
 
     const currentList = readLocalLeads();
-    const foundIdx = currentList.findIndex(l => (id && l.id === id) || (_id && (l._id === _id || String(l._id) === String(_id))));
+    const quoteNum = body.quoteNumber || body.rawLeadData?.quoteNumber;
+    const foundIdx = currentList.findIndex(l => 
+      (id && l.id === id) || 
+      (_id && (l._id === _id || String(l._id) === String(_id))) ||
+      (quoteNum && (l.quoteNumber === quoteNum || l.rawLeadData?.quoteNumber === quoteNum || l.id === quoteNum))
+    );
     if (foundIdx >= 0) {
       currentList[foundIdx] = {
         ...currentList[foundIdx],
         ...fieldsToUpdate,
+        rawLeadData: {
+          ...(currentList[foundIdx].rawLeadData || {}),
+          ...fieldsToUpdate
+        },
         updatedAt: new Date().toISOString()
       };
       writeLocalLeads(currentList);
@@ -725,29 +704,37 @@ export async function PUT(request) {
     try {
       const db = await getDatabase();
       const collection = db.collection('leads');
-      let query = {};
-      if (_id && id) {
+      const orConditions = [];
+      if (_id) {
         try {
           const { ObjectId } = await import('mongodb');
-          query = { $or: [{ _id: new ObjectId(_id) }, { id: id }] };
+          orConditions.push({ _id: new ObjectId(_id) });
         } catch (e) {
-          query = { $or: [{ _id: _id }, { id: id }] };
+          orConditions.push({ _id: _id });
         }
-      } else if (_id) {
-        try {
-          const { ObjectId } = await import('mongodb');
-          query = { _id: new ObjectId(_id) };
-        } catch (e) {
-          query = { _id: _id };
-        }
-      } else if (id) {
-        query = { id };
       }
+      if (id) {
+        orConditions.push({ id });
+        orConditions.push({ 'rawLeadData.id': id });
+        orConditions.push({ 'rawLeadData.quoteNumber': id });
+        orConditions.push({ quoteNumber: id });
+      }
+      if (quoteNum) {
+        orConditions.push({ quoteNumber: quoteNum });
+        orConditions.push({ 'rawLeadData.quoteNumber': quoteNum });
+      }
+      const query = orConditions.length > 0 ? { $or: orConditions } : { id };
+
+      const updatePayload = {
+        ...fieldsToUpdate,
+        ...(fieldsToUpdate.status ? { 'rawLeadData.status': fieldsToUpdate.status } : {}),
+        ...(fieldsToUpdate.quotationRef ? { 'rawLeadData.quotationRef': fieldsToUpdate.quotationRef } : {}),
+        ...(fieldsToUpdate.isQuotationCreated ? { 'rawLeadData.isQuotationCreated': true } : {}),
+        updatedAt: new Date().toISOString()
+      };
+
       await collection.updateOne(query, {
-        $set: {
-          ...fieldsToUpdate,
-          updatedAt: new Date().toISOString()
-        }
+        $set: updatePayload
       });
       return NextResponse.json({
         success: true,

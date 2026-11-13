@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 p-8 font-sans">
+  <div class="max-w-6xl mx-auto space-y-8">
+    <div>
+      <h1 class="text-xl font-black text-slate-900">Comparing 3 Layout Fixes for Complimentary Badge</h1>
+      <p class="text-xs text-slate-500">Goal: Zero UI breakage, 100% straight alignment, no text wrapping.</p>
+    </div>
+
+    <!-- COMPARISON ROW 1: Normal Card vs Option 1 vs Option 2 -->
+    <div class="grid grid-cols-3 gap-5">
+
+      <!-- COLUMN 1: Normal Card (Baseline) -->
+      <div>
+        <div class="text-xs font-bold text-slate-500 mb-2">BASELINE (No Complimentary)</div>
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm space-y-4 relative overflow-hidden flex flex-col justify-between">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500"></div>
+
+          <div class="space-y-3 pt-1">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-[10px] font-mono font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100">
+                    RBPL/Q28012NOV26
+                  </span>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-purple-50 text-purple-700 border border-purple-200">
+                    Rev 1 (Initial)
+                  </span>
+                </div>
+                <div class="flex items-center justify-between gap-2 mt-1.5">
+                  <h4 class="text-sm font-extrabold text-slate-900 truncate">
+                    Shyam Hospital
+                  </h4>
+                </div>
+              </div>
+              <span class="text-[11px] text-slate-400 font-mono shrink-0">12.11.2026</span>
+            </div>
+
+            <div class="bg-slate-50/80 rounded-xl p-3 border border-slate-200/70 space-y-1.5 text-xs">
+              <div class="text-slate-700 font-medium truncate">📦 ElectroSurg Max 400W Vessel Sealer & Bipolar Cautery</div>
+              <div class="text-[11px] text-slate-500">+ 2 more item(s) included</div>
+              <div class="text-[11px] text-slate-500">📍 Attn: Shyam Mulchandani, Mob: 7485965456</div>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-xs text-slate-500 font-medium">Quoted Total:</span>
+              <span class="font-mono font-extrabold text-sm text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/80">₹5,95,000.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLUMN 2: OPTION 1 - Compact Crisp Ribbon + Clean 0px Align on Hospital Name -->
+      <div>
+        <div class="text-xs font-bold text-amber-600 mb-2">OPTION 1: Compact Ribbon (Hospital at 0px align)</div>
+        <div class="bg-white rounded-2xl p-5 border border-amber-300 ring-2 ring-amber-400/20 shadow-md space-y-4 relative overflow-hidden flex flex-col justify-between">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500"></div>
+
+          <!-- Compact Ribbon (86px x 86px) -->
+          <div class="w-[86px] h-[86px] overflow-hidden absolute top-0 left-0 z-20 pointer-events-none">
+            <div
+              class="absolute transform -rotate-45 drop-shadow-md flex items-center justify-center"
+              style="left: -29px; top: 19px; width: 122px; height: 18px; transform-origin: center;"
+            >
+              <svg width="122" height="18" viewBox="0 0 122 18" fill="none" class="absolute inset-0">
+                <defs>
+                  <linearGradient id="opt1-ribbon" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#f59e0b" />
+                    <stop offset="50%" stop-color="#ea580c" />
+                    <stop offset="100%" stop-color="#e11d48" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M 0 2 L 4 0 L 8 2 L 12 0 L 16 2 L 20 0 L 24 2 L 28 0 L 32 2 L 36 0 L 40 2 L 44 0 L 48 2 L 52 0 L 56 2 L 60 0 L 64 2 L 68 0 L 72 2 L 76 0 L 80 2 L 84 0 L 88 2 L 92 0 L 96 2 L 100 0 L 104 2 L 108 0 L 112 2 L 116 0 L 120 2 L 122 0 L 122 16 L 120 18 L 116 16 L 112 18 L 108 16 L 104 18 L 100 16 L 96 18 L 92 16 L 88 18 L 84 16 L 80 18 L 76 16 L 72 18 L 68 16 L 64 18 L 60 16 L 56 18 L 52 16 L 48 18 L 44 16 L 40 18 L 36 16 L 32 18 L 28 16 L 24 18 L 20 16 L 16 18 L 12 16 L 8 18 L 4 16 L 0 18 Z"
+                  fill="url(#opt1-ribbon)"
+                  stroke="#ffffff"
+                  stroke-width="0.5"
+                />
+              </svg>
+              <span class="relative z-10 text-white font-black text-[7px] tracking-wider uppercase drop-shadow-xs select-none">
+                COMPLIMENTARY
+              </span>
+            </div>
+          </div>
+
+          <div class="space-y-3 pt-1">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <!-- Row 1: pl-[26px] gives slight breathing room, badges fit comfortably -->
+                <div class="flex items-center gap-1.5 flex-nowrap pl-[26px]">
+                  <span class="text-[10px] font-mono font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100 shrink-0">
+                    RBPL/Q70006NOV26
+                  </span>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
+                    Rev 1 (Initial)
+                  </span>
+                </div>
+                <!-- Row 2: Shyam Hospital starts at pl-0! 100% aligned with equipment box! -->
+                <div class="flex items-center justify-between gap-2 mt-1.5">
+                  <h4 class="text-sm font-extrabold text-slate-900 truncate">
+                    Shyam Hospital
+                  </h4>
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300 shrink-0">
+                    +₹400 Perk
+                  </span>
+                </div>
+              </div>
+              <span class="text-[11px] text-slate-400 font-mono shrink-0">06.11.2026</span>
+            </div>
+
+            <div class="bg-slate-50/80 rounded-xl p-3 border border-slate-200/70 space-y-1.5 text-xs">
+              <div class="text-slate-700 font-medium truncate">📦 OmniFlex Electric-Hydraulic Universal Operating Table</div>
+              <div class="text-[11px] text-slate-500">+ 3 more item(s) included</div>
+              <div class="text-[11px] text-slate-500">📍 Attn: Shyam Mulchandani, Mob: 7485965456</div>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-xs text-slate-500 font-medium">Quoted Total:</span>
+              <span class="font-mono font-extrabold text-sm text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/80">₹15,75,000.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLUMN 3: OPTION 2 - Header Shift Down (Top-Left Ribbon has its own clear space, 100% straight alignment) -->
+      <div>
+        <div class="text-xs font-bold text-indigo-600 mb-2">OPTION 2: Top Clean Header (Zero indentation on all rows)</div>
+        <div class="bg-white rounded-2xl p-5 border border-amber-300 ring-2 ring-amber-400/20 shadow-md space-y-4 relative overflow-hidden flex flex-col justify-between">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500"></div>
+
+          <!-- Crisp 45° Corner Ribbon -->
+          <div class="w-[96px] h-[96px] overflow-hidden absolute top-0 left-0 z-20 pointer-events-none">
+            <div
+              class="absolute transform -rotate-45 drop-shadow-md flex items-center justify-center"
+              style="left: -32px; top: 22px; width: 136px; height: 20px; transform-origin: center;"
+            >
+              <svg width="136" height="20" viewBox="0 0 136 20" fill="none" class="absolute inset-0">
+                <defs>
+                  <linearGradient id="opt2-ribbon" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#f59e0b" />
+                    <stop offset="50%" stop-color="#ea580c" />
+                    <stop offset="100%" stop-color="#e11d48" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M 0 2 L 4 0 L 8 2 L 12 0 L 16 2 L 20 0 L 24 2 L 28 0 L 32 2 L 36 0 L 40 2 L 44 0 L 48 2 L 52 0 L 56 2 L 60 0 L 64 2 L 68 0 L 72 2 L 76 0 L 80 2 L 84 0 L 88 2 L 92 0 L 96 2 L 100 0 L 104 2 L 108 0 L 112 2 L 116 0 L 120 2 L 124 0 L 128 2 L 132 0 L 136 2 L 136 18 L 132 20 L 128 18 L 124 20 L 120 18 L 116 20 L 112 18 L 108 20 L 104 18 L 100 20 L 96 18 L 92 20 L 88 18 L 84 20 L 80 18 L 76 20 L 72 18 L 68 20 L 64 18 L 60 20 L 56 18 L 52 20 L 48 18 L 44 20 L 40 18 L 36 20 L 32 18 L 28 20 L 24 18 L 20 20 L 16 18 L 12 20 L 8 18 L 4 20 L 0 18 Z"
+                  fill="url(#opt2-ribbon)"
+                  stroke="#ffffff"
+                  stroke-width="0.5"
+                />
+              </svg>
+              <span class="relative z-10 text-white font-black text-[7.5px] tracking-wider uppercase drop-shadow-xs select-none">
+                COMPLIMENTARY
+              </span>
+            </div>
+          </div>
+
+          <!-- Top-right compact status bar -->
+          <div class="space-y-3 pt-1">
+            <div class="flex items-start justify-end gap-2">
+              <span class="text-[10px] font-mono font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100">
+                RBPL/Q70006NOV26
+              </span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-purple-50 text-purple-700 border border-purple-200">
+                Rev 1 (Initial)
+              </span>
+              <span class="text-[11px] text-slate-400 font-mono shrink-0 pt-0.5">06.11.2026</span>
+            </div>
+
+            <!-- Customer Name Row: Starts at 0px, perfectly aligned -->
+            <div class="flex items-center justify-between gap-2 mt-1">
+              <h4 class="text-sm font-extrabold text-slate-900 truncate">
+                Shyam Hospital
+              </h4>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300 shrink-0">
+                +₹400 Perk
+              </span>
+            </div>
+
+            <div class="bg-slate-50/80 rounded-xl p-3 border border-slate-200/70 space-y-1.5 text-xs">
+              <div class="text-slate-700 font-medium truncate">📦 OmniFlex Electric-Hydraulic Universal Operating Table</div>
+              <div class="text-[11px] text-slate-500">+ 3 more item(s) included</div>
+              <div class="text-[11px] text-slate-500">📍 Attn: Shyam Mulchandani, Mob: 7485965456</div>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-xs text-slate-500 font-medium">Quoted Total:</span>
+              <span class="font-mono font-extrabold text-sm text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/80">₹15,75,000.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ROW 2: Testing with Card 5 (Longest revision badge: "Rev 4 (3 edits)") -->
+    <div class="pt-4 border-t border-slate-200">
+      <h3 class="text-sm font-bold text-slate-700 mb-3">Testing with Long Badges (e.g. Card 5 with "Rev 4 (3 edits)"):</h3>
+      <div class="grid grid-cols-2 gap-5 max-w-3xl">
+
+        <!-- Option 1 with Card 5 -->
+        <div class="bg-white rounded-2xl p-5 border border-amber-300 ring-2 ring-amber-400/20 shadow-md space-y-4 relative overflow-hidden flex flex-col justify-between">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500"></div>
+
+          <div class="w-[86px] h-[86px] overflow-hidden absolute top-0 left-0 z-20 pointer-events-none">
+            <div
+              class="absolute transform -rotate-45 drop-shadow-md flex items-center justify-center"
+              style="left: -29px; top: 19px; width: 122px; height: 18px; transform-origin: center;"
+            >
+              <svg width="122" height="18" viewBox="0 0 122 18" fill="none" class="absolute inset-0">
+                <defs>
+                  <linearGradient id="opt1-ribbon-5" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#f59e0b" />
+                    <stop offset="50%" stop-color="#ea580c" />
+                    <stop offset="100%" stop-color="#e11d48" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M 0 2 L 4 0 L 8 2 L 12 0 L 16 2 L 20 0 L 24 2 L 28 0 L 32 2 L 36 0 L 40 2 L 44 0 L 48 2 L 52 0 L 56 2 L 60 0 L 64 2 L 68 0 L 72 2 L 76 0 L 80 2 L 84 0 L 88 2 L 92 0 L 96 2 L 100 0 L 104 2 L 108 0 L 112 2 L 116 0 L 120 2 L 122 0 L 122 16 L 120 18 L 116 16 L 112 18 L 108 16 L 104 18 L 100 16 L 96 18 L 92 16 L 88 18 L 84 16 L 80 18 L 76 16 L 72 18 L 68 16 L 64 18 L 60 16 L 56 18 L 52 16 L 48 18 L 44 16 L 40 18 L 36 16 L 32 18 L 28 16 L 24 18 L 20 16 L 16 18 L 12 16 L 8 18 L 4 16 L 0 18 Z"
+                  fill="url(#opt1-ribbon-5)"
+                  stroke="#ffffff"
+                  stroke-width="0.5"
+                />
+              </svg>
+              <span class="relative z-10 text-white font-black text-[7px] tracking-wider uppercase drop-shadow-xs select-none">
+                COMPLIMENTARY
+              </span>
+            </div>
+          </div>
+
+          <div class="space-y-3 pt-1">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 flex-nowrap pl-[26px]">
+                  <span class="text-[10px] font-mono font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100 shrink-0">
+                    RBPL/Q17805NOV26
+                  </span>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
+                    Rev 4 (3 edits)
+                  </span>
+                </div>
+                <div class="flex items-center justify-between gap-2 mt-1.5">
+                  <h4 class="text-sm font-extrabold text-slate-900 truncate">
+                    Shyam Hospital
+                  </h4>
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300 shrink-0">
+                    +₹8,544 Perk
+                  </span>
+                </div>
+              </div>
+              <span class="text-[11px] text-slate-400 font-mono shrink-0">05.11.2026</span>
+            </div>
+
+            <div class="bg-slate-50/80 rounded-xl p-3 border border-slate-200/70 space-y-1.5 text-xs">
+              <div class="text-slate-700 font-medium truncate">📦 CardioPulse Multi-Para Patient Monitor 12.1"</div>
+              <div class="text-[11px] text-slate-500">📍 Attn: Shyam Mulchandani, Mob: 7485965456</div>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-xs text-slate-500 font-medium">Quoted Total:</span>
+              <span class="font-mono font-extrabold text-sm text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/80">₹76,944.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Option 2 with Card 5 -->
+        <div class="bg-white rounded-2xl p-5 border border-amber-300 ring-2 ring-amber-400/20 shadow-md space-y-4 relative overflow-hidden flex flex-col justify-between">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500"></div>
+
+          <div class="w-[96px] h-[96px] overflow-hidden absolute top-0 left-0 z-20 pointer-events-none">
+            <div
+              class="absolute transform -rotate-45 drop-shadow-md flex items-center justify-center"
+              style="left: -32px; top: 22px; width: 136px; height: 20px; transform-origin: center;"
+            >
+              <svg width="136" height="20" viewBox="0 0 136 20" fill="none" class="absolute inset-0">
+                <defs>
+                  <linearGradient id="opt2-ribbon-5" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#f59e0b" />
+                    <stop offset="50%" stop-color="#ea580c" />
+                    <stop offset="100%" stop-color="#e11d48" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M 0 2 L 4 0 L 8 2 L 12 0 L 16 2 L 20 0 L 24 2 L 28 0 L 32 2 L 36 0 L 40 2 L 44 0 L 48 2 L 52 0 L 56 2 L 60 0 L 64 2 L 68 0 L 72 2 L 76 0 L 80 2 L 84 0 L 88 2 L 92 0 L 96 2 L 100 0 L 104 2 L 108 0 L 112 2 L 116 0 L 120 2 L 124 0 L 128 2 L 132 0 L 136 2 L 136 18 L 132 20 L 128 18 L 124 20 L 120 18 L 116 20 L 112 18 L 108 20 L 104 18 L 100 20 L 96 18 L 92 20 L 88 18 L 84 20 L 80 18 L 76 20 L 72 18 L 68 20 L 64 18 L 60 20 L 56 18 L 52 20 L 48 18 L 44 20 L 40 18 L 36 20 L 32 18 L 28 20 L 24 18 L 20 20 L 16 18 L 12 20 L 8 18 L 4 20 L 0 18 Z"
+                  fill="url(#opt2-ribbon-5)"
+                  stroke="#ffffff"
+                  stroke-width="0.5"
+                />
+              </svg>
+              <span class="relative z-10 text-white font-black text-[7.5px] tracking-wider uppercase drop-shadow-xs select-none">
+                COMPLIMENTARY
+              </span>
+            </div>
+          </div>
+
+          <div class="space-y-3 pt-1">
+            <div class="flex items-start justify-end gap-2">
+              <span class="text-[10px] font-mono font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100">
+                RBPL/Q17805NOV26
+              </span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-purple-50 text-purple-700 border border-purple-200">
+                Rev 4 (3 edits)
+              </span>
+              <span class="text-[11px] text-slate-400 font-mono shrink-0 pt-0.5">05.11.2026</span>
+            </div>
+
+            <div class="flex items-center justify-between gap-2 mt-1">
+              <h4 class="text-sm font-extrabold text-slate-900 truncate">
+                Shyam Hospital
+              </h4>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300 shrink-0">
+                +₹8,544 Perk
+              </span>
+            </div>
+
+            <div class="bg-slate-50/80 rounded-xl p-3 border border-slate-200/70 space-y-1.5 text-xs">
+              <div class="text-slate-700 font-medium truncate">📦 CardioPulse Multi-Para Patient Monitor 12.1"</div>
+              <div class="text-[11px] text-slate-500">📍 Attn: Shyam Mulchandani, Mob: 7485965456</div>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-xs text-slate-500 font-medium">Quoted Total:</span>
+              <span class="font-mono font-extrabold text-sm text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/80">₹76,944.00</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>

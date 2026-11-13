@@ -7,6 +7,9 @@ import path from 'path';
 const CACHE_FILE = path.join(process.cwd(), 'src', 'data', 'homepageConfig.json');
 
 function readLocalFallback() {
+  if (global._biomedical_homepage_config) {
+    return global._biomedical_homepage_config;
+  }
   try {
     if (fs.existsSync(CACHE_FILE)) {
       const content = fs.readFileSync(CACHE_FILE, 'utf-8');
@@ -19,15 +22,9 @@ function readLocalFallback() {
 }
 
 function writeLocalFallback(data) {
-  try {
-    const dir = path.dirname(CACHE_FILE);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(CACHE_FILE, JSON.stringify(data, null, 2), 'utf-8');
-  } catch (e) {
-    console.warn('Failed to write local fallback cache:', e.message);
-  }
+  // Purely in-memory cache, DO NOT write to src/data/homepageConfig.json on disk.
+  // MongoDB is the sole persistent store.
+  global._biomedical_homepage_config = data;
 }
 
 export async function GET(request) {

@@ -27,14 +27,9 @@ function readLocalDeleted() {
 }
 
 function writeLocalDeleted(list) {
+  // Purely in-memory cache, DO NOT write to src/data/deleted_records.json on disk.
+  // MongoDB is the sole persistent store.
   global._biomedical_deleted_records = list;
-  try {
-    const dir = path.dirname(DELETED_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(DELETED_FILE, JSON.stringify(list, null, 2), 'utf-8');
-  } catch (e) {
-    console.warn('Failed to write local deleted records:', e.message);
-  }
 }
 
 export async function OPTIONS() {
@@ -160,13 +155,11 @@ export async function PUT(request) {
         ).catch(() => {});
       }
 
-      // Local leads sync
-      const LEADS_FILE = path.join(process.cwd(), 'src', 'data', 'leads.json');
+      // In-memory leads sync (Do NOT write to src/data/leads.json)
       try {
-        let lList = [];
-        if (fs.existsSync(LEADS_FILE)) lList = JSON.parse(fs.readFileSync(LEADS_FILE, 'utf-8'));
-        lList = [leadPayload, ...lList.filter(l => l.id !== leadPayload.id)];
-        fs.writeFileSync(LEADS_FILE, JSON.stringify(lList, null, 2), 'utf-8');
+        const lList = (global._biomedical_leads && Array.isArray(global._biomedical_leads))
+          ? [leadPayload, ...global._biomedical_leads.filter(l => l.id !== leadPayload.id)]
+          : [leadPayload];
         global._biomedical_leads = lList;
       } catch (e) {}
     } else if (itemType === 'quotation') {

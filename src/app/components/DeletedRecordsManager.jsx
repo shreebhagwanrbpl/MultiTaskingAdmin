@@ -562,7 +562,7 @@ export default function DeletedRecordsManager({ user = null, onRecordRestored = 
               </h3>
               <p className="text-xs text-slate-600 mt-1 leading-relaxed">
                 {confirmPurgeModal.isAll
-                  ? 'Kripya dhyan dein: Sabhi archived deleted records permanently wipe ho jayenge aur inhe dobara restore nahi kiya ja sakega.'
+                  ? 'Please note: All archived and deleted records will be permanently erased and cannot be restored once deleted.'
                   : `Record "${confirmPurgeModal.record?.originalId || confirmPurgeModal.record?.id}" ko archive se permanently delete kiya ja raha hai. Iske baad ise restore nahi kiya ja sakega.`}
               </p>
             </div>

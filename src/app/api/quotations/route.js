@@ -408,12 +408,11 @@ export async function DELETE(request) {
     };
 
     try {
-      let existing = [];
-      if (fs.existsSync(DELETED_FILE)) {
-        try { existing = JSON.parse(fs.readFileSync(DELETED_FILE, 'utf-8')); } catch (e) {}
-      }
-      const combined = [archivedItem, ...(Array.isArray(existing) ? existing : [])];
-      fs.writeFileSync(DELETED_FILE, JSON.stringify(combined, null, 2), 'utf-8');
+      const existing = (global._biomedical_deleted_records && Array.isArray(global._biomedical_deleted_records))
+        ? global._biomedical_deleted_records
+        : [];
+      const combined = [archivedItem, ...existing];
+      // In-memory cache only, DO NOT write to disk. MongoDB is the sole persistent store.
       global._biomedical_deleted_records = combined;
     } catch (e) {}
 

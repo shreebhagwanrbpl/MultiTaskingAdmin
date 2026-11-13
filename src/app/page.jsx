@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
   LayoutDashboard,
@@ -388,7 +388,7 @@ export default function AdminDashboardPage({ searchParams }) {
             timestamp: Date.now()
           });
           channel.close();
-        } catch (e) {}
+        } catch (e) { }
       }
       setNegotiationModalLead(null);
     } catch (err) {
@@ -538,7 +538,7 @@ export default function AdminDashboardPage({ searchParams }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updateData)
       });
-    } catch (e) {}
+    } catch (e) { }
     setLeads(prev => prev.map(l => (l.id === leadId || (lead._id && l._id === lead._id)) ? { ...l, ...updateData } : l));
 
     // Trigger Native Push Notification with Sound
@@ -832,7 +832,7 @@ export default function AdminDashboardPage({ searchParams }) {
       try {
         localStorage.setItem('active_concession_quote', JSON.stringify({ ...quote, openReviewModal: true }));
         window.dispatchEvent(new CustomEvent('open_concession_review', { detail: { quote, openReviewModal: true } }));
-      } catch (e) {}
+      } catch (e) { }
     }
     setActiveTab('quotation');
     setQuotationAlerts(prev => prev.filter(x => (x.refNo || x.id) !== (quote.refNo || quote.id)));
@@ -844,7 +844,7 @@ export default function AdminDashboardPage({ searchParams }) {
       try {
         localStorage.setItem('active_concession_quote', JSON.stringify({ ...quote, openRevision: true }));
         window.dispatchEvent(new CustomEvent('open_concession_review', { detail: { quote, openRevision: true } }));
-      } catch (e) {}
+      } catch (e) { }
     }
     setActiveTab('quotation');
     setQuotationApprovedAlerts(prev => prev.filter(x => (x.refNo || x.id) !== (quote.refNo || quote.id)));
@@ -907,7 +907,7 @@ export default function AdminDashboardPage({ searchParams }) {
             if (typeof window !== 'undefined' && l) {
               try {
                 localStorage.setItem('active_quotation_lead', JSON.stringify(l));
-              } catch (err) {}
+              } catch (err) { }
             }
             setActiveTab('quotation');
           }
@@ -919,20 +919,20 @@ export default function AdminDashboardPage({ searchParams }) {
     try {
       channel = new BroadcastChannel('rbpl_system_notifications');
       channel.onmessage = (e) => handleIncomingNotification(e.data);
-    } catch (err) {}
+    } catch (err) { }
 
     const storageHandler = (e) => {
       if (e.key === 'rbpl_push_event_sync' && e.newValue) {
         try {
           const parsed = JSON.parse(e.newValue);
           handleIncomingNotification(parsed);
-        } catch (err) {}
+        } catch (err) { }
       }
     };
     window.addEventListener('storage', storageHandler);
 
     return () => {
-      if (channel) try { channel.close(); } catch (e) {}
+      if (channel) try { channel.close(); } catch (e) { }
       window.removeEventListener('storage', storageHandler);
     };
   }, [isAdmin]);
@@ -1100,7 +1100,7 @@ export default function AdminDashboardPage({ searchParams }) {
                 if (typeof window !== 'undefined' && first) {
                   try {
                     localStorage.setItem('active_quotation_lead', JSON.stringify(first));
-                  } catch (e) {}
+                  } catch (e) { }
                 }
                 setActiveTab('quotation');
                 setNewLeadAlerts([]);
@@ -1129,7 +1129,7 @@ export default function AdminDashboardPage({ searchParams }) {
               }
               // Admin authorized price -> Alert Sales!
               else if ((curStatus === 'approved' || curStatus === 'counter_offered') &&
-                       prevStatus !== 'approved' && prevStatus !== 'counter_offered') {
+                prevStatus !== 'approved' && prevStatus !== 'counter_offered') {
                 const isExpected = curStatus === 'approved';
                 const approvedAmt = l.approvedPrice || l.adminCounterPrice || l.expectedPrice || l.price || 0;
                 triggerSystemPushNotification({
@@ -1139,7 +1139,7 @@ export default function AdminDashboardPage({ searchParams }) {
                   onClick: () => {
                     try {
                       localStorage.setItem('active_quotation_lead', JSON.stringify(l));
-                    } catch (e) {}
+                    } catch (e) { }
                     setActiveTab('quotation');
                   }
                 });
@@ -1171,6 +1171,27 @@ export default function AdminDashboardPage({ searchParams }) {
   const [deletedRecordsCount, setDeletedRecordsCount] = useState(0);
   const [cartTotalBadge, setCartTotalBadge] = useState(0);
 
+  // Truly new/pending incoming leads (excludes leads where quotation is already created/dispatched)
+  const pendingLeadsCount = useMemo(() => {
+    if (!Array.isArray(leads)) return 0;
+    return leads.filter(l => {
+      if (!l) return false;
+      if (l.isQuotationCreated) return false;
+      if (l.quotationRef) return false;
+      const st = (l.status || '').toLowerCase();
+      if (
+        st.includes('quotation created') ||
+        st.includes('quotation dispatched') ||
+        st.includes('completed quote') ||
+        st.includes('quote generated') ||
+        st.includes('quotation sent')
+      ) {
+        return false;
+      }
+      return true;
+    }).length;
+  }, [leads]);
+
   const loadCartWatchlistCount = async () => {
     try {
       const res = await fetch('/api/cart-watchlist');
@@ -1182,7 +1203,7 @@ export default function AdminDashboardPage({ searchParams }) {
         });
         setCartTotalBadge(count || data.carts.length);
       }
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const loadDeletedRecordsCount = async () => {
@@ -1234,7 +1255,7 @@ export default function AdminDashboardPage({ searchParams }) {
 
               // Concession Approved -> Alert Sales Team!
               if ((newStatus === 'approved_direct_discount' || newStatus === 'approved_complimentary') &&
-                  prevStatus !== 'approved_direct_discount' && prevStatus !== 'approved_complimentary') {
+                prevStatus !== 'approved_direct_discount' && prevStatus !== 'approved_complimentary') {
                 setQuotationApprovedAlerts(prev => [q, ...prev.filter(x => (x.refNo || x.id) !== key)]);
                 const isDirect = newStatus === 'approved_direct_discount';
                 triggerSystemPushNotification({
@@ -1761,7 +1782,7 @@ export default function AdminDashboardPage({ searchParams }) {
                   window.dispatchEvent(new CustomEvent('reset_web_quotation_tab', { detail: 'leads' }));
                 }
               }}
-              title={`Web Quotation & Incoming Leads (${leads.length} Pending)`}
+              title={`Web Quotation & Incoming Leads (${pendingLeadsCount > 0 ? `${pendingLeadsCount} Pending` : 'All Caught Up'})`}
               className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer relative group ${activeTab === 'quotation'
                 ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
                 : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
@@ -1772,17 +1793,17 @@ export default function AdminDashboardPage({ searchParams }) {
                 {!isSidebarCollapsed && <span>Web Quotation</span>}
               </span>
               {isSidebarCollapsed ? (
-                leads.length > 0 ? (
+                pendingLeadsCount > 0 ? (
                   <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white animate-pulse"></span>
                 ) : (
                   <span className="absolute top-2 right-2 w-2 h-2 bg-sky-600 rounded-full border border-white"></span>
                 )
               ) : (
                 <div className="flex items-center gap-1.5">
-                  {leads.length > 0 && (
-                    <span className="text-[10px] bg-amber-500 text-white font-bold px-1.5 py-0.5 rounded-full shadow-2xs flex items-center gap-0.5 animate-pulse" title={`${leads.length} New Incoming Web Leads`}>
+                  {pendingLeadsCount > 0 && (
+                    <span className="text-[10px] bg-amber-500 text-white font-bold px-1.5 py-0.5 rounded-full shadow-2xs flex items-center gap-0.5 animate-pulse" title={`${pendingLeadsCount} New Incoming Web Leads`}>
                       <span>⚡</span>
-                      <span>{leads.length}</span>
+                      <span>{pendingLeadsCount}</span>
                     </span>
                   )}
                   <span className="text-[10px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.2 rounded border border-sky-200">
@@ -1813,7 +1834,7 @@ export default function AdminDashboardPage({ searchParams }) {
               </span>
               {!isSidebarCollapsed && (
                 <span className="text-[10px] bg-amber-100 text-amber-900 font-bold px-1.5 py-0.2 rounded border border-amber-200">
-                  🎁 Perk
+                  Perk
                 </span>
               )}
             </button>
@@ -1865,6 +1886,30 @@ export default function AdminDashboardPage({ searchParams }) {
                 </span>
               )}
             </button>
+
+            {/* Admin Only: Staff Directory & Active Logins Section */}
+            {isAdmin && (
+              <button
+                onClick={() => setActiveTab('users')}
+                title="Staff Directory & Active Login Sessions"
+                className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer relative group ${activeTab === 'users'
+                  ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
+                  }`}
+              >
+                <span className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+                  <Users size={isSidebarCollapsed ? 19 : 16} className={activeTab === 'users' ? 'text-sky-600' : 'text-slate-500'} />
+                  {!isSidebarCollapsed && <span>Staff & Logins</span>}
+                </span>
+                {isSidebarCollapsed ? (
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-emerald-500 rounded-full border border-white"></span>
+                ) : (
+                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded border border-emerald-200">
+                    Admin
+                  </span>
+                )}
+              </button>
+            )}
           </nav>
         </div>
 
@@ -1936,19 +1981,7 @@ export default function AdminDashboardPage({ searchParams }) {
                 </>
               )}
               {activeTab === 'quotation' && (
-                <>
-                  <span className="truncate">Web Quotation &amp; Incoming Leads</span>
-                  {leads.length > 0 ? (
-                    <span className="text-[11px] font-bold font-mono px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs shrink-0 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                      <span>{leads.length} Incoming Leads</span>
-                    </span>
-                  ) : (
-                    <span className="text-[11px] font-bold font-mono px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-300 shadow-2xs shrink-0">
-                      Official PDF Desk
-                    </span>
-                  )}
-                </>
+                <span className="truncate">Web Quotation &amp; Incoming Leads</span>
               )}
               {activeTab === 'cart_watchlist' && (
                 <>
@@ -1987,27 +2020,37 @@ export default function AdminDashboardPage({ searchParams }) {
               </div>
             )}
 
-            {/* Global District & Territory Filter Selector */}
-            <div className="hidden md:flex items-center gap-1.5 bg-slate-50 border border-slate-200/90 px-2.5 py-1.5 rounded-xl shadow-2xs">
-              <MapPin size={13} className="text-rose-500 shrink-0" />
-              <span className="text-[11px] font-bold text-slate-500">State:</span>
-              <select
-                value={activeDistrictFilter}
-                onChange={(e) => setDistrictFilter(e.target.value)}
-                className="bg-transparent text-xs font-bold text-slate-800 focus:outline-hidden cursor-pointer"
-              >
-                <option value="all">All India (National HQ)</option>
-                {user?.state && user.state !== 'All India (HQ)' && user.state !== 'All India (Pan-India HQ)' && (
-                  <option value={user.state}>⭐ My State ({user.state})</option>
-                )}
-                <option disabled>──────────</option>
-                {ALL_INDIAN_STATES.map((st) => (
-                  <option key={st} value={st}>
-                    {st}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Global District & Territory Filter Selector (Unlocked for Admin HQ, Strictly Locked for Sales Team) */}
+            {isAdmin ? (
+              <div className="hidden md:flex items-center gap-1.5 bg-slate-50 border border-slate-200/90 px-2.5 py-1.5 rounded-xl shadow-2xs">
+                <MapPin size={13} className="text-rose-500 shrink-0" />
+                <span className="text-[11px] font-bold text-slate-500">State:</span>
+                <select
+                  value={activeDistrictFilter}
+                  onChange={(e) => setDistrictFilter(e.target.value)}
+                  className="bg-transparent text-xs font-bold text-slate-800 focus:outline-hidden cursor-pointer"
+                >
+                  <option value="all">All India (National HQ)</option>
+                  {user?.state && user.state !== 'All India (HQ)' && user.state !== 'All India (Pan-India HQ)' && (
+                    <option value={user.state}>⭐ My State ({user.state})</option>
+                  )}
+                  <option disabled>──────────</option>
+                  {ALL_INDIAN_STATES.map((st) => (
+                    <option key={st} value={st}>
+                      {st}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div className="hidden md:flex items-center gap-1.5 bg-slate-50 border border-slate-200/90 px-2.5 py-1.5 rounded-xl shadow-2xs">
+                <MapPin size={13} className="text-rose-500 shrink-0" />
+                <span className="text-[11px] font-bold text-slate-500">State:</span>
+                <span className="text-xs font-extrabold text-slate-800">
+                  {user?.state || 'Rajasthan'}
+                </span>
+              </div>
+            )}
 
             {/* User Profile Pill & Dropdown */}
             <div className="relative">

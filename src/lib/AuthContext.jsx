@@ -170,11 +170,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Switch state filter
-  const setStateFilter = (st) => {
-    setActiveStateFilter(st);
-  };
-
   // Update profile
   const updateProfile = (updates) => {
     if (!user) return;
@@ -189,6 +184,42 @@ export function AuthProvider({ children }) {
   const roleId = (user?.role || 'guest').toLowerCase();
   const isAdmin = roleId === 'admin' || roleId === 'super_admin';
   const isSales = roleId === 'sales' || roleId === 'sales_executive' || roleId === 'district_manager';
+
+  // Switch state filter (Sales team territory is permanent and strictly locked)
+  const setStateFilter = (st) => {
+    if (!isAdmin) {
+      if (user?.state && user.state !== 'All India (HQ)' && user.state !== 'All India (National HQ)') {
+        setActiveStateFilter(user.state);
+      }
+      return;
+    }
+    setActiveStateFilter(st);
+  };
+
+  // Listen for force-logout broadcast signals from Central Admin
+  useEffect(() => {
+    let channel;
+    try {
+      channel = new BroadcastChannel('rbpl_auth_channel');
+      channel.onmessage = (event) => {
+        if (event.data?.type === 'FORCE_LOGOUT') {
+          const targetId = event.data.userId;
+          const targetEmail = event.data.email;
+          if (user && (user.id === targetId || user.email === targetEmail || String(user._id) === targetId)) {
+            logout();
+            setAuthNotification({
+              type: 'error',
+              title: 'Session Terminated by Admin',
+              message: 'Your session has been remotely terminated by Central HQ Admin.'
+            });
+          }
+        }
+      };
+    } catch (e) {}
+    return () => {
+      try { channel?.close(); } catch (e) {}
+    };
+  }, [user]);
 
   const canAccessTab = (tabName) => {
     if (!user) return false;

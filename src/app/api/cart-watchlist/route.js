@@ -41,14 +41,9 @@ function readLocalCarts() {
 
 function writeLocalCarts(list) {
   const dynamicOnly = (list || []).filter(isDynamicCustomer);
+  // Purely in-memory cache, DO NOT write to src/data/customer_carts.json on disk.
+  // MongoDB is the sole persistent store.
   global._biomedical_customer_carts = dynamicOnly;
-  try {
-    const dir = path.dirname(CARTS_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(CARTS_FILE, JSON.stringify(dynamicOnly, null, 2), 'utf-8');
-  } catch (e) {
-    console.warn('Failed to write local customer carts:', e.message);
-  }
 }
 
 export async function OPTIONS() {

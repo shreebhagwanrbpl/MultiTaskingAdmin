@@ -49,7 +49,7 @@ export function readLocalUsers() {
     console.warn('Could not read users.json:', e.message);
   }
 
-  // Fallback to in-memory / demo users
+  // Fallback to in-memory / demo users (Do NOT write to disk)
   if (!global._biomedical_users || global._biomedical_users.length === 0) {
     const initializedDemos = DEMO_USERS.map(u => {
       const { hash, salt } = hashPassword(u.password);
@@ -61,23 +61,13 @@ export function readLocalUsers() {
       };
     });
     global._biomedical_users = initializedDemos;
-    try {
-      fs.writeFileSync(USERS_FILE, JSON.stringify(initializedDemos, null, 2), 'utf-8');
-    } catch (e) {
-      // safe fallback
-    }
   }
   return global._biomedical_users;
 }
 
-// Write local fallback users
+// Write in-memory fallback users (MongoDB is the sole persistent store)
 export function writeLocalUsers(users) {
   global._biomedical_users = users;
-  try {
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8');
-  } catch (e) {
-    // silent fallback
-  }
 }
 
 // Get user collection from MongoDB

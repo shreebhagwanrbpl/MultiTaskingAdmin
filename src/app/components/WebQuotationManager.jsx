@@ -30,6 +30,7 @@ import {
   Maximize2,
   FileCheck,
   CheckCircle2,
+  Filter,
   SplitSquareVertical,
   SlidersHorizontal,
   ChevronDown,
@@ -41,6 +42,7 @@ import {
   Edit3,
   ExternalLink,
   AlertCircle,
+  AlertTriangle,
   MessageCircle,
   User,
   Phone,
@@ -63,67 +65,1040 @@ import { useAuth } from '../../lib/AuthContext';
 // ============================================================================
 // OFFICIAL COMPLIMENTARY BIOMEDICAL PERK CATALOG (₹50 TO ₹1,000)
 // ============================================================================
+
+export function isQuoteWithComplimentary(q) {
+  if (!q) return false;
+  if (q.hasComplimentary) return true;
+  if (Number(q.allowedComplementaryBudget || 0) > 0) return true;
+  if (
+    q.concessionStatus === 'concession_approved' ||
+    q.concessionStatus === 'approved_complimentary' ||
+    q.concessionStatus === 'concession_applied'
+  ) return true;
+  if (Array.isArray(q.items) && q.items.some(it => it.isComplimentary || (it.title && String(it.title).toUpperCase().includes('COMPLIMENTARY')))) return true;
+  if (Array.isArray(q.complimentaryItems) && q.complimentaryItems.length > 0) return true;
+  if (typeof q.subjectQuotation === 'string' && q.subjectQuotation.toLowerCase().includes('complimentary')) return true;
+  return false;
+}
+
+// Helper: Calculate days remaining and formatted badge for medical stock expiry
+export function getExpiryDetails(expiryDateStr) {
+  if (!expiryDateStr) {
+    return {
+      daysLeft: 999,
+      formatted: 'N/A',
+      status: 'normal',
+      badgeText: 'Shelf Stock',
+      shortText: 'N/A',
+      badgeBg: 'bg-slate-50 text-slate-600 border-slate-200',
+      dotColor: 'bg-slate-400',
+      isUrgent: false
+    };
+  }
+
+  // Active simulated reference date (12 Nov 2026)
+  const today = new Date('2026-11-12T00:00:00');
+  const expDate = new Date(expiryDateStr + 'T00:00:00');
+  const diffTime = expDate - today;
+  const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const formatted = `${expDate.getDate()} ${months[expDate.getMonth()]} ${expDate.getFullYear()}`;
+
+  if (daysLeft <= 45) {
+    return {
+      daysLeft,
+      formatted,
+      status: 'critical',
+      badgeText: `⚠️ Near-Expiry: ${formatted} (${daysLeft}d left)`,
+      shortText: `${formatted} (${daysLeft}d left)`,
+      badgeBg: 'bg-rose-50 text-rose-800 border-rose-300 ring-1 ring-rose-400/20',
+      dotColor: 'bg-rose-500 animate-pulse',
+      isUrgent: true
+    };
+  } else if (daysLeft <= 90) {
+    return {
+      daysLeft,
+      formatted,
+      status: 'soon',
+      badgeText: `⏳ Exp: ${formatted} (${daysLeft}d left)`,
+      shortText: `${formatted} (${daysLeft}d left)`,
+      badgeBg: 'bg-amber-50 text-amber-900 border-amber-300',
+      dotColor: 'bg-amber-500',
+      isUrgent: true
+    };
+  } else {
+    return {
+      daysLeft,
+      formatted,
+      status: 'normal',
+      badgeText: `Exp: ${formatted}`,
+      shortText: formatted,
+      badgeBg: 'bg-slate-50 text-slate-700 border-slate-200',
+      dotColor: 'bg-emerald-500',
+      isUrgent: false
+    };
+  }
+}
+
 export const COMPLIMENTARY_PERK_CATALOG = [
-  // ₹50
-  { id: 'perk-50-1', title: 'Sterile ECG Electrodes (Pack of 10)', price: 50, category: 'Consumables', desc: 'Disposable medical hydrogel diagnostic monitoring electrodes.' },
-  { id: 'perk-50-2', title: 'Ultrasound Acoustic Probe Sheaths (5 Pcs)', price: 50, category: 'Protection', desc: 'Sterile latex-free acoustic transducer protective covers.' },
+  // --- ₹50 Consumables ---
+  {
+    id: 'perk-50-1',
+    image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=500&q=80',
+    title: 'Sterile ECG Electrodes (Pack of 10)',
+    price: 50,
+    category: 'Consumables',
+    desc: 'Disposable medical hydrogel diagnostic monitoring electrodes.',
+    expiryDate: '2026-12-20', // Critical Near-Expiry (38d left)
+    batchNo: 'LOT-ECG-261220',
+    mfgDate: '2025-12-15'
+  },
+  {
+    id: 'perk-50-3',
+    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=500&q=80',
+    title: 'Microporous Surgical Paper Tape (1-inch Roll)',
+    price: 50,
+    category: 'Consumables',
+    desc: 'Hypoallergenic breathable surgical tape for dressing & sensor fixation.',
+    expiryDate: '2026-12-25', // Critical Near-Expiry (43d left)
+    batchNo: 'LOT-MPT-261225',
+    mfgDate: '2025-12-01'
+  },
+  {
+    id: 'perk-50-4',
+    image: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=500&q=80',
+    title: 'Latex-Free Quick-Release Medical Tourniquet',
+    price: 50,
+    category: 'Consumables',
+    desc: 'Elastic band with quick-release snap buckle for phlebotomy & IV cannulation.',
+    expiryDate: '2027-01-05', // 54d left
+    batchNo: 'LOT-TRN-270105',
+    mfgDate: '2026-01-01'
+  },
+  {
+    id: 'perk-50-2',
+    image: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=500&q=80',
+    title: 'Ultrasound Acoustic Probe Sheaths (5 Pcs)',
+    price: 50,
+    category: 'Protection',
+    desc: 'Sterile latex-free acoustic transducer protective covers.',
+    expiryDate: '2027-01-10', // 59d left
+    batchNo: 'LOT-UPS-270110',
+    mfgDate: '2026-01-10'
+  },
+  {
+    id: 'perk-50-5',
+    image: 'https://images.unsplash.com/photo-1583912267670-6575ad472688?auto=format&fit=crop&w=500&q=80',
+    title: 'Steam Sterilization Chemical Indicator Tape (Roll)',
+    price: 50,
+    category: 'Sterilization',
+    desc: 'Autoclave process color-changing indicator tape for sterile packaging.',
+    expiryDate: '2027-01-20', // 69d left
+    batchNo: 'LOT-SIT-270120',
+    mfgDate: '2026-01-15'
+  },
+  {
+    id: 'perk-50-6',
+    image: 'https://images.unsplash.com/photo-1584744982491-665216d95f8b?auto=format&fit=crop&w=500&q=80',
+    title: 'Disposable Sterile Tongue Depressors (Box of 50)',
+    price: 50,
+    category: 'Diagnostics',
+    desc: 'Smooth polished birchwood medical diagnostic examination depressors.',
+    expiryDate: '2027-02-10', // 90d left
+    batchNo: 'LOT-TGD-270210',
+    mfgDate: '2026-02-01'
+  },
 
-  // ₹100
-  { id: 'perk-100-1', title: 'Acoustic Transmission Ultrasound Gel (250ml)', price: 100, category: 'Consumables', desc: 'High-viscosity hypoallergenic ultrasound & Doppler transmission gel.' },
-  { id: 'perk-100-2', title: 'NIBP Monitor Quick-Release Hose Coupling', price: 100, category: 'Hardware', desc: 'Medical-grade brass bayonet air hose connector for patient monitors.' },
+  // --- ₹100 Diagnostics & Consumables ---
+  {
+    id: 'perk-100-1',
+    image: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=500&q=80',
+    title: 'Acoustic Transmission Ultrasound Gel (250ml)',
+    price: 100,
+    category: 'Consumables',
+    desc: 'High-viscosity hypoallergenic ultrasound & Doppler transmission gel.',
+    expiryDate: '2026-12-24', // Critical Near-Expiry (42d left)
+    batchNo: 'LOT-GEL-261224',
+    mfgDate: '2025-12-20'
+  },
+  {
+    id: 'perk-100-3',
+    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=500&q=80',
+    title: 'Chlorhexidine Antiseptic Skin Prep Swabs (Box of 25)',
+    price: 100,
+    category: 'Consumables',
+    desc: '2% Chlorhexidine gluconate in 70% alcohol for pre-injection skin antisepsis.',
+    expiryDate: '2027-01-02', // 51d left
+    batchNo: 'LOT-CHX-270102',
+    mfgDate: '2026-01-01'
+  },
+  {
+    id: 'perk-100-4',
+    image: 'https://images.unsplash.com/photo-1584744982491-665216d95f8b?auto=format&fit=crop&w=500&q=80',
+    title: 'Digital Clinical Thermometer Probe Covers (Pack of 100)',
+    price: 100,
+    category: 'Diagnostics',
+    desc: 'Disposable transparent protective sheaths for oral/axillary thermometers.',
+    expiryDate: '2027-01-18', // 67d left
+    batchNo: 'LOT-DPC-270118',
+    mfgDate: '2026-01-10'
+  },
+  {
+    id: 'perk-100-2',
+    image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=500&q=80',
+    title: 'NIBP Monitor Quick-Release Hose Coupling',
+    price: 100,
+    category: 'Hardware',
+    desc: 'Medical-grade brass bayonet air hose connector for patient monitors.',
+    expiryDate: '2027-02-15', // 95d left
+    batchNo: 'LOT-HCP-270215',
+    mfgDate: '2026-02-10'
+  },
+  {
+    id: 'perk-100-5',
+    image: 'https://images.unsplash.com/photo-1584467735871-8e85353a8413?auto=format&fit=crop&w=500&q=80',
+    title: 'Medical Nitrile Examination Gloves (Box of 50)',
+    price: 100,
+    category: 'Protection',
+    desc: 'Powder-free textured fingertip medical examination gloves (Medium).',
+    expiryDate: '2027-03-01', // 109d left
+    batchNo: 'LOT-GLV-270301',
+    mfgDate: '2026-02-15'
+  },
 
-  // ₹150
-  { id: 'perk-150-1', title: 'Medical Thermal Recording Paper (57mm x 20m)', price: 150, category: 'Recording', desc: 'High-contrast grid ECG trace thermal printer paper roll.' },
-  { id: 'perk-150-2', title: 'Pulse Oximeter Finger Sensor Cable Strain Relief', price: 150, category: 'Hardware', desc: 'Anti-breakage reinforced cable protector clip set.' },
+  // --- ₹150 Recording & Accessories ---
+  {
+    id: 'perk-150-1',
+    image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=500&q=80',
+    title: 'Medical Thermal Recording Paper (57mm x 20m)',
+    price: 150,
+    category: 'Recording',
+    desc: 'High-contrast grid ECG trace thermal printer paper roll.',
+    expiryDate: '2026-12-28', // Critical Near-Expiry (46d left)
+    batchNo: 'LOT-PPR-261228',
+    mfgDate: '2025-09-01'
+  },
+  {
+    id: 'perk-150-3',
+    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=500&q=80',
+    title: 'Sterile Gauze Swabs 10x10cm (Pack of 50)',
+    price: 150,
+    category: 'Consumables',
+    desc: '100% cotton 12-ply sterile surgical gauze pads with folded edges.',
+    expiryDate: '2027-01-08', // 57d left
+    batchNo: 'LOT-GZ-270108',
+    mfgDate: '2026-01-02'
+  },
+  {
+    id: 'perk-150-2',
+    image: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=500&q=80',
+    title: 'Pulse Oximeter Finger Sensor Cable Strain Relief',
+    price: 150,
+    category: 'Hardware',
+    desc: 'Anti-breakage reinforced cable protector clip set.',
+    expiryDate: '2027-02-12', // 92d left
+    batchNo: 'LOT-SRF-270212',
+    mfgDate: '2026-02-01'
+  },
+  {
+    id: 'perk-150-4',
+    image: 'https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=500&q=80',
+    title: 'Disposable Electrosurgical Patient Grounding Return Plate',
+    price: 150,
+    category: 'Surgical',
+    desc: 'Hydrogel split conductive dispersive pad for electrosurgical diathermy.',
+    expiryDate: '2027-03-20',
+    batchNo: 'LOT-GRP-270320',
+    mfgDate: '2026-03-01'
+  },
 
-  // ₹200
-  { id: 'perk-200-1', title: 'Adult Reusable NIBP Blood Pressure Arm Cuff', price: 200, category: 'Diagnostics', desc: 'Standard adult calibrated nylon arm cuff with TPU bladder (25-35cm).' },
-  { id: 'perk-200-2', title: 'Equipment Anti-Static Protective Dust Sheath', price: 200, category: 'Protection', desc: 'Water-resistant hospital equipment dust cover.' },
+  // --- ₹200 Diagnostics & Protection ---
+  {
+    id: 'perk-200-1',
+    image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=500&q=80',
+    title: 'Adult Reusable NIBP Blood Pressure Arm Cuff',
+    price: 200,
+    category: 'Diagnostics',
+    desc: 'Standard adult calibrated nylon arm cuff with TPU bladder (25-35cm).',
+    expiryDate: '2026-12-30', // Critical Near-Expiry (48d left)
+    batchNo: 'LOT-CUF-261230',
+    mfgDate: '2025-10-15'
+  },
+  {
+    id: 'perk-200-3',
+    image: 'https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=500&q=80',
+    title: 'Medical Suction Tubing with Yankauer Connector (3m)',
+    price: 200,
+    category: 'Surgical',
+    desc: 'Flexible ribbed anti-kink surgical suction tubing with standard funnel.',
+    expiryDate: '2027-01-14', // 63d left
+    batchNo: 'LOT-STB-270114',
+    mfgDate: '2026-01-05'
+  },
+  {
+    id: 'perk-200-4',
+    image: 'https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=500&q=80',
+    title: 'Sterile Carbon Steel Surgical Scalpel Blades #11 (Box of 20)',
+    price: 200,
+    category: 'Surgical',
+    desc: 'Gamma-irradiated sharp precision lancet incision blades.',
+    expiryDate: '2027-02-28', // 108d left
+    batchNo: 'LOT-SBL-270228',
+    mfgDate: '2026-02-01'
+  },
+  {
+    id: 'perk-200-2',
+    image: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=500&q=80',
+    title: 'Equipment Anti-Static Protective Dust Sheath',
+    price: 200,
+    category: 'Protection',
+    desc: 'Water-resistant hospital equipment dust cover.',
+    expiryDate: '2027-04-10',
+    batchNo: 'LOT-DSH-270410',
+    mfgDate: '2026-04-01'
+  },
 
-  // ₹250
-  { id: 'perk-250-1', title: 'Digital Clinical Thermometer & Probe Covers Set', price: 250, category: 'Diagnostics', desc: 'Rapid 10-second waterproof digital probe with 20 disposable covers.' },
-  { id: 'perk-250-2', title: 'Autoclave Chemical Indicator Strips (Box of 100)', price: 250, category: 'Sterilization', desc: 'Class 4 multi-parameter steam sterilization verification strips.' },
+  // --- ₹250 Sterilization & Diagnostics ---
+  {
+    id: 'perk-250-2',
+    image: 'https://images.unsplash.com/photo-1583912267670-6575ad472688?auto=format&fit=crop&w=500&q=80',
+    title: 'Autoclave Chemical Indicator Strips (Box of 100)',
+    price: 250,
+    category: 'Sterilization',
+    desc: 'Class 4 multi-parameter steam sterilization verification strips.',
+    expiryDate: '2026-12-22', // Critical Near-Expiry (40d left)
+    batchNo: 'LOT-CIS-261222',
+    mfgDate: '2025-06-15'
+  },
+  {
+    id: 'perk-250-3',
+    image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=500&q=80',
+    title: 'Pediatric Reusable NIBP Calibrated Arm Cuff (18-26cm)',
+    price: 250,
+    category: 'Diagnostics',
+    desc: 'Child calibrated soft nylon blood pressure cuff with TPU air bladder.',
+    expiryDate: '2027-01-06', // 55d left
+    batchNo: 'LOT-PCU-270106',
+    mfgDate: '2026-01-02'
+  },
+  {
+    id: 'perk-250-1',
+    image: 'https://images.unsplash.com/photo-1584744982491-665216d95f8b?auto=format&fit=crop&w=500&q=80',
+    title: 'Digital Clinical Thermometer & Probe Covers Set',
+    price: 250,
+    category: 'Diagnostics',
+    desc: 'Rapid 10-second waterproof digital probe with 20 disposable covers.',
+    expiryDate: '2027-01-25', // 74d left
+    batchNo: 'LOT-THM-270125',
+    mfgDate: '2026-01-20'
+  },
+  {
+    id: 'perk-250-4',
+    image: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=500&q=80',
+    title: 'Universal Patient Monitor Earth Grounding Wire Cable',
+    price: 250,
+    category: 'Hardware',
+    desc: 'Equal potential grounding cable with green/yellow insulation & brass clamp.',
+    expiryDate: '2027-03-15',
+    batchNo: 'LOT-EPG-270315',
+    mfgDate: '2026-03-01'
+  },
 
-  // ₹300
-  { id: 'perk-300-1', title: 'Bulk Ultrasound Gel Refill Container (5 Liters)', price: 300, category: 'Consumables', desc: 'Economy clinical ultrasound scan gel refill with dispensing cap.' },
-  { id: 'perk-300-2', title: 'Universal 5-Lead Patient ECG Snap Wire Set', price: 300, category: 'Monitoring', desc: 'AHA color-coded shielded patient lead wires with snap connectors.' },
+  // --- ₹300 Consumables & Monitoring ---
+  {
+    id: 'perk-300-1',
+    image: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=500&q=80',
+    title: 'Bulk Ultrasound Gel Refill Container (5 Liters)',
+    price: 300,
+    category: 'Consumables',
+    desc: 'Economy clinical ultrasound scan gel refill with dispensing cap.',
+    expiryDate: '2026-12-26', // Critical Near-Expiry (44d left)
+    batchNo: 'LOT-G5L-261226',
+    mfgDate: '2025-11-01'
+  },
+  {
+    id: 'perk-300-3',
+    image: 'https://images.unsplash.com/photo-1584467735871-8e85353a8413?auto=format&fit=crop&w=500&q=80',
+    title: 'Hospital Surface Disinfectant Sanitizing Wipes (Tub of 150)',
+    price: 300,
+    category: 'Protection',
+    desc: 'Quaternary ammonium alcohol-based high-level medical surface wipes.',
+    expiryDate: '2027-01-16', // 65d left
+    batchNo: 'LOT-SDW-270116',
+    mfgDate: '2026-01-10'
+  },
+  {
+    id: 'perk-300-4',
+    image: 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&w=500&q=80',
+    title: 'Oxygen Flowmeter Humidifier Jar with Metal Connector',
+    price: 300,
+    category: 'Respiratory',
+    desc: 'Impact-resistant transparent humidifier jar with micro-diffuser filter.',
+    expiryDate: '2027-02-20', // 100d left
+    batchNo: 'LOT-OFH-270220',
+    mfgDate: '2026-02-01'
+  },
+  {
+    id: 'perk-300-2',
+    image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=500&q=80',
+    title: 'Universal 5-Lead Patient ECG Snap Wire Set',
+    price: 300,
+    category: 'Monitoring',
+    desc: 'AHA color-coded shielded patient lead wires with snap connectors.',
+    expiryDate: '2027-05-15',
+    batchNo: 'LOT-E5L-270515',
+    mfgDate: '2026-05-01'
+  },
 
-  // ₹350
-  { id: 'perk-350-1', title: 'Wall-Mounted Radiation Protective Apron Hanger', price: 350, category: 'Safety', desc: 'Heavy-duty steel hanger bracket for hospital lead aprons & thyroid collars.' },
-  { id: 'perk-350-2', title: 'Autoclavable Medical Silicone Suction Tubing (3m)', price: 350, category: 'Surgical', desc: 'High-vacuum non-collapsible medical silicone tubing for surgical suction.' },
+  // --- ₹350 Surgical & Safety ---
+  {
+    id: 'perk-350-2',
+    image: 'https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=500&q=80',
+    title: 'Autoclavable Medical Silicone Suction Tubing (3m)',
+    price: 350,
+    category: 'Surgical',
+    desc: 'High-vacuum non-collapsible medical silicone tubing for surgical suction.',
+    expiryDate: '2027-01-08', // 57d left
+    batchNo: 'LOT-STB-270108',
+    mfgDate: '2026-01-05'
+  },
+  {
+    id: 'perk-350-3',
+    image: 'https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=500&q=80',
+    title: 'Autoclavable Bipolar Electrosurgical Forceps Cable (3m)',
+    price: 350,
+    category: 'Surgical',
+    desc: 'Reinforced 2-pin connector cable compatible with European generator standards.',
+    expiryDate: '2027-01-22', // 71d left
+    batchNo: 'LOT-BFC-270122',
+    mfgDate: '2026-01-15'
+  },
+  {
+    id: 'perk-350-4',
+    image: 'https://images.unsplash.com/photo-1584744982491-665216d95f8b?auto=format&fit=crop&w=500&q=80',
+    title: 'Diagnostic LED Medical Penlight with Pupil Gauge',
+    price: 350,
+    category: 'Diagnostics',
+    desc: 'Durable anodized aluminum penlight with warm natural light & ruler.',
+    expiryDate: '2027-03-05', // 113d left
+    batchNo: 'LOT-PLT-270305',
+    mfgDate: '2026-02-20'
+  },
+  {
+    id: 'perk-350-1',
+    image: 'https://images.unsplash.com/photo-1584467735871-8e85353a8413?auto=format&fit=crop&w=500&q=80',
+    title: 'Wall-Mounted Radiation Protective Apron Hanger',
+    price: 350,
+    category: 'Safety',
+    desc: 'Heavy-duty steel hanger bracket for hospital lead aprons & thyroid collars.',
+    expiryDate: '2027-06-20',
+    batchNo: 'LOT-RAH-270620',
+    mfgDate: '2026-06-01'
+  },
 
-  // ₹400
-  { id: 'perk-400-1', title: 'Radiation Safety Protective Lead Eyewear', price: 400, category: 'Safety', desc: '0.75mm Pb equivalent anti-scatter surgical radiation safety glasses.' },
-  { id: 'perk-400-2', title: 'Defibrillator Paediatric Paddle Adaptor Set', price: 400, category: 'Emergency', desc: 'Snap-on pediatric electrode surface adapter for biphasic defibrillators.' },
+  // --- ₹400 Emergency & Safety ---
+  {
+    id: 'perk-400-2',
+    image: 'https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&w=500&q=80',
+    title: 'Defibrillator Paediatric Paddle Adaptor Set',
+    price: 400,
+    category: 'Emergency',
+    desc: 'Snap-on pediatric electrode surface adapter for biphasic defibrillators.',
+    expiryDate: '2027-01-12', // 61d left
+    batchNo: 'LOT-PAD-270112',
+    mfgDate: '2026-01-10'
+  },
+  {
+    id: 'perk-400-3',
+    image: 'https://images.unsplash.com/photo-1584467735871-8e85353a8413?auto=format&fit=crop&w=500&q=80',
+    title: 'Radiation Safety Lead Thyroid Collar Shield (0.5mm Pb)',
+    price: 400,
+    category: 'Safety',
+    desc: 'Velcro-closure lightweight lead protective neck collar against scatter X-rays.',
+    expiryDate: '2027-01-30', // 79d left
+    batchNo: 'LOT-THY-270130',
+    mfgDate: '2026-01-20'
+  },
+  {
+    id: 'perk-400-4',
+    image: 'https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=500&q=80',
+    title: 'Stainless Steel Surgical Instrument Tray with Lid (10x8)',
+    price: 400,
+    category: 'Surgical',
+    desc: 'Seamless 304 medical grade stainless steel sterilization container.',
+    expiryDate: '2027-04-05', // 144d left
+    batchNo: 'LOT-TRY-270405',
+    mfgDate: '2026-03-15'
+  },
+  {
+    id: 'perk-400-1',
+    image: 'https://images.unsplash.com/photo-1584467735871-8e85353a8413?auto=format&fit=crop&w=500&q=80',
+    title: 'Radiation Safety Protective Lead Eyewear',
+    price: 400,
+    category: 'Safety',
+    desc: '0.75mm Pb equivalent anti-scatter surgical radiation safety glasses.',
+    expiryDate: '2027-06-30',
+    batchNo: 'LOT-RLE-270630',
+    mfgDate: '2026-06-15'
+  },
 
-  // ₹450
-  { id: 'perk-450-1', title: 'Equipment Stand Universal Mounting Bracket', price: 450, category: 'Hardware', desc: 'Heavy-duty aluminum multi-angle pole clamp plate for monitors.' },
-  { id: 'perk-450-2', title: 'Oxygen Flowmeter Bubble Humidifier Bottle Kit', price: 450, category: 'Respiratory', desc: 'Unbreakable polycarbonate bottle with pressure safety relief valve.' },
+  // --- ₹450 & Above ---
+  {
+    id: 'perk-450-2',
+    image: 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&w=500&q=80',
+    title: 'Oxygen Flowmeter Bubble Humidifier Bottle Kit',
+    price: 450,
+    category: 'Respiratory',
+    desc: 'Unbreakable polycarbonate bottle with pressure safety relief valve.',
+    expiryDate: '2027-02-10',
+    batchNo: 'LOT-BHK-270210',
+    mfgDate: '2026-02-01'
+  },
+  {
+    id: 'perk-450-1',
+    image: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=500&q=80',
+    title: 'Equipment Stand Universal Mounting Bracket',
+    price: 450,
+    category: 'Hardware',
+    desc: 'Heavy-duty aluminum multi-angle pole clamp plate for monitors.',
+    expiryDate: '2027-07-15',
+    batchNo: 'LOT-UMB-270715',
+    mfgDate: '2026-07-01'
+  },
 
   // ₹500
-  { id: 'perk-500-1', title: 'Biomedical Consumables & Calibration Accessories Pack', price: 500, category: 'Calibration', desc: 'Quality control calibration phantom, grounding leads, and 1-month clinical pack.' },
-  { id: 'perk-500-2', title: '1-Year Preventative Maintenance Checklist Kit', price: 500, category: 'Service', desc: 'OEM filter replacement pack, medical lubricant, and service verification kit.' },
+  {
+    id: 'perk-500-1',
+    image: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=500&q=80',
+    title: 'Biomedical Consumables & Calibration Accessories Pack',
+    price: 500,
+    category: 'Calibration',
+    desc: 'Quality control calibration phantom, grounding leads, and 1-month clinical pack.',
+    expiryDate: '2027-01-18', // 67d left
+    batchNo: 'LOT-BCK-270118',
+    mfgDate: '2026-01-15'
+  },
+  {
+    id: 'perk-500-2',
+    image: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=500&q=80',
+    title: '1-Year Preventative Maintenance Checklist Kit',
+    price: 500,
+    category: 'Service',
+    desc: 'OEM filter replacement pack, medical lubricant, and service verification kit.',
+    expiryDate: '2027-08-15',
+    batchNo: 'LOT-PMK-270815',
+    mfgDate: '2026-08-01'
+  },
 
   // ₹600
-  { id: 'perk-600-1', title: 'Heavy-Duty Locking Mobile Stand Casters (Set of 4)', price: 600, category: 'Hardware', desc: 'Anti-static 3-inch medical swivel wheels with dual-action brakes.' },
-  { id: 'perk-600-2', title: 'Adult SpO2 Extension Cable (3 Meter Shielded)', price: 600, category: 'Monitoring', desc: 'Low-noise shielded sensor extension cable with DB9 gold pins.' },
+  {
+    id: 'perk-600-2',
+    image: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=500&q=80',
+    title: 'Adult SpO2 Extension Cable (3 Meter Shielded)',
+    price: 600,
+    category: 'Monitoring',
+    desc: 'Low-noise shielded sensor extension cable with DB9 gold pins.',
+    expiryDate: '2027-02-20',
+    batchNo: 'LOT-SXC-270220',
+    mfgDate: '2026-02-15'
+  },
+  {
+    id: 'perk-600-1',
+    image: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=500&q=80',
+    title: 'Heavy-Duty Locking Mobile Stand Casters (Set of 4)',
+    price: 600,
+    category: 'Hardware',
+    desc: 'Anti-static 3-inch medical swivel wheels with dual-action brakes.',
+    expiryDate: '2027-09-10',
+    batchNo: 'LOT-CST-270910',
+    mfgDate: '2026-09-01'
+  },
 
   // ₹700
-  { id: 'perk-700-1', title: 'Silicone Manual Resuscitator Ambu Bag with Reservoir', price: 700, category: 'Emergency', desc: 'Autoclavable adult silicone resuscitator with oxygen reservoir and mask.' },
-  { id: 'perk-700-2', title: 'Certified Biomedical Pressure Calibration Gauge', price: 700, category: 'Testing', desc: 'Precision test gauge for suction units, autoclaves, and BP simulators.' },
+  {
+    id: 'perk-700-1',
+    image: 'https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&w=500&q=80',
+    title: 'Silicone Manual Resuscitator Ambu Bag with Reservoir',
+    price: 700,
+    category: 'Emergency',
+    desc: 'Autoclavable adult silicone resuscitator with oxygen reservoir and mask.',
+    expiryDate: '2027-03-10',
+    batchNo: 'LOT-ABG-270310',
+    mfgDate: '2026-03-01'
+  },
+  {
+    id: 'perk-700-2',
+    image: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=500&q=80',
+    title: 'Certified Biomedical Pressure Calibration Gauge',
+    price: 700,
+    category: 'Testing',
+    desc: 'Precision test gauge for suction units, autoclaves, and BP simulators.',
+    expiryDate: '2027-10-25',
+    batchNo: 'LOT-PCG-271025',
+    mfgDate: '2026-10-15'
+  },
 
   // ₹800
-  { id: 'perk-800-1', title: 'Hospital Grade Power Cord with Ferrite Core (5m)', price: 800, category: 'Electrical', desc: 'Heavy-duty 16A hospital-grade cable with molded earth pin & noise filter.' },
-  { id: 'perk-800-2', title: 'Surgical C-Arm Sterile Barrier Drape Kit (5 Sets)', price: 800, category: 'Surgical', desc: 'Transparent sterile drape kit with elastic bands for intraoperative imaging.' },
+  {
+    id: 'perk-800-2',
+    image: 'https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=500&q=80',
+    title: 'Surgical C-Arm Sterile Barrier Drape Kit (5 Sets)',
+    price: 800,
+    category: 'Surgical',
+    desc: 'Transparent sterile drape kit with elastic bands for intraoperative imaging.',
+    expiryDate: '2027-03-25',
+    batchNo: 'LOT-BDK-270325',
+    mfgDate: '2026-03-15'
+  },
+  {
+    id: 'perk-800-1',
+    image: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=500&q=80',
+    title: 'Hospital Grade Power Cord with Ferrite Core (5m)',
+    price: 800,
+    category: 'Electrical',
+    desc: 'Heavy-duty 16A hospital-grade cable with molded earth pin & noise filter.',
+    expiryDate: '2027-11-15',
+    batchNo: 'LOT-PWC-271115',
+    mfgDate: '2026-11-01'
+  },
 
   // ₹900
-  { id: 'perk-900-1', title: 'High-Sensitivity Adult SpO2 Finger Sensor Probe', price: 900, category: 'Monitoring', desc: 'Reusable soft silicone finger probe with optical sensor for patient monitors.' },
-  { id: 'perk-900-2', title: 'Neonatal Phototherapy Eye Protection Shields (Box 50)', price: 900, category: 'Pediatric', desc: 'Certified UV/Blue light blocking gentle adhesive neonatal eye protectors.' },
+  {
+    id: 'perk-900-2',
+    image: 'https://images.unsplash.com/photo-1584467735871-8e85353a8413?auto=format&fit=crop&w=500&q=80',
+    title: 'Neonatal Phototherapy Eye Protection Shields (Box 50)',
+    price: 900,
+    category: 'Pediatric',
+    desc: 'Certified UV/Blue light blocking gentle adhesive neonatal eye protectors.',
+    expiryDate: '2027-04-15',
+    batchNo: 'LOT-NES-270415',
+    mfgDate: '2026-04-01'
+  },
+  {
+    id: 'perk-900-1',
+    image: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=500&q=80',
+    title: 'High-Sensitivity Adult SpO2 Finger Sensor Probe',
+    price: 900,
+    category: 'Monitoring',
+    desc: 'Reusable soft silicone finger probe with optical sensor for patient monitors.',
+    expiryDate: '2027-12-15',
+    batchNo: 'LOT-FSP-271215',
+    mfgDate: '2026-12-01'
+  },
 
   // ₹1000
-  { id: 'perk-1000-1', title: '1-Year Extended Warranty & Calibration Certificate', price: 1000, category: 'Warranty', desc: 'Official NABL-traceable QA certification with 1-year extended maintenance.' },
-  { id: 'perk-1000-2', title: 'Medical Heavy-Duty Voltage Surge & Spike Suppressor', price: 1000, category: 'Protection', desc: 'High-joule EMI/RFI filtration power protector for sensitive diagnostics.' }
+  {
+    id: 'perk-1000-2',
+    image: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=500&q=80',
+    title: 'Medical Heavy-Duty Voltage Surge & Spike Suppressor',
+    price: 1000,
+    category: 'Protection',
+    desc: 'High-joule EMI/RFI filtration power protector for sensitive diagnostics.',
+    expiryDate: '2027-05-30',
+    batchNo: 'LOT-VSS-270530',
+    mfgDate: '2026-05-15'
+  },
+  {
+    id: 'perk-1000-1',
+    image: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=500&q=80',
+    title: '1-Year Extended Warranty & Calibration Certificate',
+    price: 1000,
+    category: 'Warranty',
+    desc: 'Official NABL-traceable QA certification with 1-year extended maintenance.',
+    expiryDate: '2028-01-15',
+    batchNo: 'LOT-WRT-280115',
+    mfgDate: '2027-01-01'
+  }
 ];
+
+
+// ============================================================================
+// CLEAN 2-COLUMN LEAD INQUIRY CARD: LEFT (CUSTOMER DETAILS) | RIGHT (PRODUCTS)
+// ============================================================================
+const LeadInquiryCard = ({
+  lead,
+  idx,
+  isAdmin,
+  getMatchedCustomer,
+  cleanLeadHospital,
+  getLeadProducts,
+  isLeadNegotiablePending,
+  handleRequestAdminApproval,
+  openNegotiationModal,
+  handleMakeQuotationFromLead,
+  handleDeleteWebLead
+}) => {
+  const matchedCustomer = getMatchedCustomer(lead);
+  const rawHosp = (matchedCustomer?.hospitalName || lead.hospital || lead.hospitalName || lead.rawLeadData?.hospitalName || '').trim();
+  const displayHospital = cleanLeadHospital(rawHosp);
+  const displayContact = matchedCustomer?.fullName || lead.doctorName || lead.customerName || 'NA';
+  const displayPhone = matchedCustomer?.phone || lead.phone || 'NA';
+  const displayEmail = matchedCustomer?.email || lead.email || 'NA';
+  const displayLocation = matchedCustomer?.district || matchedCustomer?.address || lead.city || 'NA';
+  const leadProducts = getLeadProducts(lead);
+  const isBulk = leadProducts.length > 2;
+  const isMulti = leadProducts.length > 1 || lead.equipment?.toLowerCase().includes('bulk') || lead.rawLeadData?.isMultiItem;
+
+  const displayTotal = lead.quoteAmount
+    ? (String(lead.quoteAmount).startsWith('₹') ? lead.quoteAmount : `₹${lead.quoteAmount}`)
+    : `₹${leadProducts.reduce((sum, p) => sum + (Number(p.price || p.unitPrice || 0) * Number(p.qty || 1)), 0).toLocaleString('en-IN')}`;
+
+  return (
+    <div
+      key={lead.id || lead._id || idx}
+      className="rounded-2xl transition-all duration-200 bg-white border border-slate-200/90 hover:border-amber-400 shadow-sm hover:shadow-md relative overflow-hidden flex flex-col group"
+    >
+      {/* Accent Strip */}
+      <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-amber-500 via-orange-500 to-rose-500" />
+
+      {/* Top Header Row */}
+      <div className="pl-5 pr-4 py-3 bg-gradient-to-r from-slate-50 via-amber-50/20 to-slate-50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="flex items-center gap-1.5 font-black text-slate-900 text-sm sm:text-base tracking-tight">
+            <Building2 size={16} className="text-amber-600 shrink-0" />
+            <span>{displayHospital}</span>
+          </div>
+
+          {lead.siteDomain && (
+            <span className="text-[11px] bg-white text-slate-600 font-mono px-2 py-0.5 rounded-lg border border-slate-200 flex items-center gap-1 font-semibold shadow-2xs">
+              <span>🌐</span>
+              <span>{lead.siteDomain}</span>
+            </span>
+          )}
+
+          <span className="text-xs text-slate-500 font-mono flex items-center gap-1 bg-white px-2 py-0.5 rounded-lg border border-slate-200 shadow-2xs">
+            <Clock size={11} className="text-slate-400" />
+            <span>
+              {lead.dateTime || (lead.createdAt ? new Date(lead.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : (lead.date || 'Just now'))}
+            </span>
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {leadProducts.length > 2 ? (
+            <span className="px-3 py-1 rounded-full bg-gradient-to-r from-indigo-50 to-sky-50 text-indigo-700 border border-indigo-200 text-xs font-bold flex items-center gap-1.5 shadow-2xs">
+              <Package size={13} className="text-indigo-600" />
+              <span>Bulk Request ({leadProducts.length} Products)</span>
+            </span>
+          ) : leadProducts.length === 2 ? (
+            <span className="px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-800 border border-sky-200 text-xs font-bold flex items-center gap-1">
+              <Package size={12} className="text-sky-600" />
+              <span>2 Products</span>
+            </span>
+          ) : (
+            <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              <span>New RFQ</span>
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* If > 2 products, use the spacious 2-Column Split View. Otherwise, keep it compact and clean! */}
+      {isBulk ? (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 flex-1 pl-2">
+          {/* LEFT COLUMN: Customer Details (lg:col-span-5) */}
+          <div className="p-4 sm:p-5 bg-slate-50/50 border-b lg:border-b-0 lg:border-r border-slate-100 lg:col-span-5 space-y-2.5">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 mb-1">
+              <User size={12} className="text-slate-400" />
+              <span>Customer Details</span>
+            </div>
+
+            <div className="space-y-2">
+              {/* Customer Name */}
+              <div className="bg-white rounded-xl p-2.5 border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+                  <User size={13} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[9px] text-slate-400 font-bold uppercase">Customer Name</div>
+                  <div className="text-xs font-bold text-slate-900 truncate" title={displayContact}>{displayContact}</div>
+                </div>
+              </div>
+
+              {/* Mobile Phone */}
+              <div className="bg-white rounded-xl p-2.5 border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                  <Phone size={13} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[9px] text-slate-400 font-bold uppercase">Mobile Number</div>
+                  <div className="text-xs font-mono font-bold text-slate-800 truncate">{displayPhone || 'NA'}</div>
+                </div>
+              </div>
+
+              {/* Official Email */}
+              <div className="bg-white rounded-xl p-2.5 border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                  <Mail size={13} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[9px] text-slate-400 font-bold uppercase">Email Address</div>
+                  <div className="text-xs font-medium text-slate-700 truncate" title={displayEmail}>{displayEmail || 'NA'}</div>
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="bg-white rounded-xl p-2.5 border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                  <MapPin size={13} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[9px] text-slate-400 font-bold uppercase">Location</div>
+                  <div className="text-xs font-semibold text-slate-800 truncate" title={displayLocation}>{displayLocation}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: Products In Inquiry (lg:col-span-7) */}
+          <div className="p-4 sm:p-5 lg:col-span-7 flex flex-col justify-between bg-white space-y-3">
+            <div>
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <Package size={12} className="text-indigo-500" />
+                  <span>Requested Equipment ({leadProducts.length} Items)</span>
+                </div>
+                <div className="text-xs font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-lg shadow-2xs">
+                  Total: <span className="font-black font-mono">{displayTotal}</span>
+                </div>
+              </div>
+
+              {/* Products List */}
+              <div className="mt-2.5 space-y-2 max-h-[260px] overflow-y-auto pr-1 custom-scrollbar">
+                {leadProducts.map((p, pIdx) => {
+                  const pQty = p.qty || p.quantity || 1;
+                  const pPrice = Number(p.price || p.rate || p.unitPrice || 0);
+                  const pTotal = pPrice * pQty;
+
+                  return (
+                    <div
+                      key={p.id || p.sku || pIdx}
+                      className="bg-slate-50/70 hover:bg-indigo-50/30 rounded-xl p-3 border border-slate-200/70 hover:border-indigo-200 transition-all flex items-center justify-between gap-3 text-xs"
+                    >
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="font-bold text-slate-900 line-clamp-1 text-xs" title={p.name || p.title || p.productName}>
+                          <span className="text-indigo-600 font-mono font-bold mr-1.5">#{pIdx + 1}</span>
+                          <span>{p.name || p.title || p.productName || 'Equipment Item'}</span>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap text-[11px] text-slate-500 font-mono">
+                          {p.sku && (
+                            <span className="bg-white px-1.5 py-0.5 rounded border border-slate-200 text-slate-600 font-semibold">
+                              {p.sku}
+                            </span>
+                          )}
+                          {p.brand && <span className="text-slate-400">• {p.brand}</span>}
+                          {p.warranty && <span className="text-slate-400 hidden sm:inline">• {p.warranty}</span>}
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <div className="font-mono font-black text-slate-900 text-xs">
+                          ₹{pTotal > 0 ? pTotal.toLocaleString('en-IN') : pPrice.toLocaleString('en-IN')}
+                        </div>
+                        <div className="text-[10px] text-slate-500 font-mono">
+                          {pQty > 1 ? `${pQty} × ₹${pPrice.toLocaleString('en-IN')}` : `Qty: ${pQty}`}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* COMPACT SINGLE-STACK VIEW (1 or 2 items only) */
+        <div className="p-4 sm:p-5 space-y-3 bg-white flex-1 pl-6">
+          {/* Horizontal Customer Details Row */}
+          <div className="flex items-center gap-2 flex-wrap text-xs bg-slate-50/80 p-2.5 rounded-xl border border-slate-200/70">
+            <span className="flex items-center gap-1.5 font-bold text-slate-900 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
+              <User size={13} className="text-sky-600 shrink-0" />
+              <span>{displayContact}</span>
+            </span>
+
+            {displayPhone && displayPhone !== 'NA' && (
+              <span className="flex items-center gap-1.5 font-mono font-bold text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
+                <Phone size={12} className="text-emerald-600 shrink-0" />
+                <span>{displayPhone}</span>
+              </span>
+            )}
+
+            {displayEmail && displayEmail !== 'NA' && (
+              <span className="flex items-center gap-1.5 text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs hidden md:inline-flex">
+                <Mail size={12} className="text-indigo-600 shrink-0" />
+                <span className="truncate max-w-[200px]" title={displayEmail}>{displayEmail}</span>
+              </span>
+            )}
+
+            {displayLocation && displayLocation !== 'NA' && (
+              <span className="flex items-center gap-1.5 text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
+                <MapPin size={12} className="text-amber-600 shrink-0" />
+                <span>{displayLocation}</span>
+              </span>
+            )}
+
+            <span className="ml-auto font-mono font-bold text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg shadow-2xs">
+              Total: <span className="font-black">{displayTotal}</span>
+            </span>
+          </div>
+
+          {/* Requested Equipment Items (1 or 2 items) */}
+          <div className="space-y-2">
+            {leadProducts.map((p, pIdx) => {
+              const pQty = p.qty || p.quantity || 1;
+              const pPrice = Number(p.price || p.rate || p.unitPrice || 0);
+              const pTotal = pPrice * pQty;
+
+              return (
+                <div
+                  key={p.id || p.sku || pIdx}
+                  className="bg-slate-50/70 hover:bg-indigo-50/30 rounded-xl p-3 border border-slate-200/70 hover:border-indigo-200 transition-all flex items-center justify-between gap-3 text-xs"
+                >
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="font-bold text-slate-900 line-clamp-1 text-xs flex items-center gap-1.5" title={p.name || p.title || p.productName}>
+                      <Package size={14} className="text-indigo-500 shrink-0" />
+                      <span>{p.name || p.title || p.productName || 'Equipment Item'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap text-[11px] text-slate-500 font-mono">
+                      {p.sku && (
+                        <span className="bg-white px-1.5 py-0.5 rounded border border-slate-200 text-slate-600 font-semibold">
+                          {p.sku}
+                        </span>
+                      )}
+                      {p.brand && <span className="text-slate-400">• {p.brand}</span>}
+                      {p.warranty && <span className="text-slate-400 hidden sm:inline">• {p.warranty}</span>}
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <div className="font-mono font-black text-slate-900 text-xs">
+                      ₹{pTotal > 0 ? pTotal.toLocaleString('en-IN') : pPrice.toLocaleString('en-IN')}
+                    </div>
+                    <div className="text-[10px] text-slate-500 font-mono">
+                      {pQty > 1 ? `${pQty} × ₹${pPrice.toLocaleString('en-IN')}` : `Qty: ${pQty}`}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* BOTTOM FOOTER BAR: WhatsApp, Status / Bids & MAKE QUOTATION Button */}
+      <div className="pl-5 pr-4 py-3 bg-slate-50 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          {displayPhone && (
+            <a
+              href={`https://wa.me/91${(displayPhone || '').replace(/\D/g, '').slice(-10)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition flex items-center gap-1.5 border border-emerald-200 cursor-pointer shadow-2xs"
+              title="Chat on WhatsApp"
+            >
+              <MessageCircle size={14} />
+              <span>WhatsApp Chat</span>
+            </a>
+          )}
+
+          {/* Pricing / Negotiation Badges */}
+          {lead.isPriceNegotiated || lead.expectedPrice ? (
+            lead.negotiationStatus === 'approved' ? (
+              <div className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 font-mono font-bold text-xs flex items-center gap-1.5 shadow-2xs">
+                <CheckCircle2 size={13} className="text-emerald-600" />
+                <span>Approved: ₹{Number(lead.approvedPrice || lead.price || 0).toLocaleString('en-IN')}</span>
+              </div>
+            ) : lead.negotiationStatus === 'counter_offered' ? (
+              <div className="px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-300 text-indigo-900 font-mono font-bold text-xs flex items-center gap-1.5 shadow-2xs">
+                <span>🤝</span>
+                <span>Counter: ₹{Number(lead.adminCounterPrice || lead.price || 0).toLocaleString('en-IN')}</span>
+              </div>
+            ) : (
+              <div className="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 font-mono font-bold text-xs flex items-center gap-1.5 shadow-2xs animate-pulse">
+                <Tag size={13} className="text-amber-600" />
+                <span>Target Bid: ₹{Number(lead.expectedPrice || lead.price || 0).toLocaleString('en-IN')}</span>
+              </div>
+            )
+          ) : null}
+        </div>
+
+        {/* Right Action Buttons */}
+        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+          {/* Delete button */}
+          <button
+            type="button"
+            onClick={(e) => handleDeleteWebLead(lead, e)}
+            className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition cursor-pointer border border-slate-200"
+            title="Permanently Delete Lead"
+          >
+            <Trash2 size={15} />
+          </button>
+
+          {/* Edit negotiation price button if admin */}
+          {isAdmin && (lead.isPriceNegotiated || lead.approvedPrice) && (
+            <button
+              type="button"
+              onClick={() => openNegotiationModal(lead)}
+              className="p-2.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition cursor-pointer border border-slate-200"
+              title="Adjust approved price or counter offer"
+            >
+              <Edit3 size={15} />
+            </button>
+          )}
+
+          {/* Prominent MAKE QUOTATION Button */}
+          {isLeadNegotiablePending(lead) ? (
+            !isAdmin ? (
+              <button
+                type="button"
+                onClick={() => handleRequestAdminApproval(lead)}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-black shadow-md transition flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 ring-2 ring-amber-400/30 uppercase tracking-wide"
+                title="Customer submitted target discount request. Admin price authorization required."
+              >
+                <Lock size={14} className="text-amber-100" />
+                <span>Request Admin Approval</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => openNegotiationModal(lead)}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-700 hover:to-rose-700 text-white text-xs font-black shadow-md transition flex items-center gap-2 cursor-pointer animate-pulse hover:scale-105 active:scale-95 ring-2 ring-rose-400/30 uppercase tracking-wide"
+                title="Review Customer Expected Price vs Actual MRP and Approve or Counter"
+              >
+                <ShieldCheck size={14} className="text-amber-100" />
+                <span>Review & Approve Price</span>
+              </button>
+            )
+          ) : (
+            <button
+              type="button"
+              onClick={() => handleMakeQuotationFromLead(lead)}
+              className={`px-6 py-2.5 rounded-xl font-black text-xs shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 uppercase tracking-wide ${lead.negotiationStatus === 'approved'
+                ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 hover:from-emerald-700 hover:to-sky-700 text-white ring-2 ring-emerald-400/30'
+                : lead.negotiationStatus === 'counter_offered'
+                  ? 'bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white ring-2 ring-indigo-400/30'
+                  : 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white ring-2 ring-amber-400/30'
+                }`}
+            >
+              <Sparkles size={14} className="text-white" />
+              <span>
+                {lead.negotiationStatus === 'approved'
+                  ? `Make Quotation (Approved: ₹${Number(lead.approvedPrice || lead.price || 0).toLocaleString('en-IN')})`
+                  : lead.negotiationStatus === 'counter_offered'
+                    ? `Make Quotation (Counter: ₹${Number(lead.adminCounterPrice || lead.price || 0).toLocaleString('en-IN')})`
+                    : `Make Quotation ${leadProducts.length > 1 ? `(${leadProducts.length} Items)` : ''}`}
+              </span>
+              <ArrowRight size={13} />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 export default function WebQuotationManager({
   products = [],
@@ -299,8 +1274,12 @@ export default function WebQuotationManager({
   const [complementaryTitle, setComplementaryTitle] = useState('Biomedical Consumables & Calibration Accessories Pack');
   const [complementaryValue, setComplementaryValue] = useState(100);
   const [complementaryBullets, setComplementaryBullets] = useState('Official Company Complimentary Deal Add-on • Valued at ₹100 • Included with Deal');
-  const [selectedPerkFilter, setSelectedPerkFilter] = useState('match'); // 'match' | 'all' | number
+  const [selectedPerkFilter, setSelectedPerkFilter] = useState('all_fitting'); // 'all_fitting' | 'exact' | 'all' | number
+  const [customPriceInput, setCustomPriceInput] = useState('');
   const [perkSearchQuery, setPerkSearchQuery] = useState('');
+  const [expiryAdvisoryData, setExpiryAdvisoryData] = useState(null); // { selectedPerk, earlierPerk, allEarlierPerks }
+  const [expiryAdvisoryBanner, setExpiryAdvisoryBanner] = useState(null); // Non-blocking advisory notice banner
+  const [perkSortMode, setPerkSortMode] = useState('fefo'); // 'fefo' (near-expiry first) | 'price_asc'
 
   // Employee On-Call Bargain & Admin Concession States (Quotations)
   const [onCallBargainQuote, setOnCallBargainQuote] = useState(null);
@@ -361,7 +1340,7 @@ export default function WebQuotationManager({
     return Math.max(0, effectiveBudget - currentComplimentaryTotal);
   }, [effectiveBudget, currentComplimentaryTotal]);
 
-  const handleAddComplimentaryProduct = (prodTitle, prodPrice, prodBullets = '') => {
+  const handleAddComplimentaryProduct = (prodTitle, prodPrice, prodBullets = '', prodExpiry = '', prodBatch = '') => {
     const priceNum = parseFloat(prodPrice) || 0;
     if (priceNum <= 0) {
       alert('Please enter a valid price for the complimentary item.');
@@ -373,17 +1352,28 @@ export default function WebQuotationManager({
       return;
     }
 
+    const expDetails = prodExpiry ? getExpiryDetails(prodExpiry) : null;
+    const defaultBullets = [
+      `• Official Company Complimentary Concession Add-on`,
+      `• Authorized Allowance: ₹${priceNum.toLocaleString('en-IN')} (Free of Charge with Equipment)`,
+      `• Quantity: 1 No`,
+      prodExpiry ? `• Expiry Date: ${expDetails?.formatted || prodExpiry} (Batch/Lot: ${prodBatch || 'LOT-RB-COMP'})` : null,
+      `• Status: Concession Granted & Completed`
+    ].filter(Boolean).join('\n');
+
     const newItem = {
       id: `comp-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
       sr: items.length + 1,
       itemCode: 'FREE-PERK',
       title: `🎁 [COMPLIMENTARY] ${prodTitle}`,
-      bullets: prodBullets || `• Official Company Complimentary Concession Add-on\n• Authorized Allowance: ₹${priceNum.toLocaleString('en-IN')} (Free of Charge with Equipment)\n• Quantity: 1 No\n• Status: Concession Granted & Completed`,
+      bullets: prodBullets || defaultBullets,
       qty: 1,
       unitLabel: 'No',
       unitPrice: priceNum,
       isComplimentary: true,
-      complimentaryValue: priceNum
+      complimentaryValue: priceNum,
+      expiryDate: prodExpiry,
+      batchNo: prodBatch
     };
 
     // Guarantee actual equipment products stay on top, and complimentary items are placed BELOW them
@@ -397,9 +1387,57 @@ export default function WebQuotationManager({
     setSuccessToast(`🎁 Added "${prodTitle}" (₹${priceNum.toLocaleString('en-IN')}) below actual products! ${hasConcession ? `Remaining: ₹${(remainingBudget - priceNum).toLocaleString('en-IN')}` : ''}`);
   };
 
+  // Near-Expiry Priority Interception: Warns employee if earlier-expiring biomedical stock exists
+  const handlePerkAddAttempt = (perk) => {
+    const priceNum = parseFloat(perk.price) || 0;
+    if (priceNum <= 0) {
+      alert('Please enter a valid price for the complimentary item.');
+      return;
+    }
+    const hasConcession = effectiveBudget > 0;
+    if (hasConcession && priceNum > remainingBudget) {
+      alert(`Cannot add! Item price (₹${priceNum.toLocaleString('en-IN')}) exceeds your remaining complimentary allowance of ₹${remainingBudget.toLocaleString('en-IN')}.\n\nMaximum allowable addition is ₹${remainingBudget.toLocaleString('en-IN')}.`);
+      return;
+    }
+
+    if (perk.expiryDate) {
+      const selectedExpTime = new Date(perk.expiryDate).getTime();
+
+      // Find eligible items in catalog that fit in remaining budget and expire earlier
+      const earlierCandidates = COMPLIMENTARY_PERK_CATALOG.filter(p => {
+        if (p.id === perk.id) return false;
+        if (!p.expiryDate) return false;
+        if (hasConcession && p.price > remainingBudget) return false;
+        const pExpTime = new Date(p.expiryDate).getTime();
+        return pExpTime < selectedExpTime;
+      }).sort((a, b) => new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime());
+
+      if (earlierCandidates.length > 0) {
+        // Open the sleek, no-boundation advisory comparison modal
+        setExpiryAdvisoryData({
+          selectedPerk: perk,
+          earlierPerk: earlierCandidates[0],
+          allEarlierPerks: earlierCandidates
+        });
+        return;
+      }
+    }
+
+    // No earlier stock conflict, proceed with direct addition
+    handleAddComplimentaryProduct(perk.title, perk.price, perk.desc, perk.expiryDate, perk.batchNo);
+  };
+
   const handleRemoveComplimentaryItem = (itemId) => {
     setItems(prev => prev.filter(it => it.id !== itemId));
     setSuccessToast('Removed complimentary item from quotation.');
+  };
+
+  const handleClearAllComplimentaryItems = () => {
+    setItems(prev => {
+      const nonComp = prev.filter(it => !it.isComplimentary && !it.title?.includes('COMPLIMENTARY'));
+      return nonComp.map((it, idx) => ({ ...it, sr: idx + 1 }));
+    });
+    setSuccessToast('All complimentary perks removed.');
   };
 
   // Handlers for On-Call Re-Bargain & Admin Concession (Multi-product support & Two-Option Approval)
@@ -723,6 +1761,7 @@ export default function WebQuotationManager({
 
     setLockedFloorPrice(floor);
     setAllowedComplementaryBudget(budget);
+    setSelectedPerkFilter('all_fitting');
 
     setActiveMainTab('complementary');
     if (typeof window !== 'undefined') {
@@ -1031,6 +2070,36 @@ export default function WebQuotationManager({
     }
     return result;
   }, [webLeads, processedLeadIds]);
+
+  const getLeadProducts = (lead) => {
+    const raw = lead?.rawLeadData || {};
+    if (Array.isArray(raw.cartProducts) && raw.cartProducts.length > 0) {
+      return raw.cartProducts;
+    }
+    if (Array.isArray(lead?.cartProducts) && lead.cartProducts.length > 0) {
+      return lead.cartProducts;
+    }
+    if (Array.isArray(lead?.items) && lead.items.length > 0) {
+      return lead.items;
+    }
+    if (Array.isArray(raw.items) && raw.items.length > 0) {
+      return raw.items;
+    }
+    const singleName = lead?.productName || lead?.equipment || raw.productName || 'Medical Equipment';
+    const singleSku = lead?.productSku || raw.productSku || '';
+    const singlePrice = lead?.price || raw.unitPrice || (lead?.quoteAmount ? parseFloat(String(lead.quoteAmount).replace(/[^0-9.]/g, '')) : 0);
+    const singleQty = lead?.quantity || raw.qty || 1;
+    const singleBrand = lead?.brandName || raw.brandName || raw.brand || '';
+    const singleWarranty = lead?.warranty || raw.warranty || '';
+    return [{
+      name: singleName,
+      sku: singleSku,
+      price: singlePrice,
+      qty: singleQty,
+      brand: singleBrand,
+      warranty: singleWarranty
+    }];
+  };
 
   const currentPendingLead = pendingWebLeads[selectedLeadIdx] || pendingWebLeads[0] || null;
 
@@ -1454,6 +2523,7 @@ export default function WebQuotationManager({
 
     const docName = (matchedCustomer?.fullName || lead.doctorName || raw.customerName || lead.customerName || '').trim();
     const finalCustomerName = (cleanHospitalName && cleanHospitalName !== 'NA') ? cleanHospitalName : (docName || 'NA');
+    const hospitalName = finalCustomerName;
     setCustomerName(finalCustomerName);
 
     const doctorPart = docName ? `Attn: ${docName}` : 'Attn: Procurement Officer';
@@ -1596,18 +2666,60 @@ export default function WebQuotationManager({
       unitPrice
     };
 
-    if (lead.items && Array.isArray(lead.items) && lead.items.length > 0) {
-      const parsedItems = lead.items.map((it, idx) => ({
-        id: `cart-item-${idx}-${Date.now()}`,
-        sr: idx + 1,
-        itemCode: it.sku || `ITEM-${idx + 1}`,
-        title: it.description || it.name,
-        bullets: it.specs || 'CDSCO Medical Device Certified • Complete On-Site Commissioning',
-        qty: it.quantity || 1,
-        unitLabel: 'No',
-        unitPrice: it.rate || it.price || 0
-      }));
-      setItems(parsedItems);
+    const rawCartList = (
+      (Array.isArray(lead.rawLeadData?.cartProducts) && lead.rawLeadData.cartProducts.length > 0) ? lead.rawLeadData.cartProducts :
+        (Array.isArray(lead.cartProducts) && lead.cartProducts.length > 0) ? lead.cartProducts :
+          (Array.isArray(lead.items) && lead.items.length > 0) ? lead.items :
+            (Array.isArray(lead.rawLeadData?.items) && lead.rawLeadData.items.length > 0) ? lead.rawLeadData.items :
+              null
+    );
+
+    let finalQuotationItems = [leadQuotationItem];
+
+    if (rawCartList && rawCartList.length > 0) {
+      finalQuotationItems = rawCartList.map((it, idx) => {
+        const itTitle = it.name || it.title || it.productName || it.description || `Equipment Item ${idx + 1}`;
+        const itSku = it.sku || it.productSku || `MED-ITEM-${idx + 1}`;
+        const itQty = parseInt(it.qty || it.quantity || 1, 10) || 1;
+        const itPrice = parseFloat(it.price || it.rate || it.unitPrice || 0);
+
+        const matchedCp = catalogProducts.find(cp =>
+          (it.id && cp.id === it.id) ||
+          (itSku && cp.sku && cp.sku.toLowerCase() === itSku.toLowerCase()) ||
+          (cp.name && cp.name.toLowerCase().includes(itTitle.toLowerCase())) ||
+          (itTitle && itTitle.toLowerCase().includes((cp.name || '').toLowerCase()))
+        );
+
+        let itemBullets = [];
+        if (matchedCp?.specs && typeof matchedCp.specs === 'object') {
+          itemBullets = Object.entries(matchedCp.specs).slice(0, 4).map(([k, v]) => `${k}: ${v}`);
+        } else if (matchedCp?.features && Array.isArray(matchedCp.features)) {
+          itemBullets = matchedCp.features.slice(0, 4);
+        }
+        if (itemBullets.length === 0 && it.warranty) {
+          itemBullets.push(it.warranty);
+        }
+        if (itemBullets.length === 0) {
+          itemBullets = [
+            'CDSCO Medical Device Rules 2017 & ISO 13485:2016 Certified Direct OEM Unit',
+            'Complete unboxing, hospital electrical grounding & on-site clinical commissioning',
+            'Includes Comprehensive OEM Warranty & 24/7 on-call engineering breakdown response'
+          ];
+        }
+
+        return {
+          id: `cart-item-${idx}-${Date.now()}`,
+          sr: idx + 1,
+          itemCode: itSku,
+          title: itTitle,
+          bullets: itemBullets.join('\n'),
+          qty: itQty,
+          unitLabel: 'No',
+          unitPrice: itPrice
+        };
+      });
+
+      setItems(finalQuotationItems);
     } else {
       setItems([leadQuotationItem]);
     }
@@ -1640,18 +2752,35 @@ export default function WebQuotationManager({
       setProcessedLeadIds(prev => [...prev, leadId]);
     }
 
+    // 4b. Multi-item subjects
+    const isMultiPortfolio = rawCartList && rawCartList.length > 1;
+    const computedSubjectLetter = isMultiPortfolio
+      ? `Quotation for Portfolio of ${rawCartList.length} Medical Equipment Systems`
+      : `Quotation purchase of ${itemTitle}`;
+    const computedSubjectQuotation = isMultiPortfolio
+      ? `Supply, Installation & Clinical Commissioning of ${rawCartList.length} Medical Diagnostic & OT Systems`
+      : `Purchase of ${itemTitle}${itemCode ? `, Model: ${itemCode}` : ''}`;
+
+    setSubjectLetter(computedSubjectLetter);
+    setSubjectQuotation(computedSubjectQuotation);
+
+    const totalQuotationAmount = finalQuotationItems.reduce(
+      (sum, it) => sum + ((Number(it.unitPrice) || 0) * (Number(it.qty) || 1)),
+      0
+    );
+
     // Save official quotation to /api/quotations
     const newQuotationRecord = {
       refNo: freshRef,
       leadId: lead.id,
       date: getTodayFormatted(),
-      customerName: hospitalName,
+      customerName: finalCustomerName,
       customerAddress1: [doctorPart, phonePart].filter(Boolean).join(', '),
       customerAddress2: [cityPart, emailPart].filter(Boolean).join(' • '),
-      subjectLetter: `Quotation purchase of ${itemTitle}`,
-      subjectQuotation: `Purchase of ${itemTitle}${itemCode ? `, Model: ${itemCode}` : ''}`,
-      items: [leadQuotationItem],
-      totalAmount: unitPrice * rawQty,
+      subjectLetter: computedSubjectLetter,
+      subjectQuotation: computedSubjectQuotation,
+      items: finalQuotationItems,
+      totalAmount: totalQuotationAmount,
       status: 'Ready',
       isManualAdminQuotation: true,
       lead
@@ -1707,7 +2836,7 @@ export default function WebQuotationManager({
     setActiveMainTab('quotation');
     setActiveLayout('preview');
     setPreviewPage('all');
-    setSuccessToast(`⚡ 4-Page Quotation Ready for ${hospitalName}! Full Page View active. Click " Edit Quotation" to modify details.`);
+    setSuccessToast(`⚡ 4-Page Quotation Ready for ${finalCustomerName}! Full Page View active. Click " Edit Quotation" to modify details.`);
     setLastActionTimestamp(Date.now());
     setIsProcessingLeadQuote(false);
     setHasNewLeadAlert(false);
@@ -2804,225 +3933,31 @@ Thank you for choosing Raj Biosis!`;
                   </button>
                 </div>
               ) : (
-                pendingWebLeads.map((lead, idx) => {
-                  const matchedCustomer = getMatchedCustomer(lead);
-                  const complete = isProfileComplete(lead);
-                  const rawHosp = (matchedCustomer?.hospitalName || lead.hospital || lead.hospitalName || lead.rawLeadData?.hospitalName || '').trim();
-                  const displayHospital = cleanLeadHospital(rawHosp);
-                  const displayContact = matchedCustomer?.fullName || lead.doctorName || lead.customerName || 'NA';
-                  const displayPhone = matchedCustomer?.phone || lead.phone || 'NA';
-                  const displayEmail = matchedCustomer?.email || lead.email || 'NA';
-                  const displayLocation = matchedCustomer?.district || matchedCustomer?.address || lead.city || 'NA';
-
-                  return (
-                    <div
-                      key={lead.id || lead._id || idx}
-                      className={`rounded-2xl transition-all duration-200 bg-white border ${complete
-                        ? 'border-emerald-200/90 shadow-sm hover:shadow-md hover:border-emerald-300'
-                        : 'border-amber-200/90 shadow-sm hover:shadow-md hover:border-amber-300'
-                        } relative overflow-hidden group`}
-                    >
-                      {/* Left Status Strip */}
-                      <div
-                        className={`absolute left-0 top-0 bottom-0 w-1.5 ${complete ? 'bg-emerald-500' : 'bg-gradient-to-b from-amber-400 to-orange-500'
-                          }`}
-                      />
-
-                      <div className="p-5 sm:p-6 space-y-4 pl-6 sm:pl-7">
-                        {/* Header Row: Hospital Name & Status Badges */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-slate-100">
-                          <div className="flex items-center gap-2.5 flex-wrap">
-                            <h4 className="text-base sm:text-lg font-extrabold text-slate-900 group-hover:text-indigo-600 transition tracking-tight">
-                              {displayHospital}
-                            </h4>
-
-                            {lead.siteDomain && (
-                              <span className="text-[11px] bg-slate-100 text-slate-600 font-mono px-2.5 py-0.5 rounded-lg border border-slate-200 flex items-center gap-1 font-semibold">
-                                <span>🌐</span>
-                                <span>{lead.siteDomain}</span>
-                              </span>
-                            )}
-
-                            <span className="text-xs text-slate-500 font-mono font-medium flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/80">
-                              <Clock size={12} className="text-slate-400" />
-                              <span>
-                                {lead.dateTime || (lead.createdAt ? new Date(lead.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : (lead.date || 'Just now'))}
-                              </span>
-                            </span>
-                          </div>
-
-                          <div>
-                            {complete ? (
-                              <span className="inline-flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-800 font-bold px-3 py-1 rounded-full border border-emerald-300/80 shadow-2xs">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                <span>Profile Complete</span>
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 text-xs bg-amber-50 text-amber-800 font-bold px-3 py-1 rounded-full border border-amber-300/80 shadow-2xs">
-                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                                <span>Profile Incomplete</span>
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Customer Info 4-Card Grid (Spacious, Never Overlapping) */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                          {/* 1. Contact Person */}
-                          <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/70 flex items-start gap-2.5">
-                            <div className="w-7 h-7 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center shrink-0 mt-0.5">
-                              <User size={14} />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Contact</div>
-                              <div className="text-xs font-bold text-slate-900 truncate" title={displayContact}>
-                                {displayContact}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* 2. Mobile Phone */}
-                          <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/70 flex items-start gap-2.5">
-                            <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
-                              <Phone size={14} />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Mobile Phone</div>
-                              <div className="text-xs font-mono font-bold text-slate-800 truncate">
-                                {displayPhone || <span className="text-slate-400 font-sans italic">Not provided</span>}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* 3. Official Email */}
-                          <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/70 flex items-start gap-2.5">
-                            <div className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 mt-0.5">
-                              <Mail size={14} />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Email Address</div>
-                              <div className="text-xs font-medium text-slate-700 truncate" title={displayEmail || 'Not provided'}>
-                                {displayEmail || <span className="text-slate-400 italic">Not provided</span>}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* 4. Location */}
-                          <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-200/70 flex items-start gap-2.5">
-                            <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
-                              <MapPin size={14} />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Location</div>
-                              <div className="text-xs font-semibold text-slate-800 truncate" title={displayLocation}>
-                                {displayLocation}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Bottom Row: Hardware Requested & Actions */}
-                        <div className="pt-2 flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-t border-slate-100">
-                          {/* Hardware & Price */}
-                          <div className="flex items-center gap-2.5 flex-wrap">
-                            <div className="px-3.5 py-2 rounded-xl bg-indigo-50/90 text-indigo-950 border border-indigo-100 text-xs font-bold flex items-center gap-2 shadow-2xs">
-                              <span className="text-sm">📦</span>
-                              <span>{lead.equipment || lead.productName || 'Requested Hardware'}</span>
-                            </div>
-                            {lead.isPriceNegotiated || lead.expectedPrice ? (
-                              lead.negotiationStatus === 'approved' ? (
-                                <div className="px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 font-mono font-black text-xs flex items-center gap-1.5 shadow-2xs">
-                                  <CheckCircle2 size={13} className="text-emerald-600" />
-                                  <span>Approved: ₹{Number(lead.approvedPrice || lead.price || 0).toLocaleString('en-IN')}</span>
-                                </div>
-                              ) : lead.negotiationStatus === 'counter_offered' ? (
-                                <div className="px-3.5 py-2 rounded-xl bg-indigo-50 border border-indigo-300 text-indigo-900 font-mono font-black text-xs flex items-center gap-1.5 shadow-2xs">
-                                  <span>🤝</span>
-                                  <span>In-Between: ₹{Number(lead.adminCounterPrice || lead.price || 0).toLocaleString('en-IN')}</span>
-                                </div>
-                              ) : (
-                                <div className="px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 font-mono font-black text-xs flex items-center gap-1.5 shadow-2xs animate-pulse">
-                                  <Tag size={13} className="text-amber-600" />
-                                  <span>Target Bid: ₹{Number(lead.expectedPrice || lead.price || 0).toLocaleString('en-IN')}</span>
-                                </div>
-                              )
-                            ) : (
-                              <div className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 text-emerald-800 font-mono font-black text-xs flex items-center gap-1 shadow-2xs">
-                                <span>₹</span>
-                                <span>{lead.quoteAmount ? String(lead.quoteAmount).replace(/^₹\s*/, '') : (lead.price ? Number(lead.price).toLocaleString('en-IN') : '1,50,000')}</span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Right Action Area */}
-                          <div className="shrink-0 flex items-center justify-end gap-2.5">
-                            {isLeadNegotiablePending(lead) ? (
-                              !isAdmin ? (
-                                <button
-                                  type="button"
-                                  onClick={() => handleRequestAdminApproval(lead)}
-                                  className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-black shadow-md transition flex items-center justify-center gap-2.5 cursor-pointer hover:scale-[1.02] active:scale-[0.98] ring-2 ring-amber-400/30 tracking-wider uppercase"
-                                  title="Customer submitted target discount request. Admin price authorization required."
-                                >
-                                  <Lock size={15} className="text-amber-100" />
-                                  <span>Request Admin Approval</span>
-                                </button>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => openNegotiationModal(lead)}
-                                  className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-700 hover:to-rose-700 text-white text-xs font-black shadow-md transition flex items-center justify-center gap-2.5 cursor-pointer animate-pulse hover:scale-[1.02] active:scale-[0.98] ring-2 ring-rose-400/30 tracking-wider uppercase"
-                                  title="Review Customer Expected Price vs Actual MRP and Approve or Counter"
-                                >
-                                  <ShieldCheck size={15} className="text-amber-100" />
-                                  <span>Review & Approve Price</span>
-                                </button>
-                              )
-                            ) : (
-                              <div className="flex flex-wrap items-center gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    handleMakeQuotationFromLead(lead);
-                                    setIsLeadsModalOpen(false);
-                                  }}
-                                  className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white text-xs font-black shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer hover:scale-[1.02] active:scale-[0.98] ring-2 ring-amber-400/30 tracking-wider uppercase"
-                                  title="Click to generate official quotation within 1 second"
-                                >
-                                  <Sparkles size={16} className="text-amber-100" />
-                                  <span>Make Quotation</span>
-                                  <ArrowRight size={15} />
-                                </button>
-                                {isAdmin && (lead.isPriceNegotiated || lead.approvedPrice) && (
-                                  <button
-                                    type="button"
-                                    onClick={() => openNegotiationModal(lead)}
-                                    className="p-3 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-2xl transition cursor-pointer border border-slate-200"
-                                    title="Adjust approved price or counter offer"
-                                  >
-                                    <Edit3 size={15} />
-                                  </button>
-                                )}
-                                {!complete && lead.phone && (
-                                  <a
-                                    href={`https://wa.me/91${(lead.phone || '').replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Hello Dr. ${lead.doctorName || lead.customerName || ''}, please complete your profile details (Hospital Name & Delivery Address) on ${lead.siteDomain || 'rajbiosis.com'} so we can generate and issue your official stamped quotation for ${lead.equipment || 'medical equipment'}.`)}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="px-3 py-2.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
-                                    title="Send WhatsApp message asking customer to complete profile"
-                                  >
-                                    <MessageCircle size={15} className="text-emerald-600" />
-                                    <span>WhatsApp</span>
-                                  </a>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
+                pendingWebLeads.map((lead, idx) => (
+                  <LeadInquiryCard
+                    key={lead.id || lead._id || idx}
+                    lead={lead}
+                    idx={idx}
+                    isAdmin={isAdmin}
+                    getMatchedCustomer={getMatchedCustomer}
+                    cleanLeadHospital={cleanLeadHospital}
+                    getLeadProducts={getLeadProducts}
+                    isLeadNegotiablePending={isLeadNegotiablePending}
+                    handleRequestAdminApproval={(l) => {
+                      setIsLeadsModalOpen(false);
+                      handleRequestAdminApproval(l);
+                    }}
+                    openNegotiationModal={(l) => {
+                      setIsLeadsModalOpen(false);
+                      openNegotiationModal(l);
+                    }}
+                    handleMakeQuotationFromLead={(l) => {
+                      setIsLeadsModalOpen(false);
+                      handleMakeQuotationFromLead(l);
+                    }}
+                    handleDeleteWebLead={handleDeleteWebLead}
+                  />
+                ))
               )}
             </div>
 
@@ -3046,7 +3981,7 @@ Thank you for choosing Raj Biosis!`;
 
 
       {/* TOP COMMAND BAR (100% PRESERVED ORIGINAL HEADER) */}
-      {activeMainTab !== 'completed' && activeMainTab !== 'complementary' && (
+      {activeMainTab !== 'completed' && (
         <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-sm space-y-4">
 
           {/* Upper Row: Title, New Lead Pill & Global Toolbar Actions (Never Collapsing) */}
@@ -3059,13 +3994,32 @@ Thank you for choosing Raj Biosis!`;
                 className="flex items-center gap-3 cursor-pointer group shrink-0"
                 title="Click to go back to Web Quotation desk"
               >
-                <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-indigo-600 text-white flex items-center justify-center font-bold shadow-sm shrink-0 mt-0.5 sm:mt-0 group-hover:scale-105 transition">
-                  <FileText size={22} />
+                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold shadow-sm shrink-0 mt-0.5 sm:mt-0 group-hover:scale-105 transition ${activeMainTab === 'complementary'
+                  ? 'bg-gradient-to-tr from-amber-500 via-orange-500 to-rose-500 text-white'
+                  : 'bg-gradient-to-tr from-sky-500 via-indigo-500 to-indigo-600 text-white'
+                  }`}>
+                  {activeMainTab === 'complementary' ? <Gift size={22} /> : <FileText size={22} />}
                 </div>
                 <h2 className="text-lg font-black text-slate-900 tracking-tight whitespace-nowrap group-hover:text-sky-600 transition">
-                  Web Quotation
+                  {activeMainTab === 'complementary' ? 'Complimentary Quotation Desk' : 'Web Quotation'}
                 </h2>
               </div>
+
+              {activeMainTab === 'complementary' && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  {effectiveBudget > 0 && (
+                    <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs">
+                      <span>Perk Allowance:</span>
+                      <strong className="text-amber-950 font-black">₹{effectiveBudget.toLocaleString('en-IN')}</strong>
+                    </span>
+                  )}
+                  {customerName && (
+                    <span className="text-xs text-slate-500 font-semibold hidden md:inline bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+                      Customer: <span className="text-slate-800 font-bold">{customerName}</span>
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Direct Button to Incoming Leads / New Queries page */}
               <button
@@ -3116,15 +4070,19 @@ Thank you for choosing Raj Biosis!`;
                 </span>
               </button>
 
-              <button
-                type="button"
-                disabled={isSavingDb}
-                onClick={handleSaveToMongoDB}
-                className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-emerald-200 shadow-2xs whitespace-nowrap"
-              >
-                {isSavingDb ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
-                <span>Save</span>
-              </button>
+              {/* Save Button: Visible ONLY when editing or manually creating a quotation */}
+              {(activeMainTab === 'quotation' || activeMainTab === 'complementary') && (
+                <button
+                  type="button"
+                  disabled={isSavingDb}
+                  onClick={handleSaveToMongoDB}
+                  className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-emerald-200 shadow-2xs whitespace-nowrap"
+                  title="Save quotation to database"
+                >
+                  {isSavingDb ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
+                  <span>Save</span>
+                </button>
+              )}
 
               <button
                 type="button"
@@ -3267,215 +4225,22 @@ Thank you for choosing Raj Biosis!`;
                 </button>
               </div>
             ) : (
-              pendingWebLeads.map((lead, idx) => {
-                const matchedCustomer = getMatchedCustomer(lead);
-                const rawHosp = (matchedCustomer?.hospitalName || lead.hospital || lead.hospitalName || lead.rawLeadData?.hospitalName || '').trim();
-                const displayHospital = cleanLeadHospital(rawHosp);
-                const displayContact = matchedCustomer?.fullName || lead.doctorName || lead.customerName || 'NA';
-                const displayPhone = matchedCustomer?.phone || lead.phone || 'NA';
-                const displayEmail = matchedCustomer?.email || lead.email || 'NA';
-                const displayLocation = matchedCustomer?.district || matchedCustomer?.address || lead.city || 'NA';
-                const displayEquipment = lead.equipment || lead.productName || 'Medical Equipment';
-                const displayAmount = lead.quoteAmount ? String(lead.quoteAmount).replace(/^₹\s*/, '') : (lead.price ? Number(lead.price).toLocaleString('en-IN') : '1,50,000');
-
-                return (
-                  <div
-                    key={lead.id || lead._id || idx}
-                    className="rounded-2xl transition-all duration-200 bg-white border border-slate-200/90 hover:border-amber-400 shadow-sm hover:shadow-md p-4 sm:p-5 relative overflow-hidden group"
-                  >
-                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-amber-500 via-orange-500 to-rose-500" />
-
-                    <div className="pl-3 sm:pl-4 space-y-3">
-                      {/* Top Row: Hospital, Domain & Date */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <div className="flex items-center gap-2.5 flex-wrap">
-                          <h4 className="text-base font-extrabold text-slate-900 group-hover:text-amber-700 transition tracking-tight">
-                            {displayHospital}
-                          </h4>
-                          {lead.siteDomain && (
-                            <span className="text-[11px] bg-slate-100 text-slate-600 font-mono px-2 py-0.5 rounded-lg border border-slate-200 flex items-center gap-1 font-semibold">
-                              <span>🌐</span>
-                              <span>{lead.siteDomain}</span>
-                            </span>
-                          )}
-                          <span className="text-xs text-slate-500 font-mono flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-200/70">
-                            <Clock size={11} className="text-slate-400" />
-                            <span>
-                              {lead.dateTime || (lead.createdAt ? new Date(lead.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : (lead.date || 'Just now'))}
-                            </span>
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                            <span>New RFQ</span>
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Middle: 4 Contact / Location details */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
-                        <div className="bg-slate-50/80 rounded-xl p-2.5 border border-slate-200/70 flex items-center gap-2">
-                          <User size={14} className="text-sky-600 shrink-0" />
-                          <span className="text-slate-700 font-medium truncate" title={displayContact}>{displayContact}</span>
-                        </div>
-                        <div className="bg-slate-50/80 rounded-xl p-2.5 border border-slate-200/70 flex items-center gap-2">
-                          <Phone size={14} className="text-emerald-600 shrink-0" />
-                          <span className="text-slate-800 font-mono font-bold truncate">{displayPhone || 'No phone'}</span>
-                        </div>
-                        <div className="bg-slate-50/80 rounded-xl p-2.5 border border-slate-200/70 flex items-center gap-2">
-                          <Mail size={14} className="text-indigo-600 shrink-0" />
-                          <span className="text-slate-600 truncate" title={displayEmail}>{displayEmail || 'No email'}</span>
-                        </div>
-                        <div className="bg-slate-50/80 rounded-xl p-2.5 border border-slate-200/70 flex items-center gap-2">
-                          <MapPin size={14} className="text-amber-600 shrink-0" />
-                          <span className="text-slate-700 truncate" title={displayLocation}>{displayLocation}</span>
-                        </div>
-                      </div>
-
-                      {/* Bottom Row: Hardware Requested & Price Negotiation / MAKE QUOTATION BUTTON */}
-                      <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-100">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <div className="px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-900 border border-indigo-100 text-xs font-bold flex items-center gap-1.5">
-                            <Package size={13} className="text-indigo-600" />
-                            <span>{displayEquipment}</span>
-                          </div>
-
-                          {/* Pricing Display with Real-Time Negotiation Badges */}
-                          {lead.isPriceNegotiated || lead.expectedPrice ? (
-                            lead.negotiationStatus === 'approved' ? (
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <div className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 font-mono font-bold text-xs flex items-center gap-1.5 shadow-2xs">
-                                  <CheckCircle2 size={13} className="text-emerald-600" />
-                                  <span>Approved: ₹{Number(lead.approvedPrice || lead.price || 0).toLocaleString('en-IN')}</span>
-                                </div>
-                                {lead.actualPrice && (
-                                  <span className="text-[10px] text-slate-400 line-through font-mono">
-                                    MRP: ₹{Number(lead.actualPrice).toLocaleString('en-IN')}
-                                  </span>
-                                )}
-                              </div>
-                            ) : lead.negotiationStatus === 'counter_offered' ? (
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <div className="px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-300 text-indigo-900 font-mono font-bold text-xs flex items-center gap-1.5 shadow-2xs">
-                                  <span>🤝</span>
-                                  <span>In-Between: ₹{Number(lead.adminCounterPrice || lead.price || 0).toLocaleString('en-IN')}</span>
-                                </div>
-                                {lead.actualPrice && (
-                                  <span className="text-[10px] text-slate-400 line-through font-mono">
-                                    MRP: ₹{Number(lead.actualPrice).toLocaleString('en-IN')}
-                                  </span>
-                                )}
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <div className="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 font-mono font-bold text-xs flex items-center gap-1.5 shadow-2xs animate-pulse">
-                                  <Tag size={13} className="text-amber-600" />
-                                  <span>Target Bid: ₹{Number(lead.expectedPrice || lead.price || 0).toLocaleString('en-IN')}</span>
-                                </div>
-                                {lead.actualPrice && (
-                                  <span className="text-[10px] text-slate-400 font-mono">
-                                    MRP: ₹{Number(lead.actualPrice).toLocaleString('en-IN')}
-                                  </span>
-                                )}
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                                  Approval Pending
-                                </span>
-                              </div>
-                            )
-                          ) : (
-                            <div className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono font-bold text-xs flex items-center gap-1">
-                              <span>₹{displayAmount}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                          {displayPhone && (
-                            <a
-                              href={`https://wa.me/91${(displayPhone || '').replace(/\D/g, '').slice(-10)}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition flex items-center gap-1.5 border border-emerald-200 cursor-pointer"
-                              title="Chat on WhatsApp"
-                            >
-                              <MessageCircle size={14} />
-                              <span>WhatsApp</span>
-                            </a>
-                          )}
-
-                          {/* ACTION BUTTON: APPROVAL OR MAKE QUOTATION */}
-                          {isLeadNegotiablePending(lead) ? (
-                            !isAdmin ? (
-                              <button
-                                type="button"
-                                onClick={() => handleRequestAdminApproval(lead)}
-                                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-black shadow-md transition flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 ring-2 ring-amber-400/30 uppercase tracking-wide"
-                                title="Customer submitted target discount request. Admin price authorization required."
-                              >
-                                <Lock size={14} className="text-amber-100" />
-                                <span>Request Admin Approval</span>
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => openNegotiationModal(lead)}
-                                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-700 hover:to-rose-700 text-white text-xs font-black shadow-md transition flex items-center gap-2 cursor-pointer animate-pulse hover:scale-105 active:scale-95 ring-2 ring-rose-400/30 uppercase tracking-wide"
-                                title="Review Customer Expected Price vs Actual MRP and Approve or Counter"
-                              >
-                                <ShieldCheck size={14} className="text-amber-100" />
-                                <span>Review & Approve Price</span>
-                              </button>
-                            )
-                          ) : (
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => handleMakeQuotationFromLead(lead)}
-                                className={`px-5 py-2.5 rounded-xl font-black text-xs shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 uppercase tracking-wide ${lead.negotiationStatus === 'approved'
-                                  ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 hover:from-emerald-700 hover:to-sky-700 text-white ring-2 ring-emerald-400/30'
-                                  : lead.negotiationStatus === 'counter_offered'
-                                    ? 'bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white ring-2 ring-indigo-400/30'
-                                    : 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white ring-2 ring-amber-400/30'
-                                  }`}
-                              >
-                                <Sparkles size={14} className="text-white" />
-                                <span>
-                                  {lead.negotiationStatus === 'approved'
-                                    ? `Make Quotation (Approved: ₹${Number(lead.approvedPrice || lead.price || 0).toLocaleString('en-IN')})`
-                                    : lead.negotiationStatus === 'counter_offered'
-                                      ? `Make Quotation (Counter: ₹${Number(lead.adminCounterPrice || lead.price || 0).toLocaleString('en-IN')})`
-                                      : 'Make Quotation'}
-                                </span>
-                                <ArrowRight size={13} />
-                              </button>
-                              {isAdmin && (lead.isPriceNegotiated || lead.approvedPrice) && (
-                                <button
-                                  type="button"
-                                  onClick={() => openNegotiationModal(lead)}
-                                  className="p-2.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition cursor-pointer border border-slate-200"
-                                  title="Adjust approved price or counter offer"
-                                >
-                                  <Edit3 size={13} />
-                                </button>
-                              )}
-                              <button
-                                type="button"
-                                onClick={(e) => handleDeleteWebLead(lead, e)}
-                                className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition cursor-pointer border border-slate-200"
-                                title="Permanently Delete Lead"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
+              pendingWebLeads.map((lead, idx) => (
+                <LeadInquiryCard
+                  key={lead.id || lead._id || idx}
+                  lead={lead}
+                  idx={idx}
+                  isAdmin={isAdmin}
+                  getMatchedCustomer={getMatchedCustomer}
+                  cleanLeadHospital={cleanLeadHospital}
+                  getLeadProducts={getLeadProducts}
+                  isLeadNegotiablePending={isLeadNegotiablePending}
+                  handleRequestAdminApproval={handleRequestAdminApproval}
+                  openNegotiationModal={openNegotiationModal}
+                  handleMakeQuotationFromLead={handleMakeQuotationFromLead}
+                  handleDeleteWebLead={handleDeleteWebLead}
+                />
+              ))
             )}
           </div>
         </div>
@@ -3782,7 +4547,7 @@ Thank you for choosing Raj Biosis!`;
                         { label: 'Revision Number', value: `Rev ${revNum}` },
                         { label: 'Change Summary', value: rev.changeSummary || 'Commercial terms or line items adjusted' },
                         { label: 'Revised Deal Total', value: `₹${Number(rev.newTotal || totalVal).toLocaleString('en-IN')}` },
-                        ...(rev.complimentaryItems ? [{ label: '🎁 Complimentary Perk Added', value: rev.complimentaryItems }] : [])
+                        ...(rev.complimentaryItems ? [{ label: 'Complimentary Perk Added', value: rev.complimentaryItems }] : [])
                       ]
                     });
                   });
@@ -4327,7 +5092,7 @@ Thank you for choosing Raj Biosis!`;
                         title={`Create a new quotation for ${activeCustomerGroup.customerName}`}
                       >
                         <Plus size={14} />
-                        <span>+ New Quote for {activeCustomerGroup.customerName}</span>
+                        <span>New Quote for {activeCustomerGroup.customerName}</span>
                       </button>
                     </div>
                   </div>
@@ -4406,16 +5171,62 @@ Thank you for choosing Raj Biosis!`;
                         return (
                           <div
                             key={qId}
-                            className="bg-white rounded-2xl p-5 border border-slate-200/90 hover:border-emerald-400 shadow-sm hover:shadow-md transition-all duration-200 space-y-4 group flex flex-col justify-between relative overflow-hidden"
+                            onClick={() => {
+                              handleLoadSavedQuotation(q);
+                              setActiveMainTab('quotation');
+                            }}
+                            className={`bg-white rounded-2xl p-5 border transition-all duration-200 space-y-4 group flex flex-col justify-between relative overflow-hidden cursor-pointer hover:shadow-md hover:scale-[1.008] active:scale-[0.99] ${isQuoteWithComplimentary(q)
+                              ? 'border-amber-300 ring-2 ring-amber-400/20 shadow-md hover:border-amber-400'
+                              : 'border-slate-200/90 hover:border-emerald-400 shadow-sm hover:shadow-md'
+                              }`}
+                            title="Click card or 'View & Edit' to open quotation"
                           >
-                            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500" />
+                            <div className={`absolute top-0 left-0 right-0 h-1.5 ${isQuoteWithComplimentary(q)
+                              ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500'
+                              : 'bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500'
+                              }`} />
+
+                            {/* VARIATION 2: 45° DIAGONAL CORNER RIBBON WITH ZIGZAG CUTTING EDGES */}
+                            {isQuoteWithComplimentary(q) && (
+                              <div className="w-[84px] h-[84px] overflow-hidden absolute top-0 left-0 z-20 pointer-events-none">
+                                <div
+                                  className="absolute transform -rotate-45 drop-shadow-md flex items-center justify-center"
+                                  style={{
+                                    left: '-32px',
+                                    top: '18px',
+                                    width: '116px',
+                                    height: '16px',
+                                    transformOrigin: 'center',
+                                  }}
+                                >
+                                  <svg width="116" height="16" viewBox="0 0 116 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute inset-0">
+                                    <defs>
+                                      <linearGradient id={`grad-ribbon-${qId}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#f59e0b" />
+                                        <stop offset="50%" stopColor="#ea580c" />
+                                        <stop offset="100%" stopColor="#e11d48" />
+                                      </linearGradient>
+                                    </defs>
+                                    <path
+                                      d="M 0 1.8 L 2 0 L 4 1.8 L 6 0 L 8 1.8 L 10 0 L 12 1.8 L 14 0 L 16 1.8 L 18 0 L 20 1.8 L 22 0 L 24 1.8 L 26 0 L 28 1.8 L 30 0 L 32 1.8 L 34 0 L 36 1.8 L 38 0 L 40 1.8 L 42 0 L 44 1.8 L 46 0 L 48 1.8 L 50 0 L 52 1.8 L 54 0 L 56 1.8 L 58 0 L 60 1.8 L 62 0 L 64 1.8 L 66 0 L 68 1.8 L 70 0 L 72 1.8 L 74 0 L 76 1.8 L 78 0 L 80 1.8 L 82 0 L 84 1.8 L 86 0 L 88 1.8 L 90 0 L 92 1.8 L 94 0 L 96 1.8 L 98 0 L 100 1.8 L 102 0 L 104 1.8 L 106 0 L 108 1.8 L 110 0 L 112 1.8 L 114 0 L 116 1.8 L 116 14.2 L 114 16 L 112 14.2 L 110 16 L 108 14.2 L 106 16 L 104 14.2 L 102 16 L 100 14.2 L 98 16 L 96 14.2 L 94 16 L 92 14.2 L 90 16 L 88 14.2 L 86 16 L 84 14.2 L 82 16 L 80 14.2 L 78 16 L 76 14.2 L 74 16 L 72 14.2 L 70 16 L 68 14.2 L 66 16 L 64 14.2 L 62 16 L 60 14.2 L 58 16 L 56 14.2 L 54 16 L 52 14.2 L 50 16 L 48 14.2 L 46 16 L 44 14.2 L 42 16 L 40 14.2 L 38 16 L 36 14.2 L 34 16 L 32 14.2 L 30 16 L 28 14.2 L 26 16 L 24 14.2 L 22 16 L 20 14.2 L 18 16 L 16 14.2 L 14 16 L 12 14.2 L 10 16 L 8 14.2 L 6 16 L 4 14.2 L 2 16 L 0 14.2 Z"
+                                      fill={`url(#grad-ribbon-${qId})`}
+                                      stroke="#ffffff"
+                                      strokeWidth="0.5"
+                                    />
+                                  </svg>
+                                  <span className="relative z-10 text-white font-black text-[7px] tracking-wider uppercase drop-shadow-xs select-none">
+                                    COMPLIMENTARY
+                                  </span>
+                                </div>
+                              </div>
+                            )}
 
                             <div className="space-y-3 pt-1">
                               {/* Header Row */}
                               <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span className="text-[10px] font-mono font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100">
+                                  <div className={`flex items-center gap-1.5 flex-nowrap ${isQuoteWithComplimentary(q) ? 'pl-[26px]' : ''}`}>
+                                    <span className="text-[10px] font-mono font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100 shrink-0">
                                       {q.refNo || 'REF-PENDING'}
                                     </span>
                                     {/* Revision badge */}
@@ -4425,7 +5236,7 @@ Thank you for choosing Raj Biosis!`;
                                         e.stopPropagation();
                                         setViewingQuotationAudit(q);
                                       }}
-                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 transition cursor-pointer"
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 transition cursor-pointer shrink-0"
                                       title="Click to view complete revision history and edit log"
                                     >
                                       <History size={10} className="text-purple-600" />
@@ -4434,22 +5245,24 @@ Thank you for choosing Raj Biosis!`;
                                         {q.revisions && q.revisions.length > 1 ? ` (${q.revisions.length - 1} edit${q.revisions.length > 2 ? 's' : ''})` : ' (Initial)'}
                                       </span>
                                     </button>
+
                                     {q.concessionStatus === 'concession_requested' && (
-                                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 animate-pulse flex items-center gap-1">
+                                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 animate-pulse flex items-center gap-1 shrink-0">
                                         <PhoneCall size={9} />
                                         <span>Demanded: ₹{Number(q.customerDemandedPrice || 0).toLocaleString('en-IN')}</span>
                                       </span>
                                     )}
-                                    {q.concessionStatus === 'concession_approved' && (
-                                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
-                                        <Gift size={9} />
-                                        <span>Auth Perk: ₹{Number(q.allowedComplementaryBudget || 0).toLocaleString('en-IN')}</span>
-                                      </span>
-                                    )}
                                   </div>
-                                  <h4 className="text-sm font-extrabold text-slate-900 group-hover:text-emerald-700 transition mt-1.5 truncate" title={q.customerName}>
-                                    {q.customerName || 'Unnamed Customer'}
-                                  </h4>
+                                  <div className="flex items-center justify-between gap-2 mt-1.5">
+                                    <h4 className="text-sm font-extrabold text-slate-900 group-hover:text-emerald-700 transition truncate" title={q.customerName}>
+                                      {q.customerName || 'Unnamed Customer'}
+                                    </h4>
+                                    {isQuoteWithComplimentary(q) && q.allowedComplementaryBudget ? (
+                                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300 shrink-0">
+                                        +₹{Number(q.allowedComplementaryBudget).toLocaleString('en-IN')} Perk
+                                      </span>
+                                    ) : null}
+                                  </div>
                                 </div>
                                 <span className="text-[11px] text-slate-400 font-mono shrink-0">
                                   {q.date || 'Recent'}
@@ -4491,7 +5304,10 @@ Thank you for choosing Raj Biosis!`;
                                   isAdmin ? (
                                     <button
                                       type="button"
-                                      onClick={() => handleOpenAdminConcessionModal(q)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleOpenAdminConcessionModal(q);
+                                      }}
                                       className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-700 hover:to-rose-700 text-white font-extrabold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer animate-pulse ring-2 ring-rose-400/30"
                                       title="Admin Review: Customer demanded price reduction. Click to approve direct discount or complimentary perk."
                                     >
@@ -4500,6 +5316,7 @@ Thank you for choosing Raj Biosis!`;
                                     </button>
                                   ) : (
                                     <div
+                                      onClick={(e) => e.stopPropagation()}
                                       className="px-3 py-1.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-300 font-bold text-xs flex items-center gap-1.5 shadow-2xs"
                                       title="Concession request sent to Admin. Awaiting Admin decision."
                                     >
@@ -4513,7 +5330,10 @@ Thank you for choosing Raj Biosis!`;
                                 {q.concessionStatus === 'approved_direct_discount' && (
                                   <button
                                     type="button"
-                                    onClick={() => handleApplyDirectDiscountAndEditQuote(q)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleApplyDirectDiscountAndEditQuote(q);
+                                    }}
                                     className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer ring-2 ring-emerald-400/40"
                                     title="Admin approved direct discount. Click to revise quote to the lower price."
                                   >
@@ -4526,7 +5346,10 @@ Thank you for choosing Raj Biosis!`;
                                 {(q.concessionStatus === 'approved_complimentary' || q.concessionStatus === 'concession_approved') && (
                                   <button
                                     type="button"
-                                    onClick={() => handleMakeComplimentaryQuote(q)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleMakeComplimentaryQuote(q);
+                                    }}
                                     className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-sky-600 hover:from-purple-700 hover:to-sky-700 text-white font-extrabold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer ring-2 ring-purple-400/40"
                                     title="Admin approved complimentary perk. Click to add free perks and issue Revision 2."
                                   >
@@ -4539,7 +5362,10 @@ Thank you for choosing Raj Biosis!`;
                                 {(!q.concessionStatus || q.concessionStatus === 'none' || q.concessionStatus === 'concession_applied') && (
                                   <button
                                     type="button"
-                                    onClick={() => handleOpenOnCallModal(q)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenOnCallModal(q);
+                                    }}
                                     className="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-xs transition flex items-center gap-1 cursor-pointer shadow-2xs"
                                     title="Customer requested lower price on call? Enter demanded price per product and submit to Admin."
                                   >
@@ -4550,7 +5376,8 @@ Thank you for choosing Raj Biosis!`;
 
                                 <button
                                   type="button"
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.stopPropagation();
                                     handleLoadSavedQuotation(q);
                                     setActiveMainTab('quotation');
                                   }}
@@ -4563,7 +5390,10 @@ Thank you for choosing Raj Biosis!`;
 
                               <button
                                 type="button"
-                                onClick={(e) => handleDeleteSavedQuotation(q, e)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteSavedQuotation(q, e);
+                                }}
                                 className="p-2 rounded-xl bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-600 border border-slate-200/80 transition cursor-pointer shrink-0"
                                 title="Delete this quotation"
                               >
@@ -4629,6 +5459,13 @@ Thank you for choosing Raj Biosis!`;
                                   <span className="text-[10px] font-mono font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100">
                                     {latestQuote.refNo || 'REF-PENDING'}
                                   </span>
+
+                                  {group.quotations.some(isQuoteWithComplimentary) && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-100 text-amber-950 border border-amber-300 shadow-2xs">
+                                      <Gift size={10} className="text-amber-700" />
+                                      <span>Complimentary</span>
+                                    </span>
+                                  )}
 
                                   {group.quotations.length > 1 ? (
                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
@@ -4799,12 +5636,21 @@ Thank you for choosing Raj Biosis!`;
         const exactMatchPerks = hasCustomerConcession ? COMPLIMENTARY_PERK_CATALOG.filter(p => p.price === targetPerkBudget) : [];
         const fittingPerks = hasCustomerConcession ? COMPLIMENTARY_PERK_CATALOG.filter(p => p.price <= targetPerkBudget) : COMPLIMENTARY_PERK_CATALOG;
 
-        // Filter perks based on selected filter pill and search query
+        // Distinct price points in ascending order line-wise
+        const distinctPrices = Array.from(new Set(COMPLIMENTARY_PERK_CATALOG.map(p => p.price))).sort((a, b) => a - b);
+
+        // Filter perks based on selected dropdown, price input, and search query
         let displayPerks = COMPLIMENTARY_PERK_CATALOG;
-        if (hasCustomerConcession && selectedPerkFilter === 'match') {
-          displayPerks = fittingPerks;
-        } else if (typeof selectedPerkFilter === 'number') {
-          displayPerks = COMPLIMENTARY_PERK_CATALOG.filter(p => p.price === selectedPerkFilter);
+        if (typeof selectedPerkFilter === 'number' && !isNaN(selectedPerkFilter)) {
+          const exactMatches = COMPLIMENTARY_PERK_CATALOG.filter(p => p.price === selectedPerkFilter);
+          displayPerks = exactMatches.length > 0 ? exactMatches : COMPLIMENTARY_PERK_CATALOG.filter(p => p.price <= selectedPerkFilter);
+        } else if (hasCustomerConcession && (selectedPerkFilter === 'all_fitting' || selectedPerkFilter === 'fitting' || selectedPerkFilter === 'match')) {
+          displayPerks = fittingPerks; // Shows ALL items of all eligible price ranges up to allowance
+        } else if (selectedPerkFilter === 'exact') {
+          displayPerks = exactMatchPerks.length > 0 ? exactMatchPerks : fittingPerks;
+        } else {
+          // 'all' or default
+          displayPerks = COMPLIMENTARY_PERK_CATALOG;
         }
 
         if (perkSearchQuery.trim()) {
@@ -4812,74 +5658,25 @@ Thank you for choosing Raj Biosis!`;
           displayPerks = displayPerks.filter(p => p.title.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
         }
 
-        if (hasCustomerConcession) {
-          // Sort so exact matches are always on top!
-          displayPerks = [...displayPerks].sort((a, b) => {
-            if (a.price === targetPerkBudget && b.price !== targetPerkBudget) return -1;
-            if (b.price === targetPerkBudget && a.price !== targetPerkBudget) return 1;
+        // Default & Intelligent Sorting: First-Expiring, First-Out (FEFO) Protocol
+        // "sabse uper kam expirey uske baad badhti expire" (Lowest expiry date on top, increasing expiry dates below)
+        displayPerks = [...displayPerks].sort((a, b) => {
+          if (perkSortMode === 'price_asc') {
             return a.price - b.price;
-          });
-        }
+          }
+          // Pure ascending chronological sort by expiry date:
+          const aTime = a.expiryDate ? new Date(a.expiryDate + 'T00:00:00').getTime() : 9999999999999;
+          const bTime = b.expiryDate ? new Date(b.expiryDate + 'T00:00:00').getTime() : 9999999999999;
+          if (aTime !== bTime) {
+            return aTime - bTime;
+          }
+          return a.price - b.price;
+        });
 
         const isBudgetFullyBalanced = hasCustomerConcession && remainingBudget === 0;
 
         return (
           <div className="space-y-4 animate-in fade-in duration-200">
-            {/* Header Card - Direct Mode vs Customer Concession Mode */}
-            <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center font-bold text-lg shadow-2xs shrink-0">
-                  🎁
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-                      {hasCustomerConcession ? 'Complimentary Concession Desk' : 'Complimentary Perks & Accessories Catalog'}
-                    </h2>
-                    {hasCustomerConcession && (
-                      <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
-                        Perk Allowance: ₹{effectiveBudget.toLocaleString('en-IN')}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    {hasCustomerConcession
-                      ? (customerName ? `Customer: ${customerName} • ` : '') + `Add free perks to maintain deal revenue floor.`
-                      : 'Browse and add official company complimentary items (₹50 to ₹1,000) to quotations.'
-                    }
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveMainTab('quotation');
-                    if (typeof window !== 'undefined') {
-                      window.dispatchEvent(new CustomEvent('switch_web_quotation_tab', { detail: 'quotation' }));
-                    }
-                  }}
-                  className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer border border-slate-200"
-                >
-                  ← Back to Quotation Form
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveMainTab('quotation');
-                    setActiveLayout('preview');
-                    if (typeof window !== 'undefined') {
-                      window.dispatchEvent(new CustomEvent('switch_web_quotation_tab', { detail: 'quotation' }));
-                    }
-                  }}
-                  className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer shadow-xs"
-                >
-                  View 4-Page PDF →
-                </button>
-              </div>
-            </div>
-
             {/* ONLY DISPLAY DEAL CONCESSION METRICS IF USER CAME THROUGH AN ACTIVE CUSTOMER CONCESSION */}
             {hasCustomerConcession && (
               <div className="space-y-3">
@@ -4923,27 +5720,6 @@ Thank you for choosing Raj Biosis!`;
                   </div>
                 </div>
 
-                {/* 1-Click Auto-Bridge Banner (Integrated & Compact) */}
-                {remainingBudget > 0 && (
-                  <div className="bg-amber-50/70 rounded-xl p-3 border border-amber-300 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">⚡</span>
-                      <div>
-                        <strong className="text-xs font-bold text-amber-950">1-Click Auto-Bridge Exact Gap</strong>
-                        <p className="text-[11px] text-amber-800">Bridge remaining ₹{remainingBudget.toLocaleString('en-IN')} allowance with one click.</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleAddComplimentaryProduct('Biomedical Consumables & Calibration Accessories Pack', remainingBudget, 'Official OEM Concession Add-on • Valued to match customer target rate')}
-                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition flex items-center gap-1 cursor-pointer shrink-0"
-                    >
-                      <Check size={13} />
-                      <span>Auto-Bridge ₹{remainingBudget.toLocaleString('en-IN')}</span>
-                    </button>
-                  </div>
-                )}
-
                 {/* Status Banner when 100% Balanced */}
                 {isBudgetFullyBalanced && (
                   <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 flex items-center justify-between gap-3 text-emerald-950 text-xs">
@@ -4967,292 +5743,416 @@ Thank you for choosing Raj Biosis!`;
               </div>
             )}
 
-            {/* 2-Column Main Desk */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-              {/* Left Column: Perk Catalog & Automatic Matching */}
-              <div className="lg:col-span-7 space-y-3.5">
-
-                {/* Filter Bar & Search */}
-                <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs space-y-2.5">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5">
-                      <Sparkles size={14} className="text-amber-500" />
-                      <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                        Perk Catalog (₹50 – ₹1,000)
-                      </h3>
+            {/* Dedicated Complimentary Desk Main Workspace */}
+            <div className="space-y-4">
+              {/* Given / Selected Complimentary Perks Section (Shows when items have been selected) */}
+              {currentComplimentaryItems.length > 0 && (
+                <div className="bg-white rounded-2xl p-4 border-2 border-emerald-400 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2 pb-2.5 border-b border-slate-100">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
+                        🎁
+                      </span>
+                      <div>
+                        <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                          Given Complimentary Perks ({currentComplimentaryItems.length} Items)
+                        </h4>
+                        <span className="text-[11px] text-slate-500 font-medium">
+                          Allocated: <strong className="text-emerald-700 font-mono font-bold">₹{currentComplimentaryTotal.toLocaleString('en-IN')}</strong> of ₹{effectiveBudget.toLocaleString('en-IN')} approved allowance ({remainingBudget === 0 ? '✓ 100% Balanced' : `Remaining: ₹${remainingBudget.toLocaleString('en-IN')}`})
+                        </span>
+                      </div>
                     </div>
-                    <input
-                      type="text"
-                      value={perkSearchQuery}
-                      onChange={(e) => setPerkSearchQuery(e.target.value)}
-                      placeholder="Search perks..."
-                      className="px-2.5 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none text-slate-800 focus:bg-white focus:border-amber-400 w-full sm:w-44"
-                    />
-                  </div>
 
-                  {/* Clean Filter Pills */}
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {hasCustomerConcession && (
+                    <div className="flex items-center gap-2">
+                      {/* Remove Multiple / Clear All Button */}
                       <button
                         type="button"
-                        onClick={() => setSelectedPerkFilter('match')}
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer flex items-center gap-1 ${selectedPerkFilter === 'match' ? 'bg-amber-600 text-white shadow-2xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}
+                        onClick={handleClearAllComplimentaryItems}
+                        className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                        title="Remove all given complimentary perks"
                       >
-                        <span>🎯 Matches Allowance (≤ ₹{targetPerkBudget})</span>
-                        <span className="text-[10px] bg-black/20 px-1.5 rounded-full font-mono">{fittingPerks.length}</span>
+                        <Trash2 size={13} />
+                        <span>Remove All ({currentComplimentaryItems.length})</span>
                       </button>
-                    )}
 
-                    <button
-                      type="button"
-                      onClick={() => setSelectedPerkFilter('all')}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${selectedPerkFilter === 'all' || (!hasCustomerConcession && selectedPerkFilter === 'match') ? 'bg-slate-900 text-white shadow-2xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}
-                    >
-                      All (30 Items)
-                    </button>
-
-                    {[50, 100, 200, 300, 500, 1000].map(amt => {
-                      const isExactBudget = hasCustomerConcession && amt === targetPerkBudget;
-                      const isOverBudget = hasCustomerConcession && amt > remainingBudget && remainingBudget > 0;
-                      return (
-                        <button
-                          key={amt}
-                          type="button"
-                          onClick={() => setSelectedPerkFilter(amt)}
-                          className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold transition cursor-pointer ${selectedPerkFilter === amt
-                              ? 'bg-amber-600 text-white shadow-2xs'
-                              : isExactBudget
-                                ? 'bg-amber-100 text-amber-900 border border-amber-300 ring-1 ring-amber-400'
-                                : isOverBudget
-                                  ? 'bg-slate-50 text-slate-400 border border-slate-200'
-                                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                            }`}
-                        >
-                          ₹{amt} {isExactBudget ? '★' : ''}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Auto-Matched Highlights & Product Cards Grid */}
-                <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs space-y-2.5">
-                  <div className="flex items-center justify-between text-xs text-slate-500 pb-1.5 border-b border-slate-100">
-                    <span className="font-semibold">
-                      Showing {displayPerks.length} Perks {hasCustomerConcession && selectedPerkFilter === 'match' ? `(Under ₹${targetPerkBudget})` : ''}
-                    </span>
-                    {hasCustomerConcession && remainingBudget > 0 && (
-                      <span className="text-[11px] font-mono font-bold text-amber-800">
-                        Remaining Budget: ₹{remainingBudget.toLocaleString('en-IN')}
-                      </span>
-                    )}
-                  </div>
-
-                  {displayPerks.length === 0 ? (
-                    <div className="py-8 text-center text-slate-400 text-xs">
-                      No perks match your filter. Click "All (30 Items)" to view the full catalog.
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[460px] overflow-y-auto pr-1 custom-scrollbar">
-                      {displayPerks.map((perk) => {
-                        const isExactMatch = hasCustomerConcession && perk.price === remainingBudget;
-                        const fitsInBudget = !hasCustomerConcession || perk.price <= remainingBudget;
-                        const isOverBudget = hasCustomerConcession && (perk.price > remainingBudget || remainingBudget <= 0);
-
-                        return (
-                          <div
-                            key={perk.id}
-                            className={`p-3 rounded-xl border transition flex flex-col justify-between space-y-2 relative overflow-hidden ${isExactMatch
-                                ? 'bg-amber-50/70 border-amber-400 shadow-2xs ring-1 ring-amber-400/50'
-                                : fitsInBudget
-                                  ? 'bg-slate-50/60 hover:bg-slate-50 border-slate-200 hover:border-slate-300'
-                                  : 'bg-slate-50/30 border-slate-200/70 opacity-50'
-                              }`}
-                          >
-                            {/* Top Badge for Exact Match */}
-                            {isExactMatch && (
-                              <div className="absolute top-0 right-0 bg-amber-500 text-white text-[9px] font-black px-2 py-0.2 rounded-bl-lg uppercase tracking-wider">
-                                🎯 Exact Match
-                              </div>
-                            )}
-
-                            <div>
-                              <div className="flex items-start justify-between gap-1.5 pr-2">
-                                <strong className="text-xs font-bold text-slate-900 leading-snug line-clamp-2">
-                                  {perk.title}
-                                </strong>
-                                <span className={`font-mono text-xs font-black px-2 py-0.5 rounded-md shrink-0 ${isExactMatch
-                                    ? 'bg-amber-200 text-amber-950 border border-amber-300'
-                                    : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                                  }`}>
-                                  ₹{perk.price}
-                                </span>
-                              </div>
-
-                              <p className="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
-                                {perk.desc}
-                              </p>
-                            </div>
-
-                            <div className="pt-1 flex items-center justify-between border-t border-slate-100">
-                              <span className="text-[10px] text-slate-400 font-medium">
-                                {perk.category}
-                              </span>
-
-                              <button
-                                type="button"
-                                disabled={isOverBudget}
-                                onClick={() => handleAddComplimentaryProduct(perk.title, perk.price, perk.desc)}
-                                className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition flex items-center gap-1 ${isOverBudget
-                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
-                                    : isExactMatch
-                                      ? 'bg-amber-600 hover:bg-amber-700 active:scale-95 text-white shadow-2xs cursor-pointer'
-                                      : 'bg-slate-900 hover:bg-slate-800 active:scale-95 text-white cursor-pointer'
-                                  }`}
-                              >
-                                <span>{isOverBudget ? 'Exceeds Allowance' : '+ Add'}</span>
-                                {!isOverBudget && <span>₹{perk.price}</span>}
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {/* Custom Item Adder - Compact 1-Line */}
-                <div className="bg-white rounded-2xl p-3 border border-slate-200 shadow-2xs space-y-1.5">
-                  <h4 className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-                    Add Custom Perk (Optional)
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
-                    <input
-                      type="text"
-                      value={complementaryTitle}
-                      onChange={(e) => setComplementaryTitle(e.target.value)}
-                      placeholder="Item name / description"
-                      className="sm:col-span-7 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none text-slate-800 focus:bg-white focus:border-amber-400"
-                    />
-                    <input
-                      type="number"
-                      value={complementaryValue}
-                      onChange={(e) => setComplementaryValue(e.target.value)}
-                      placeholder="Value (₹)"
-                      className="sm:col-span-2 px-3 py-1.5 text-xs font-mono font-bold bg-slate-50 border border-slate-200 rounded-lg outline-none text-slate-800 focus:bg-white focus:border-amber-400"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleAddComplimentaryProduct(complementaryTitle, complementaryValue, complementaryBullets)}
-                      disabled={hasCustomerConcession && (remainingBudget <= 0 || parseFloat(complementaryValue) > remainingBudget)}
-                      className="sm:col-span-3 py-1.5 px-3 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition cursor-pointer disabled:opacity-50"
-                    >
-                      + Add Custom
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column: Live Quotation Line Items & Deal Status */}
-              <div className="lg:col-span-5 space-y-3.5">
-                <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                    <div className="flex items-center gap-1.5">
-                      <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                        Live Quotation Items ({items.length})
-                      </h3>
-                      {currentComplimentaryItems.length > 0 && (
-                        <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.2 rounded-full">
-                          🎁 {currentComplimentaryItems.length} Perk{currentComplimentaryItems.length > 1 ? 's' : ''}
-                        </span>
-                      )}
-                    </div>
-                    <span className="font-mono text-xs font-black text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
-                      ₹{grandTotal.toLocaleString('en-IN')}
-                    </span>
-                  </div>
-
-                  <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1 custom-scrollbar">
-                    {items.length === 0 ? (
-                      <div className="py-8 text-center text-slate-400 text-xs">
-                        No items in quotation. Add equipment or perks.
-                      </div>
-                    ) : (
-                      items.map((item, idx) => {
-                        const isComp = item.isComplimentary || item.title?.includes('COMPLIMENTARY');
-                        return (
-                          <div
-                            key={item.id || idx}
-                            className={`p-2.5 rounded-xl border transition space-y-1 ${isComp
-                                ? 'bg-amber-50/70 border-amber-300 shadow-2xs'
-                                : 'bg-slate-50/70 border-slate-200'
-                              }`}
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-[9px] font-mono font-bold text-slate-400">#{idx + 1}</span>
-                                  {isComp && (
-                                    <span className="text-[9px] bg-amber-200 text-amber-950 px-1.5 py-0.2 rounded font-bold">
-                                      🎁 Complimentary
-                                    </span>
-                                  )}
-                                  <strong className="text-xs font-bold text-slate-900 truncate block">
-                                    {item.title.replace(/^🎁s*[COMPLIMENTARY ADD-ON]s*/i, '').replace(/^🎁s*[COMPLIMENTARY]s*/i, '')}
-                                  </strong>
-                                </div>
-                              </div>
-                              <span className="font-mono font-black text-xs text-slate-900 shrink-0">
-                                ₹{Number(item.unitPrice * (item.qty || 1)).toLocaleString('en-IN')}
-                              </span>
-                            </div>
-
-                            {isComp && (
-                              <div className="flex items-center justify-between pt-1 border-t border-amber-200 text-[10px]">
-                                <span className="text-emerald-800 font-semibold bg-emerald-50 px-1.5 py-0.2 rounded">
-                                  ✓ Concession: ₹{Number(item.complimentaryValue || item.unitPrice).toLocaleString('en-IN')} • Qty: {item.qty} No • Completed
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveComplimentaryItem(item.id)}
-                                  className="text-rose-600 hover:text-rose-800 font-bold cursor-pointer"
-                                >
-                                  ✕ Remove
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-
-                  {/* Summary & Save Action */}
-                  <div className="p-3 bg-gradient-to-r from-slate-50 to-emerald-50/40 border border-slate-200 rounded-xl text-xs space-y-2">
-                    {hasCustomerConcession && floorPrice > 0 && (
-                      <div className="flex items-center justify-between text-slate-700">
-                        <span className="font-medium">Deal Target Floor:</span>
-                        <span className="font-mono font-bold text-slate-900">₹{floorPrice.toLocaleString('en-IN')}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between text-slate-700">
-                      <span className="font-medium">Current Quotation Total:</span>
-                      <span className="font-mono text-sm text-emerald-800 font-black">₹{grandTotal.toLocaleString('en-IN')}</span>
-                    </div>
-
-                    <div className="pt-2 border-t border-slate-200">
+                      {/* Save Quotation Button */}
                       <button
                         type="button"
                         disabled={isSavingDb}
                         onClick={handleSaveToMongoDB}
-                        className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                       >
                         {isSavingDb ? <RefreshCw size={13} className="animate-spin" /> : <Save size={13} />}
-                        <span>Save & Update Quotation</span>
+                        <span>Save Quotation</span>
                       </button>
                     </div>
                   </div>
+
+                  {/* List of Given Items */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                    {currentComplimentaryItems.map((item, idx) => (
+                      <div
+                        key={item.id || idx}
+                        className="bg-slate-50 hover:bg-white p-3 rounded-xl border border-slate-200 transition flex items-center justify-between gap-2 shadow-2xs"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-mono font-bold text-slate-400">#{idx + 1}</span>
+                            <strong className="text-xs font-bold text-slate-800 truncate block">
+                              {item.title.replace(/^🎁\s*\[COMPLIMENTARY ADD-ON\]\s*/i, '').replace(/^🎁\s*\[COMPLIMENTARY\]\s*/i, '')}
+                            </strong>
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5 text-[11px]">
+                            <span className="font-mono font-black text-emerald-700">₹{item.unitPrice}</span>
+                            {item.expiryDate && (
+                              <span className="text-slate-500 font-mono text-[10px]">
+                                Exp: {getExpiryDetails(item.expiryDate).formatted}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveComplimentaryItem(item.id)}
+                          className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 transition cursor-pointer shrink-0"
+                          title="Remove this item"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              )}
+
+              {/* Sleek Filter Bar: Dropdown + Direct Price Input + Search & FEFO Sort */}
+              <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs space-y-2.5">
+                {/* Header Row: Title & Expiry Sort Mode */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={16} className="text-amber-500 shrink-0" />
+                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                      Perk Catalog (₹50 – ₹1,000)
+                    </h3>
+                    <span className="text-[11px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                      {displayPerks.length} / {COMPLIMENTARY_PERK_CATALOG.length} Items
+                    </span>
+                  </div>
+
+                  {/* Expiry / Price Sort Toggle */}
+                  <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl shrink-0 self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => setPerkSortMode('fefo')}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-extrabold transition cursor-pointer flex items-center gap-1.5 ${perkSortMode === 'fefo'
+                        ? 'bg-rose-600 text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      title="First-Expiring First-Out: Lowest expiry at top, increasing expiry below"
+                    >
+                      <span>⏳ Lowest Expiry First (FEFO)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPerkSortMode('price_asc')}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer flex items-center gap-1.5 ${perkSortMode === 'price_asc'
+                        ? 'bg-slate-900 text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                    >
+                      <span>₹ Price</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Combined Controls: Dropdown + Input + Search */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5 pt-2 border-t border-slate-100">
+                  {/* Dropdown Selector */}
+                  <div className="md:col-span-5 flex items-center gap-2 bg-slate-50 border border-slate-300 hover:border-slate-400 focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-400/20 rounded-xl px-3 py-1.5 transition">
+                    <Filter size={14} className="text-amber-600 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">
+                        Select Price / Category
+                      </label>
+                      <select
+                        value={
+                          typeof selectedPerkFilter === 'number'
+                            ? String(selectedPerkFilter)
+                            : selectedPerkFilter
+                        }
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === 'all_fitting') {
+                            setSelectedPerkFilter('all_fitting');
+                            setCustomPriceInput('');
+                          } else if (val === 'exact') {
+                            setSelectedPerkFilter('exact');
+                            setCustomPriceInput(String(targetPerkBudget));
+                          } else if (val === 'all') {
+                            setSelectedPerkFilter('all');
+                            setCustomPriceInput('');
+                          } else {
+                            const num = parseFloat(val);
+                            setSelectedPerkFilter(num);
+                            setCustomPriceInput(String(num));
+                          }
+                        }}
+                        className="w-full bg-transparent text-xs font-bold text-slate-800 outline-none cursor-pointer truncate"
+                      >
+                        {hasCustomerConcession && (
+                          <option value="all_fitting">
+                            ⚡ All Fitting Perks (≤ ₹{targetPerkBudget}) [{fittingPerks.length} items]
+                          </option>
+                        )}
+                        {hasCustomerConcession && exactMatchPerks.length > 0 && (
+                          <option value="exact">
+                            🎯 Exact Match (₹{targetPerkBudget}) [{exactMatchPerks.length} items]
+                          </option>
+                        )}
+                        <option value="all">
+                          🌐 All Catalog ({COMPLIMENTARY_PERK_CATALOG.length} items)
+                        </option>
+                        <optgroup label="── Specific Price Tiers ──">
+                          {distinctPrices.map(amt => (
+                            <option key={amt} value={String(amt)}>
+                              ₹{amt} {amt === targetPerkBudget ? '★ Exact Allowance Match' : ''} ({COMPLIMENTARY_PERK_CATALOG.filter(p => p.price === amt).length} items)
+                            </option>
+                          ))}
+                        </optgroup>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Direct Price Input */}
+                  <div className="md:col-span-3 flex items-center gap-2 bg-slate-50 border border-slate-300 hover:border-slate-400 focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-400/20 rounded-xl px-3 py-1.5 transition">
+                    <span className="text-xs font-mono font-black text-amber-600 shrink-0">₹</span>
+                    <div className="flex-1 min-w-0">
+                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">
+                        Or Type Price
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="10"
+                        value={customPriceInput}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setCustomPriceInput(val);
+                          if (val.trim() === '') {
+                            setSelectedPerkFilter(hasCustomerConcession ? 'all_fitting' : 'all');
+                          } else {
+                            const num = parseFloat(val);
+                            if (!isNaN(num)) {
+                              setSelectedPerkFilter(num);
+                            }
+                          }
+                        }}
+                        placeholder="e.g. 50, 400..."
+                        className="w-full bg-transparent text-xs font-bold text-slate-800 outline-none placeholder:text-slate-400 font-mono"
+                      />
+                    </div>
+                    {customPriceInput && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCustomPriceInput('');
+                          setSelectedPerkFilter(hasCustomerConcession ? 'all_fitting' : 'all');
+                        }}
+                        className="text-slate-400 hover:text-slate-600 cursor-pointer p-0.5 rounded-full hover:bg-slate-200 transition"
+                        title="Clear price filter"
+                      >
+                        <X size={12} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Search Product Box */}
+                  <div className="md:col-span-4 flex items-center gap-2 bg-slate-50 border border-slate-300 hover:border-slate-400 focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-400/20 rounded-xl px-3 py-1.5 transition">
+                    <Search size={14} className="text-slate-400 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">
+                        Search Catalog
+                      </label>
+                      <input
+                        type="text"
+                        value={perkSearchQuery}
+                        onChange={(e) => setPerkSearchQuery(e.target.value)}
+                        placeholder="Search product..."
+                        className="w-full bg-transparent text-xs font-medium text-slate-800 outline-none placeholder:text-slate-400 truncate"
+                      />
+                    </div>
+                    {perkSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setPerkSearchQuery('')}
+                        className="text-slate-400 hover:text-slate-600 cursor-pointer p-0.5 rounded-full hover:bg-slate-200 transition"
+                        title="Clear search"
+                      >
+                        <X size={12} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Product Cards Grid: Strictly 3 Products Per Row with Clean Images */}
+              <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between text-xs text-slate-500 pb-1.5 border-b border-slate-100 flex-wrap gap-1">
+                  <span className="font-semibold text-slate-700">
+                    Showing {displayPerks.length} Perks {
+                      selectedPerkFilter === 'exact'
+                        ? `(Exact ₹${targetPerkBudget} Allowance Match)`
+                        : typeof selectedPerkFilter === 'number'
+                          ? `(₹${selectedPerkFilter} Price Filter • Lowest Expiry First)`
+                          : selectedPerkFilter === 'all_fitting' || selectedPerkFilter === 'fitting' || selectedPerkFilter === 'match'
+                            ? `(All Price Ranges Fitting ≤ ₹${targetPerkBudget} Allowance • Lowest Expiry First)`
+                            : '(All Catalog • Lowest Expiry First)'
+                    }
+                  </span>
+                  {hasCustomerConcession && remainingBudget > 0 && (
+                    <span className="text-[11px] font-mono font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
+                      Remaining Budget: ₹{remainingBudget.toLocaleString('en-IN')}
+                    </span>
+                  )}
+                </div>
+
+                {displayPerks.length === 0 ? (
+                  <div className="py-10 text-center text-slate-400 text-xs">
+                    No perks match your filter. Select another price or clear filters to view the catalog.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 max-h-[760px] overflow-y-auto pr-1.5 custom-scrollbar">
+                    {displayPerks.map((perk, perkIdx) => {
+                      const matchingItems = currentComplimentaryItems.filter(it => it.title && it.title.includes(perk.title));
+                      const isSelected = matchingItems.length > 0;
+                      const selectedQty = matchingItems.reduce((acc, it) => acc + (it.qty || 1), 0);
+                      const selectedPerkItem = matchingItems[0];
+
+                      const isExactMatch = hasCustomerConcession && perk.price === remainingBudget;
+                      const fitsInBudget = !hasCustomerConcession || perk.price <= remainingBudget;
+                      const isOverBudget = hasCustomerConcession && (perk.price > remainingBudget || remainingBudget <= 0);
+                      const expInfo = getExpiryDetails(perk.expiryDate);
+
+                      return (
+                        <div
+                          key={perk.id}
+                          className={`p-3.5 rounded-2xl border-2 transition-all duration-200 flex flex-col justify-between space-y-2.5 relative overflow-hidden bg-white shadow-2xs hover:shadow-md ${isSelected
+                            ? 'border-emerald-500 bg-emerald-50/30 ring-2 ring-emerald-400/20'
+                            : isExactMatch
+                              ? 'border-amber-400 bg-amber-50/20 hover:border-amber-500'
+                              : 'border-slate-200 hover:border-slate-300'
+                            }`}
+                        >
+                          {/* Vertical-Proportioned Product Image Container */}
+                          <div className="relative w-full h-[175px] bg-slate-100 rounded-xl overflow-hidden group shrink-0">
+                            <img
+                              src={perk.image || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&q=80'}
+                              alt={perk.title}
+                              className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&q=80';
+                              }}
+                            />
+
+                            {/* Top-Left Rank Badge */}
+                            <span className="absolute top-2 left-2 text-[10px] font-mono font-black text-slate-800 bg-white/95 backdrop-blur-xs px-2 py-0.5 rounded-md shadow-2xs border border-slate-200">
+                              #{perkIdx + 1}
+                            </span>
+
+                            {/* Top-Right Price Tag */}
+                            <span className="absolute top-2 right-2 font-mono text-xs font-black text-emerald-950 bg-emerald-100/95 backdrop-blur-xs px-2.5 py-0.5 rounded-lg shadow-2xs border border-emerald-300">
+                              ₹{perk.price}
+                            </span>
+
+                            {/* Exact Match Ribbon */}
+                            {isExactMatch && !isSelected && (
+                              <span className="absolute bottom-2 left-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-2xs">
+                                🎯 Match
+                              </span>
+                            )}
+
+                            {/* Category Pill */}
+                            {perk.category && (
+                              <span className="absolute bottom-2 right-2 bg-slate-900/80 backdrop-blur-xs text-white text-[9px] font-semibold px-2 py-0.5 rounded-md shadow-2xs capitalize">
+                                {perk.category}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Product Information with 2-Line Title & Breathing Room */}
+                          <div className="space-y-1 flex-1 min-w-0">
+                            <strong className="text-xs sm:text-sm font-bold text-slate-900 leading-snug line-clamp-2 block" title={perk.title}>
+                              {perk.title}
+                            </strong>
+                            {perk.desc && (
+                              <p className="text-[11px] text-slate-500 line-clamp-1 leading-normal">
+                                {perk.desc}
+                              </p>
+                            )}
+
+                            {/* Clean Expiry Date Badge */}
+                            {perk.expiryDate && (
+                              <div className="pt-0.5 flex items-center gap-1.5">
+                                <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md border ${expInfo.badgeBg}`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${expInfo.dotColor}`} />
+                                  <span>{expInfo.badgeText}</span>
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Bottom Action: Direct Select / Remove */}
+                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
+                            {isSelected ? (
+                              <>
+                                <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1">
+                                  ✓ Added ({selectedQty})
+                                </span>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  {!isOverBudget && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handlePerkAddAttempt(perk)}
+                                      className="px-2 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold text-[11px] transition cursor-pointer"
+                                      title="Add another unit"
+                                    >
+                                      +1 More
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveComplimentaryItem(selectedPerkItem?.id)}
+                                    className="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer"
+                                    title="Remove item"
+                                  >
+                                    <Trash2 size={11} />
+                                    <span>Remove</span>
+                                  </button>
+                                </div>
+                              </>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={isOverBudget}
+                                onClick={() => handlePerkAddAttempt(perk)}
+                                className={`w-full py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs ${isOverBudget
+                                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                                  : isExactMatch
+                                    ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-xs'
+                                    : 'bg-slate-900 hover:bg-slate-800 text-white'
+                                  }`}
+                              >
+                                <Plus size={13} />
+                                <span>{isOverBudget ? `Exceeds (₹${remainingBudget})` : `Select Item (₹${perk.price})`}</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -5892,6 +6792,22 @@ Thank you for choosing Raj Biosis!`;
                     This clause appears on Page 4 (Section 6: Jurisdiction) of the official 4-Page Quotation PDF.
                   </span>
                 </div>
+
+                {/* Save Quotation Action at Bottom of Form Editor */}
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    Finished modifying quotation? Save changes to database.
+                  </span>
+                  <button
+                    type="button"
+                    disabled={isSavingDb}
+                    onClick={handleSaveToMongoDB}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    {isSavingDb ? <RefreshCw size={13} className="animate-spin" /> : <Save size={13} />}
+                    <span>Save Quotation</span>
+                  </button>
+                </div>
               </div>
 
             </div>
@@ -6135,7 +7051,7 @@ Thank you for choosing Raj Biosis!`;
                                   <span>{item.title || <span className="text-slate-400 italic">[Item Title]</span>}</span>
                                   {(item.isComplimentary || item.title?.includes('COMPLIMENTARY')) && (
                                     <span className="text-[9px] font-sans font-black bg-amber-100 text-amber-950 px-1.5 py-0.2 rounded border border-amber-300 not-italic">
-                                      🎁 COMPLIMENTARY (FREE ADD-ON)
+                                      Complimentary (FREE ADD-ON)
                                     </span>
                                   )}
                                 </div>
@@ -6524,7 +7440,7 @@ Thank you for choosing Raj Biosis!`;
                         <span>{item.title || '[Item Title]'}</span>
                         {(item.isComplimentary || item.title?.includes('COMPLIMENTARY')) && (
                           <span className="text-[9px] font-sans font-black bg-amber-100 text-amber-950 px-1.5 py-0.2 rounded border border-amber-300 not-italic">
-                            🎁 COMPLIMENTARY (FREE ADD-ON)
+                            Complimentary (FREE ADD-ON)
                           </span>
                         )}
                       </div>
@@ -6764,8 +7680,15 @@ Thank you for choosing Raj Biosis!`;
                     onClick={() => handleLoadSavedQuotation(q)}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-slate-900">{q.customerName}</span>
-                      <span className="font-mono text-[11px] font-bold text-emerald-600">₹{formatCurrency(q.grandTotal || q.totalAmount)}</span>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="font-bold text-xs text-slate-900 truncate">{q.customerName}</span>
+                        {isQuoteWithComplimentary(q) && (
+                          <span className="text-[9px] font-black bg-amber-100 text-amber-900 px-1.5 py-0.2 rounded border border-amber-300 shrink-0">
+                            🎁 Comp
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-mono text-[11px] font-bold text-emerald-600 shrink-0">₹{formatCurrency(q.grandTotal || q.totalAmount)}</span>
                     </div>
                     <div className="text-[11px] text-slate-500 font-mono flex items-center justify-between">
                       <span>Ref: {q.refNo}</span>
@@ -7246,6 +8169,195 @@ Thank you for choosing Raj Biosis!`;
                   Cancel
                 </button>
               </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* =========================================================================
+          FEFO NEAR-EXPIRY STOCK ADVISORY MODAL (HIGH-IMPACT ENGLISH NOTIFICATION)
+          ========================================================================= */}
+      {expiryAdvisoryData && (() => {
+        const { selectedPerk, earlierPerk, allEarlierPerks } = expiryAdvisoryData;
+        const selExp = getExpiryDetails(selectedPerk.expiryDate);
+        const earExp = getExpiryDetails(earlierPerk.expiryDate);
+        const dayDifference = Math.max(1, selExp.daysLeft - earExp.daysLeft);
+
+        return (
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 text-slate-800 animate-in zoom-in-95 duration-200">
+
+              {/* Modal Header */}
+              <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-lg font-bold shadow-2xs shrink-0 ring-4 ring-amber-50">
+                    <AlertTriangle size={20} className="text-amber-600" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-extrabold text-base text-slate-900 leading-tight">
+                        Earlier-Expiring Stock Advisory
+                      </h3>
+                      <span className="text-[10px] bg-rose-100 text-rose-800 font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        FEFO Priority
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      First-Expiring, First-Out Medical Dispensing Protocol
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setExpiryAdvisoryData(null)}
+                  className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs transition cursor-pointer shrink-0"
+                >
+                  ✕
+                </button>
+              </div>
+
+
+
+              {/* Comparison: Selected vs Earlier Expiring */}
+              <div className="space-y-3">
+                {/* 1. What Employee Clicked (Selected) */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3">
+                  {selectedPerk.image && (
+                    <img
+                      src={selectedPerk.image}
+                      alt={selectedPerk.title}
+                      className="w-14 h-14 rounded-xl object-cover shrink-0 border border-slate-200 bg-white"
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  )}
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">
+                      Your Current Selection:
+                    </span>
+                    <div className="flex items-start justify-between gap-2">
+                      <strong className="text-xs font-bold text-slate-900 leading-snug line-clamp-1">
+                        {selectedPerk.title}
+                      </strong>
+                      <span className="font-mono text-xs font-black text-slate-800 shrink-0">
+                        ₹{selectedPerk.price}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 pt-0.5 text-[11px] text-slate-600 flex-wrap">
+                      <span className={`inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded-md border ${selExp.badgeBg}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${selExp.dotColor}`}></span>
+                        <span>Expiry: {selExp.formatted} ({selExp.daysLeft} days left)</span>
+                      </span>
+                      {selectedPerk.batchNo && (
+                        <span className="text-[10px] font-mono text-slate-500 bg-white px-1.5 py-0.5 rounded border border-slate-200">
+                          {selectedPerk.batchNo}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Recommended Earlier-Expiring Stock */}
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-400 shadow-xs space-y-2 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 bg-emerald-600 text-white text-[9px] font-black px-2.5 py-0.5 rounded-bl-xl uppercase tracking-wider">
+                    ⭐ Recommended Earlier Stock
+                  </div>
+
+                  <span className="text-[10px] font-extrabold uppercase text-emerald-900 tracking-wider block">
+                    Found Earlier-Expiring Stock in Warehouse:
+                  </span>
+
+                  <div className="flex items-center gap-3">
+                    {earlierPerk.image && (
+                      <img
+                        src={earlierPerk.image}
+                        alt={earlierPerk.title}
+                        className="w-14 h-14 rounded-xl object-cover shrink-0 border border-emerald-300 bg-white shadow-2xs"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    )}
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <strong className="text-sm font-black text-emerald-950 leading-snug line-clamp-1">
+                          {earlierPerk.title}
+                        </strong>
+                        <span className="font-mono text-xs font-black text-emerald-800 bg-emerald-100/90 px-2.5 py-0.5 rounded-lg border border-emerald-300 shrink-0">
+                          ₹{earlierPerk.price}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-emerald-800 leading-snug line-clamp-1">
+                        {earlierPerk.desc}
+                      </p>
+                      <div className="flex items-center gap-1.5 flex-wrap pt-0.5 text-[11px]">
+                        <span className="inline-flex items-center gap-1 font-extrabold bg-rose-100 text-rose-900 px-2 py-0.5 rounded-md border border-rose-300 shadow-2xs">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse"></span>
+                          <span>Expires: {earExp.formatted} ({earExp.daysLeft}d left)</span>
+                        </span>
+                        <span className="font-extrabold text-[11px] text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                          ⚡ {dayDifference} days sooner!
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {allEarlierPerks.length > 1 && (
+                    <div className="text-[10px] text-emerald-800 font-semibold pt-0.5">
+                      ℹ️ Note: {allEarlierPerks.length} earlier-expiring items are available in the catalog matching your allowance.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons: 2 Equal Choices (Zero Boundation) */}
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleAddComplimentaryProduct(
+                      earlierPerk.title,
+                      earlierPerk.price,
+                      earlierPerk.desc,
+                      earlierPerk.expiryDate,
+                      earlierPerk.batchNo
+                    );
+                    setExpiryAdvisoryData(null);
+                    setSuccessToast(`✅ Allocated earlier-expiring "${earlierPerk.title}" (Expires ${earExp.formatted})!`);
+                  }}
+                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-extrabold text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-[0.99] ring-2 ring-emerald-400/30"
+                >
+                  <CheckCircle2 size={16} />
+                  <span>Select Recommended Earlier Stock ({earlierPerk.title})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleAddComplimentaryProduct(
+                      selectedPerk.title,
+                      selectedPerk.price,
+                      selectedPerk.desc,
+                      selectedPerk.expiryDate,
+                      selectedPerk.batchNo
+                    );
+                    setExpiryAdvisoryData(null);
+                    setSuccessToast(`Allocated "${selectedPerk.title}" as requested.`);
+                  }}
+                  className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Sparkles size={14} className="text-amber-400" />
+                  <span>Keep My Choice & Add "{selectedPerk.title}" Anyway</span>
+                </button>
+
+                <div className="flex justify-center pt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setExpiryAdvisoryData(null)}
+                    className="text-xs text-slate-400 hover:text-slate-600 font-semibold py-1 px-3 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+
             </div>
           </div>
         );

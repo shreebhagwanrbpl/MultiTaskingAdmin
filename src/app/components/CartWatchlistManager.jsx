@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   ShoppingCart,
   Bookmark,
@@ -39,6 +39,13 @@ import { PRODUCTS } from '../../data/products';
 export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
   const [customerCarts, setCustomerCarts] = useState([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
+  const selectedCustomerIdRef = useRef('');
+
+  // Keep ref strictly synchronized with latest state
+  useEffect(() => {
+    selectedCustomerIdRef.current = selectedCustomerId;
+  }, [selectedCustomerId]);
+
   const [storewideOffer, setStorewideOffer] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -75,29 +82,43 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
     setTimeout(() => setToastMsg(null), 4000);
   };
 
-  // Fetch all carts & watchlists from API
-  const fetchCarts = async () => {
-    setIsLoading(true);
+  // Fetch all carts & watchlists from API (silent = true for periodic background polling)
+  const fetchCarts = async (silent = false) => {
+    if (!silent) setIsLoading(true);
     try {
       const res = await fetch('/api/cart-watchlist');
       const data = await res.json();
       if (data.success && Array.isArray(data.carts)) {
-        setCustomerCarts(data.carts);
+        const normalizedCarts = data.carts.map(c => ({
+          ...c,
+          customerId: c.customerId || c.id || String(c._id || '')
+        }));
+        setCustomerCarts(normalizedCarts);
         setStorewideOffer(data.storewideOffer || null);
-        if (data.carts.length > 0 && !selectedCustomerId) {
-          setSelectedCustomerId(data.carts[0].customerId);
-        }
+
+        // Retain user's currently selected customer! Never reset to first cart!
+        setSelectedCustomerId(prev => {
+          const activeChoice = selectedCustomerIdRef.current || prev;
+          if (activeChoice && normalizedCarts.some(c => c.customerId === activeChoice)) {
+            return activeChoice;
+          }
+          const defaultId = normalizedCarts[0]?.customerId || '';
+          selectedCustomerIdRef.current = defaultId;
+          return defaultId;
+        });
       }
     } catch (e) {
       console.warn('Failed to load cart/watchlist:', e);
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCarts();
-    const interval = setInterval(() => { fetchCarts(); }, 8000);
+    fetchCarts(false);
+    const interval = setInterval(() => {
+      fetchCarts(true);
+    }, 8000);
     return () => clearInterval(interval);
   }, []);
 
@@ -601,8 +622,12 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
             </span>
             <div className="relative min-w-[260px] sm:min-w-[340px]">
               <select
-                value={selectedCustomerId}
-                onChange={(e) => setSelectedCustomerId(e.target.value)}
+                value={selectedCustomerId || currentCustomer?.customerId || ''}
+                onChange={(e) => {
+                  const newId = e.target.value;
+                  setSelectedCustomerId(newId);
+                  selectedCustomerIdRef.current = newId;
+                }}
                 className="w-full bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 outline-none cursor-pointer transition focus:border-amber-500"
               >
                 {customerCarts.map(c => (
@@ -641,7 +666,7 @@ export default function CartWatchlistManager({ onNavigateTab = () => {} }) {
 
             <button
               type="button"
-              onClick={fetchCarts}
+              onClick={() => fetchCarts(false)}
               disabled={isLoading}
               className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition cursor-pointer text-xs font-semibold flex items-center gap-1.5"
               title="Refresh Data"
