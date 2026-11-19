@@ -24,6 +24,7 @@ import {
   ArrowRight,
   X,
   Layers,
+  Boxes,
   Sparkles,
   Palette,
   FileText,
@@ -41,6 +42,7 @@ import {
   History,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
   PanelLeftClose,
   PanelLeftOpen,
   RefreshCw,
@@ -266,6 +268,9 @@ export default function AdminDashboardPage({ searchParams }) {
   const [activeQuotationDeskTab, setActiveQuotationDeskTab] = useState('leads');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [leadFilterDomain, setLeadFilterDomain] = useState('all');
+  const [selectedProductCompany, setSelectedProductCompany] = useState('rajbiosis');
+  const [isProductMenuOpen, setIsProductMenuOpen] = useState(true);
+  const [isInventoryMenuOpen, setIsInventoryMenuOpen] = useState(true);
   const {
     user,
     loading: authLoading,
@@ -1092,9 +1097,17 @@ export default function AdminDashboardPage({ searchParams }) {
           if (incoming.length > 0) {
             setNewLeadAlerts(prev => [...incoming, ...prev]);
             const first = incoming[0];
+            const isContact = Boolean(
+              first.source?.toLowerCase().includes('contact') ||
+              first.leadSource?.toLowerCase().includes('contact') ||
+              first.sourcePage === '/contact' ||
+              first.message
+            );
             triggerSystemPushNotification({
-              title: `🔔 New Web RFQ Lead Received! (${incoming.length})`,
-              body: `${first.doctorName || first.customerName || 'Hospital Purchase Officer'} from ${first.hospital || first.city || 'Healthcare Facility'} inquired for ${first.equipment || first.productName || 'Biomedical Equipment'}. Click to create quotation.`,
+              title: isContact ? `💬 New Contact Page Enquiry! (${incoming.length})` : `🔔 New Web RFQ Lead Received! (${incoming.length})`,
+              body: isContact
+                ? `${first.doctorName || first.customerName || 'Customer'} from ${first.hospital || first.city || 'Healthcare Facility'} submitted enquiry: "${first.message || first.equipment}". Click to create quotation.`
+                : `${first.doctorName || first.customerName || 'Hospital Purchase Officer'} from ${first.hospital || first.city || 'Healthcare Facility'} inquired for ${first.equipment || first.productName || 'Biomedical Equipment'}. Click to create quotation.`,
               tag: `lead-${first.id}`,
               onClick: () => {
                 if (typeof window !== 'undefined' && first) {
@@ -1762,17 +1775,193 @@ export default function AdminDashboardPage({ searchParams }) {
               )}
             </button>
 
-            <button
-              onClick={() => setActiveTab('products')}
-              title="Products & Catalog (MongoDB Atlas Synced)"
-              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'gap-2.5 px-3.5 py-2.5'} rounded-xl transition cursor-pointer ${activeTab === 'products'
-                ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
-                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
-                }`}
-            >
-              <Package size={isSidebarCollapsed ? 19 : 16} />
-              {!isSidebarCollapsed && <span>Products & Catalog</span>}
-            </button>
+            {/* Products & Catalog with Company Dropdown */}
+            <div className="w-full space-y-1">
+              <button
+                onClick={() => {
+                  setActiveTab('products');
+                  if (!isSidebarCollapsed) {
+                    setIsProductMenuOpen(prev => (activeTab === 'products' ? !prev : true));
+                  }
+                }}
+                title="Products & Catalog (Multi-Company Catalog)"
+                className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer ${activeTab === 'products'
+                  ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
+                  }`}
+              >
+                <span className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+                  <Package size={isSidebarCollapsed ? 19 : 16} />
+                  {!isSidebarCollapsed && <span>Products & Catalog</span>}
+                </span>
+                {!isSidebarCollapsed && (
+                  <ChevronDown
+                    size={14}
+                    className={`text-slate-400 transition-transform duration-200 ${(isProductMenuOpen && activeTab === 'products') ? 'rotate-180 text-sky-600' : ''}`}
+                  />
+                )}
+              </button>
+
+              {/* Company Dropdown Submenu (Strictly the 3 Companies) */}
+              {!isSidebarCollapsed && (isProductMenuOpen && activeTab === 'products') && (
+                <div className="ml-4 pl-2.5 border-l-2 border-sky-100/90 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-150 py-0.5">
+                  {/* Raj Biosis */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProductCompany('rajbiosis');
+                      setActiveTab('products');
+                    }}
+                    className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] transition cursor-pointer flex items-center justify-between ${
+                      selectedProductCompany === 'rajbiosis'
+                        ? 'bg-sky-100/70 text-sky-900 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60 font-medium'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-sky-500 shadow-2xs"></span>
+                      <span>Raj Biosis</span>
+                    </span>
+                    {selectedProductCompany === 'rajbiosis' && <Check size={12} className="text-sky-600" />}
+                  </button>
+
+                  {/* Human */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProductCompany('human_bio');
+                      setActiveTab('products');
+                    }}
+                    className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] transition cursor-pointer flex items-center justify-between ${
+                      selectedProductCompany === 'human_bio'
+                        ? 'bg-emerald-100/70 text-emerald-900 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60 font-medium'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-2xs"></span>
+                      <span>Human</span>
+                    </span>
+                    {selectedProductCompany === 'human_bio' && <Check size={12} className="text-emerald-600" />}
+                  </button>
+
+                  {/* Global */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProductCompany('global_bio');
+                      setActiveTab('products');
+                    }}
+                    className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] transition cursor-pointer flex items-center justify-between ${
+                      selectedProductCompany === 'global_bio'
+                        ? 'bg-indigo-100/70 text-indigo-900 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60 font-medium'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-indigo-500 shadow-2xs"></span>
+                      <span>Global</span>
+                    </span>
+                    {selectedProductCompany === 'global_bio' && <Check size={12} className="text-indigo-600" />}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Dedicated Inventory & Commercials Tab (User Request) */}
+            <div className="w-full space-y-1">
+              <button
+                onClick={() => {
+                  setActiveTab('inventory_commercials');
+                  if (!isSidebarCollapsed) {
+                    setIsInventoryMenuOpen(prev => (activeTab === 'inventory_commercials' ? !prev : true));
+                  }
+                }}
+                title="Inventory, Stock, Expiry Dates & Commercial Taxes"
+                className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer ${activeTab === 'inventory_commercials'
+                  ? 'bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200/80 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
+                  }`}
+              >
+                <span className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+                  <Boxes size={isSidebarCollapsed ? 19 : 16} className={activeTab === 'inventory_commercials' ? 'text-emerald-700' : 'text-slate-500'} />
+                  {!isSidebarCollapsed && <span>Inventory &amp; Tax</span>}
+                </span>
+                {!isSidebarCollapsed && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] bg-emerald-100 text-emerald-900 font-bold px-1.5 py-0.2 rounded border border-emerald-200 font-mono">
+                      Stock
+                    </span>
+                    <ChevronDown
+                      size={14}
+                      className={`text-slate-400 transition-transform duration-200 ${(isInventoryMenuOpen && activeTab === 'inventory_commercials') ? 'rotate-180 text-emerald-700' : ''}`}
+                    />
+                  </div>
+                )}
+              </button>
+
+              {/* Company Dropdown Submenu for Inventory */}
+              {!isSidebarCollapsed && (isInventoryMenuOpen && activeTab === 'inventory_commercials') && (
+                <div className="ml-4 pl-2.5 border-l-2 border-emerald-100/90 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-150 py-0.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProductCompany('rajbiosis');
+                      setActiveTab('inventory_commercials');
+                    }}
+                    className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] transition cursor-pointer flex items-center justify-between ${
+                      selectedProductCompany === 'rajbiosis'
+                        ? 'bg-emerald-100/70 text-emerald-950 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60 font-medium'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-sky-500 shadow-2xs"></span>
+                      <span>Raj Biosis</span>
+                    </span>
+                    {selectedProductCompany === 'rajbiosis' && <Check size={12} className="text-emerald-700" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProductCompany('human_bio');
+                      setActiveTab('inventory_commercials');
+                    }}
+                    className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] transition cursor-pointer flex items-center justify-between ${
+                      selectedProductCompany === 'human_bio'
+                        ? 'bg-emerald-100/70 text-emerald-950 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60 font-medium'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-2xs"></span>
+                      <span>Human</span>
+                    </span>
+                    {selectedProductCompany === 'human_bio' && <Check size={12} className="text-emerald-700" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProductCompany('global_bio');
+                      setActiveTab('inventory_commercials');
+                    }}
+                    className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] transition cursor-pointer flex items-center justify-between ${
+                      selectedProductCompany === 'global_bio'
+                        ? 'bg-emerald-100/70 text-emerald-950 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60 font-medium'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-indigo-500 shadow-2xs"></span>
+                      <span>Global</span>
+                    </span>
+                    {selectedProductCompany === 'global_bio' && <Check size={12} className="text-emerald-700" />}
+                  </button>
+                </div>
+              )}
+            </div>
 
             <button
               onClick={() => {
@@ -1887,29 +2076,27 @@ export default function AdminDashboardPage({ searchParams }) {
               )}
             </button>
 
-            {/* Admin Only: Staff Directory & Active Logins Section */}
-            {isAdmin && (
-              <button
-                onClick={() => setActiveTab('users')}
-                title="Staff Directory & Active Login Sessions"
-                className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer relative group ${activeTab === 'users'
-                  ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
-                  }`}
-              >
-                <span className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
-                  <Users size={isSidebarCollapsed ? 19 : 16} className={activeTab === 'users' ? 'text-sky-600' : 'text-slate-500'} />
-                  {!isSidebarCollapsed && <span>Staff & Logins</span>}
+            {/* Staff Directory & Active Logins Section (Open to all) */}
+            <button
+              onClick={() => setActiveTab('users')}
+              title="Staff Directory & Active Login Sessions"
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-2.5'} rounded-xl transition cursor-pointer relative group ${activeTab === 'users'
+                ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/80 shadow-xs'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium'
+                }`}
+            >
+              <span className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+                <Users size={isSidebarCollapsed ? 19 : 16} className={activeTab === 'users' ? 'text-sky-600' : 'text-slate-500'} />
+                {!isSidebarCollapsed && <span>Staff & Logins</span>}
+              </span>
+              {isSidebarCollapsed ? (
+                <span className="absolute top-2 right-2 w-2 h-2 bg-emerald-500 rounded-full border border-white"></span>
+              ) : (
+                <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded border border-emerald-200">
+                  Team
                 </span>
-                {isSidebarCollapsed ? (
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-emerald-500 rounded-full border border-white"></span>
-                ) : (
-                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded border border-emerald-200">
-                    Admin
-                  </span>
-                )}
-              </button>
-            )}
+              )}
+            </button>
           </nav>
         </div>
 
@@ -2020,37 +2207,27 @@ export default function AdminDashboardPage({ searchParams }) {
               </div>
             )}
 
-            {/* Global District & Territory Filter Selector (Unlocked for Admin HQ, Strictly Locked for Sales Team) */}
-            {isAdmin ? (
-              <div className="hidden md:flex items-center gap-1.5 bg-slate-50 border border-slate-200/90 px-2.5 py-1.5 rounded-xl shadow-2xs">
-                <MapPin size={13} className="text-rose-500 shrink-0" />
-                <span className="text-[11px] font-bold text-slate-500">State:</span>
-                <select
-                  value={activeDistrictFilter}
-                  onChange={(e) => setDistrictFilter(e.target.value)}
-                  className="bg-transparent text-xs font-bold text-slate-800 focus:outline-hidden cursor-pointer"
-                >
-                  <option value="all">All India (National HQ)</option>
-                  {user?.state && user.state !== 'All India (HQ)' && user.state !== 'All India (Pan-India HQ)' && (
-                    <option value={user.state}>⭐ My State ({user.state})</option>
-                  )}
-                  <option disabled>──────────</option>
-                  {ALL_INDIAN_STATES.map((st) => (
-                    <option key={st} value={st}>
-                      {st}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ) : (
-              <div className="hidden md:flex items-center gap-1.5 bg-slate-50 border border-slate-200/90 px-2.5 py-1.5 rounded-xl shadow-2xs">
-                <MapPin size={13} className="text-rose-500 shrink-0" />
-                <span className="text-[11px] font-bold text-slate-500">State:</span>
-                <span className="text-xs font-extrabold text-slate-800">
-                  {user?.state || 'Rajasthan'}
-                </span>
-              </div>
-            )}
+            {/* Global Territory & State Selector (Open for all team members) */}
+            <div className="hidden md:flex items-center gap-1.5 bg-slate-50 border border-slate-200/90 px-2.5 py-1.5 rounded-xl shadow-2xs">
+              <MapPin size={13} className="text-rose-500 shrink-0" />
+              <span className="text-[11px] font-bold text-slate-500">State:</span>
+              <select
+                value={activeDistrictFilter}
+                onChange={(e) => setDistrictFilter(e.target.value)}
+                className="bg-transparent text-xs font-bold text-slate-800 focus:outline-hidden cursor-pointer"
+              >
+                <option value="all">All India (National HQ)</option>
+                {user?.state && user.state !== 'All India (HQ)' && user.state !== 'All India (Pan-India HQ)' && (
+                  <option value={user.state}>⭐ My State ({user.state})</option>
+                )}
+                <option disabled>──────────</option>
+                {ALL_INDIAN_STATES.map((st) => (
+                  <option key={st} value={st}>
+                    {st}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {/* User Profile Pill & Dropdown */}
             <div className="relative">
@@ -2146,7 +2323,7 @@ export default function AdminDashboardPage({ searchParams }) {
               <div className="space-y-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-[10px] font-black tracking-wide bg-rose-600 text-white px-2 py-0.5 rounded-full uppercase">
-                    🚨 New Lead Received ({newLeadAlerts.length})
+                    {(newLeadAlerts[0]?.source?.toLowerCase().includes('contact') || newLeadAlerts[0]?.message) ? '💬 Contact Page Enquiry' : `🚨 New Lead Received (${newLeadAlerts.length})`}
                   </span>
                   <span className="text-xs font-bold text-slate-900">
                     {newLeadAlerts[0].doctorName || newLeadAlerts[0].customerName || 'Hospital Purchase Lead'}
@@ -2159,13 +2336,18 @@ export default function AdminDashboardPage({ searchParams }) {
                     {newLeadAlerts[0].equipment || newLeadAlerts[0].productName || 'Biomedical Equipment'}
                   </span>
                   <span className="text-xs font-mono font-bold text-emerald-700">
-                    {newLeadAlerts[0].quoteAmount || newLeadAlerts[0].amount || '₹0'}
+                    {newLeadAlerts[0].quoteAmount || newLeadAlerts[0].amount || 'Price on Request'}
                   </span>
                 </div>
+                {newLeadAlerts[0].message && (
+                  <div className="text-xs text-slate-800 italic bg-white/80 px-2.5 py-1 rounded-lg border border-rose-200 line-clamp-1 max-w-2xl font-medium">
+                    &ldquo;{newLeadAlerts[0].message}&rdquo;
+                  </div>
+                )}
                 <div className="text-[11px] text-slate-600 flex items-center gap-2 flex-wrap">
                   <span>Phone: <strong className="font-mono text-slate-900">{newLeadAlerts[0].phone || '-'}</strong></span>
                   <span>•</span>
-                  <span>Source: <strong className="font-mono text-sky-700">{newLeadAlerts[0].siteDomain || 'rajbiosis.com'}</strong></span>
+                  <span>Source: <strong className="font-mono text-sky-700">{newLeadAlerts[0].source || newLeadAlerts[0].siteDomain || 'rajbiosis.com'}</strong></span>
                   <span>•</span>
                   <span className="text-rose-700 font-bold inline-flex items-center gap-1 font-mono">
                     ⏱️ Closing in {alertCountdown}s
@@ -2338,8 +2520,30 @@ export default function AdminDashboardPage({ searchParams }) {
           {/* =========================================================================
               TAB 3: GLOBAL MULTI-COMPANY CATALOG MANAGER (MongoDB Atlas Synced)
               ========================================================================= */}
+          {/* =========================================================================
+              TAB 3: GLOBAL MULTI-COMPANY CATALOG MANAGER (PRODUCTS ONLY)
+              ========================================================================= */}
           {activeTab === 'products' && (
-            <ProductCatalogManager initialSites={sites} />
+            <ProductCatalogManager 
+              initialSites={sites} 
+              selectedCompanyProp={selectedProductCompany}
+              onSelectCompanyProp={setSelectedProductCompany}
+              initialManagerMode="products"
+              onSwitchViewMode={(mode) => setActiveTab(mode)}
+            />
+          )}
+
+          {/* =========================================================================
+              TAB 3B: DEDICATED INVENTORY, EXPIRY & COMMERCIAL TAXES MANAGER
+              ========================================================================= */}
+          {activeTab === 'inventory_commercials' && (
+            <ProductCatalogManager 
+              initialSites={sites} 
+              selectedCompanyProp={selectedProductCompany}
+              onSelectCompanyProp={setSelectedProductCompany}
+              initialManagerMode="inventory_commercials"
+              onSwitchViewMode={(mode) => setActiveTab(mode)}
+            />
           )}
 
           {/* =========================================================================

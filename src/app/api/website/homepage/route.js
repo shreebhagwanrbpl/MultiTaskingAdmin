@@ -6,6 +6,16 @@ import path from 'path';
 
 const CACHE_FILE = path.join(process.cwd(), 'src', 'data', 'homepageConfig.json');
 
+export const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
+}
+
 function readLocalFallback() {
   if (global._biomedical_homepage_config) {
     return global._biomedical_homepage_config;
@@ -22,8 +32,13 @@ function readLocalFallback() {
 }
 
 function writeLocalFallback(data) {
-  // Purely in-memory cache, DO NOT write to src/data/homepageConfig.json on disk.
-  // MongoDB is the sole persistent store.
+  try {
+    const dir = path.dirname(CACHE_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(CACHE_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (e) {
+    console.warn('Failed to write local fallback cache:', e.message);
+  }
   global._biomedical_homepage_config = data;
 }
 
@@ -45,7 +60,7 @@ export async function GET(request) {
         source: 'mongodb',
         isDbConnected: true,
         data: cleanConfig
-      });
+      }, { headers: CORS_HEADERS });
     }
 
     // Not yet initialized in MongoDB, return default seed and seed to MongoDB in background
@@ -63,7 +78,7 @@ export async function GET(request) {
       source: 'seeded_mongodb',
       isDbConnected: true,
       data: initialData
-    });
+    }, { headers: CORS_HEADERS });
   } catch (err) {
     // Graceful offline fallback
     const fallbackData = readLocalFallback();
@@ -73,7 +88,7 @@ export async function GET(request) {
       isDbConnected: false,
       error: err.message,
       data: fallbackData
-    });
+    }, { headers: CORS_HEADERS });
   }
 }
 
@@ -118,11 +133,11 @@ export async function POST(request) {
       mongoError,
       source: savedToMongo ? 'mongodb' : 'local_storage',
       data: dataToSave
-    });
+    }, { headers: CORS_HEADERS });
   } catch (err) {
     return NextResponse.json({
       success: false,
       error: err.message
-    }, { status: 500 });
+    }, { status: 500, headers: CORS_HEADERS });
   }
 }

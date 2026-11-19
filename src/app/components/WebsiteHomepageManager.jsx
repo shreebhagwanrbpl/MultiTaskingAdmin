@@ -21,6 +21,8 @@ import {
   Zap,
   Gift,
   Phone,
+  PhoneCall,
+  MapPin,
   ArrowRight,
   RefreshCw,
   Save,
@@ -75,6 +77,41 @@ export default function WebsiteHomepageManager() {
 
   const [brandModalOpen, setBrandModalOpen] = useState(false);
   const [editingBrand, setEditingBrand] = useState(null);
+
+  const topBar = config.topBarSettings || {
+    enabled: true,
+    showBestDeals: true,
+    bestDealsText: 'Best Deals',
+    bestDealsBadge: 'Up to 35% Off',
+    bestDealsLink: '/deals?tab=best-deals',
+
+    showSpecialOffers: true,
+    specialOffersText: 'Special Offers',
+    specialOffersBadge: 'HOT',
+    specialOffersLink: '/deals?tab=special-offers',
+
+    showNewArrivals: true,
+    newArrivalsText: 'New Arrivals',
+    newArrivalsBadge: '2026',
+    newArrivalsLink: '/deals?tab=new-arrivals',
+
+    showDeliveryHub: true,
+    deliveryHubLabel: 'Delivering to:',
+
+    showSupportHelpline: true,
+    supportLabel: '24x7 Support:',
+    supportPhone: '9983333469'
+  };
+
+  const updateTopBar = (fields) => {
+    setConfig(prev => ({
+      ...prev,
+      topBarSettings: {
+        ...(prev.topBarSettings || topBar),
+        ...fields
+      }
+    }));
+  };
 
   // File upload refs
   const carouselFileRef = useRef(null);
@@ -442,51 +479,439 @@ export default function WebsiteHomepageManager() {
               </div>
             </div>
 
-            {/* Pristine Modern Medical Storefront Top Ribbon Preview (NO BLACK!) */}
-            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Live Storefront Preview • Top Announcement Bar
-                  </span>
-                </div>
-                <span className="text-[11px] font-semibold text-slate-400">
-                  Header preview on rajbiosis.com
-                </span>
-              </div>
-
-              {/* Clean Luminous Light Medical Header Ribbon */}
-              <div className="rounded-2xl border border-sky-200/80 bg-gradient-to-r from-slate-50 via-sky-50/40 to-slate-50 p-3 flex flex-wrap items-center justify-between gap-3 shadow-2xs transition">
-                <div className="flex flex-wrap items-center gap-2">
-                  {(config.offers || []).filter(o => o.active).map(offer => {
-                    const theme = COLOR_OPTIONS.find(c => c.id === offer.color) || COLOR_OPTIONS[0];
-                    return (
-                      <span
-                        key={offer.id}
-                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white border border-slate-200/90 shadow-2xs text-slate-800 hover:border-sky-300 transition"
-                      >
-                        <span className={`w-2 h-2 rounded-full ${theme.dot}`}></span>
-                        <strong className={theme.text || 'text-slate-900'}>{offer.tag}:</strong>
-                        <span className="text-slate-600 font-medium">{offer.title}</span>
-                      </span>
-                    );
-                  })}
-                </div>
-
-                <div className="flex items-center gap-3 text-xs shrink-0">
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold text-xs shadow-2xs">
-                    <Phone size={12} className="text-sky-600" />
-                    <span className="font-mono">{config.offersConfig?.hotline || '+91 9999-BIOSIS'}</span>
+            {/* MASTER SWITCH CARD: SHOW/HIDE ENTIRE BAR */}
+            <div className={`p-6 rounded-3xl border transition shadow-sm ${
+              topBar.enabled !== false
+                ? 'bg-gradient-to-r from-sky-50/90 via-white to-sky-50/50 border-sky-200'
+                : 'bg-slate-50 border-slate-200'
+            }`}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-xs ${
+                    topBar.enabled !== false
+                      ? 'bg-sky-600 text-white shadow-sky-200'
+                      : 'bg-slate-200 text-slate-500'
+                  }`}>
+                    <Globe size={24} />
                   </div>
+                  <div>
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <h3 className="text-base font-bold text-slate-900">
+                        Entire Top Announcement & Utility Bar
+                      </h3>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide border ${
+                        topBar.enabled !== false
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : 'bg-slate-200 text-slate-600 border-slate-300'
+                      }`}>
+                        {topBar.enabled !== false ? '● Visible on rajbiosis.com' : '○ Hidden on rajbiosis.com'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1 max-w-2xl leading-relaxed">
+                      Control whether the top utility ribbon (Best Deals, Special Offers, New Arrivals, Regional Depot, and 24x7 Helpline) appears on the website. Switch OFF to hide the entire top bar.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0 self-start sm:self-center">
                   <button
                     type="button"
-                    className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-bold text-xs shadow-xs transition"
+                    onClick={() => updateTopBar({ enabled: topBar.enabled === false ? true : false })}
+                    className={`relative inline-flex h-8 w-16 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      topBar.enabled !== false ? 'bg-sky-600' : 'bg-slate-300'
+                    }`}
+                    title={topBar.enabled !== false ? 'Click to hide top bar' : 'Click to show top bar'}
                   >
-                    {config.offersConfig?.quoteBtnText || 'Request A Quote'}
+                    <span
+                      className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                        topBar.enabled !== false ? 'translate-x-8' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveChanges}
+                    disabled={isSaving}
+                    className="px-4 py-2 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    <Save size={14} />
+                    <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
                   </button>
                 </div>
               </div>
+            </div>
+
+            {/* LIVE STOREFRONT PREVIEW (MIRRORS RAJBIOSIS.COM HEADER BAR 1-TO-1) */}
+            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${topBar.enabled !== false ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></div>
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Live Storefront Preview • Header Top Bar
+                  </span>
+                </div>
+                <span className="text-[11px] font-semibold text-slate-400">
+                  Real-time preview on rajbiosis.com
+                </span>
+              </div>
+
+              {topBar.enabled === false ? (
+                <div className="p-4 rounded-2xl bg-slate-100 border border-dashed border-slate-300 text-center text-slate-500 text-xs font-medium">
+                  ✕ The entire top announcement bar is currently <strong>HIDDEN</strong>. Turn ON the master toggle above to display it on the website.
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-slate-200/90 bg-slate-50 p-2.5 sm:p-3 flex flex-wrap items-center justify-between gap-3 shadow-2xs transition">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* 1. Best Deals */}
+                    {topBar.showBestDeals !== false && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-600 text-white font-bold text-xs shadow-xs animate-pulse">
+                        <Flame size={12} className="fill-white text-white" />
+                        <span>{topBar.bestDealsText || 'Best Deals'}</span>
+                        {topBar.bestDealsBadge && (
+                          <span className="bg-white/20 text-[9px] px-1.5 py-0.5 rounded-full font-mono font-bold">
+                            {topBar.bestDealsBadge}
+                          </span>
+                        )}
+                      </span>
+                    )}
+
+                    {/* 2. Special Offers */}
+                    {topBar.showSpecialOffers !== false && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-300 font-bold text-xs shadow-2xs">
+                        <Tag size={12} className="text-amber-600" />
+                        <span>{topBar.specialOffersText || 'Special Offers'}</span>
+                        {topBar.specialOffersBadge && (
+                          <span className="bg-amber-200/90 text-amber-950 text-[9px] px-1.5 py-0.5 rounded-full font-mono font-extrabold">
+                            {topBar.specialOffersBadge}
+                          </span>
+                        )}
+                      </span>
+                    )}
+
+                    {/* 3. New Arrivals */}
+                    {topBar.showNewArrivals !== false && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-900 border border-emerald-300 font-bold text-xs shadow-2xs">
+                        <Sparkles size={12} className="text-emerald-600" />
+                        <span>{topBar.newArrivalsText || 'New Arrivals'}</span>
+                        {topBar.newArrivalsBadge && (
+                          <span className="bg-emerald-200/90 text-emerald-950 text-[9px] px-1.5 py-0.5 rounded-full font-mono font-extrabold">
+                            {topBar.newArrivalsBadge}
+                          </span>
+                        )}
+                      </span>
+                    )}
+
+                    {topBar.showBestDeals === false && topBar.showSpecialOffers === false && topBar.showNewArrivals === false && (
+                      <span className="text-xs text-slate-400 italic">All promo pills hidden</span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2.5 text-xs shrink-0">
+                    {/* 4. Delivering To */}
+                    {topBar.showDeliveryHub !== false && (
+                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-800 text-xs font-bold shadow-2xs">
+                        <MapPin size={12} className="text-sky-600 shrink-0" />
+                        <span className="text-slate-500 font-normal">{topBar.deliveryHubLabel || 'Delivering to:'}</span>
+                        <span className="text-sky-700 font-bold">Jodhpur</span>
+                        <span className="text-[9px] bg-slate-100 text-slate-600 px-1 py-0.2 rounded font-mono">Change</span>
+                      </div>
+                    )}
+
+                    {/* 5. 24x7 Helpline */}
+                    {topBar.showSupportHelpline !== false && (
+                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-800 text-xs font-bold shadow-2xs">
+                        <PhoneCall size={12} className="text-red-600 stroke-[2.5]" />
+                        <span className="text-slate-500 font-normal">{topBar.supportLabel || '24x7 Support:'}</span>
+                        <span className="font-mono text-slate-900">{topBar.supportPhone || '9983333469'}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 5 INDIVIDUAL ITEM CONTROLS (SHOW/HIDE + EDIT DETAILS) */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Individual Header Item Controls</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Toggle individual items on/off or customize their headlines, badges and contact details</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                {/* ITEM 1: BEST DEALS */}
+                <div className={`p-4 rounded-2xl border transition ${
+                  topBar.showBestDeals !== false ? 'bg-white border-slate-200 shadow-2xs' : 'bg-slate-50/80 border-slate-200/60 opacity-70'
+                }`}>
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                        <Flame size={15} />
+                      </div>
+                      <span className="font-bold text-xs text-slate-900">1. Best Deals Pill</span>
+                    </div>
+                    <label className="inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={topBar.showBestDeals !== false}
+                        onChange={(e) => updateTopBar({ showBestDeals: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600 relative"></div>
+                    </label>
+                  </div>
+
+                  <div className="mt-3 space-y-2.5 text-xs">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-500 mb-1">Button Title</label>
+                      <input
+                        type="text"
+                        value={topBar.bestDealsText || ''}
+                        onChange={(e) => updateTopBar({ bestDealsText: e.target.value })}
+                        placeholder="e.g. Best Deals"
+                        className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-slate-800 text-xs focus:ring-1 focus:ring-sky-500 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-500 mb-1">Discount Tag / Badge</label>
+                      <input
+                        type="text"
+                        value={topBar.bestDealsBadge || ''}
+                        onChange={(e) => updateTopBar({ bestDealsBadge: e.target.value })}
+                        placeholder="e.g. Up to 35% Off"
+                        className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-slate-800 text-xs focus:ring-1 focus:ring-sky-500 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-500 mb-1">Target Link</label>
+                      <input
+                        type="text"
+                        value={topBar.bestDealsLink || ''}
+                        onChange={(e) => updateTopBar({ bestDealsLink: e.target.value })}
+                        placeholder="/deals?tab=best-deals"
+                        className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-slate-800 font-mono text-[11px] focus:ring-1 focus:ring-sky-500 outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* ITEM 2: SPECIAL OFFERS */}
+                <div className={`p-4 rounded-2xl border transition ${
+                  topBar.showSpecialOffers !== false ? 'bg-white border-slate-200 shadow-2xs' : 'bg-slate-50/80 border-slate-200/60 opacity-70'
+                }`}>
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                        <Tag size={15} />
+                      </div>
+                      <span className="font-bold text-xs text-slate-900">2. Special Offers Pill</span>
+                    </div>
+                    <label className="inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={topBar.showSpecialOffers !== false}
+                        onChange={(e) => updateTopBar({ showSpecialOffers: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600 relative"></div>
+                    </label>
+                  </div>
+
+                  <div className="mt-3 space-y-2.5 text-xs">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-500 mb-1">Button Title</label>
+                      <input
+                        type="text"
+                        value={topBar.specialOffersText || ''}
+                        onChange={(e) => updateTopBar({ specialOffersText: e.target.value })}
+                        placeholder="e.g. Special Offers"
+                        className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-slate-800 text-xs focus:ring-1 focus:ring-sky-500 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-500 mb-1">Highlight Badge</label>
+                      <input
+                        type="text"
+                        value={topBar.specialOffersBadge || ''}
+                        onChange={(e) => updateTopBar({ specialOffersBadge: e.target.value })}
+                        placeholder="e.g. HOT"
+                        className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-slate-800 text-xs focus:ring-1 focus:ring-sky-500 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-500 mb-1">Target Link</label>
+                      <input
+                        type="text"
+                        value={topBar.specialOffersLink || ''}
+                        onChange={(e) => updateTopBar({ specialOffersLink: e.target.value })}
+                        placeholder="/deals?tab=special-offers"
+                        className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-slate-800 font-mono text-[11px] focus:ring-1 focus:ring-sky-500 outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* ITEM 3: NEW ARRIVALS */}
+                <div className={`p-4 rounded-2xl border transition ${
+                  topBar.showNewArrivals !== false ? 'bg-white border-slate-200 shadow-2xs' : 'bg-slate-50/80 border-slate-200/60 opacity-70'
+                }`}>
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                        <Sparkles size={15} />
+                      </div>
+                      <span className="font-bold text-xs text-slate-900">3. New Arrivals Pill</span>
+                    </div>
+                    <label className="inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={topBar.showNewArrivals !== false}
+                        onChange={(e) => updateTopBar({ showNewArrivals: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600 relative"></div>
+                    </label>
+                  </div>
+
+                  <div className="mt-3 space-y-2.5 text-xs">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-500 mb-1">Button Title</label>
+                      <input
+                        type="text"
+                        value={topBar.newArrivalsText || ''}
+                        onChange={(e) => updateTopBar({ newArrivalsText: e.target.value })}
+                        placeholder="e.g. New Arrivals"
+                        className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-slate-800 text-xs focus:ring-1 focus:ring-sky-500 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-500 mb-1">Year / Tag Badge</label>
+                      <input
+                        type="text"
+                        value={topBar.newArrivalsBadge || ''}
+                        onChange={(e) => updateTopBar({ newArrivalsBadge: e.target.value })}
+                        placeholder="e.g. 2026"
+                        className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-slate-800 text-xs focus:ring-1 focus:ring-sky-500 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-500 mb-1">Target Link</label>
+                      <input
+                        type="text"
+                        value={topBar.newArrivalsLink || ''}
+                        onChange={(e) => updateTopBar({ newArrivalsLink: e.target.value })}
+                        placeholder="/deals?tab=new-arrivals"
+                        className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-slate-800 font-mono text-[11px] focus:ring-1 focus:ring-sky-500 outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* ITEM 4: DELIVERING TO (REGIONAL DEPOT) */}
+                <div className={`p-4 rounded-2xl border transition ${
+                  topBar.showDeliveryHub !== false ? 'bg-white border-slate-200 shadow-2xs' : 'bg-slate-50/80 border-slate-200/60 opacity-70'
+                }`}>
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center shrink-0">
+                        <MapPin size={15} />
+                      </div>
+                      <span className="font-bold text-xs text-slate-900">4. Regional Depot</span>
+                    </div>
+                    <label className="inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={topBar.showDeliveryHub !== false}
+                        onChange={(e) => updateTopBar({ showDeliveryHub: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600 relative"></div>
+                    </label>
+                  </div>
+
+                  <div className="mt-3 space-y-2.5 text-xs">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-500 mb-1">Prefix Text</label>
+                      <input
+                        type="text"
+                        value={topBar.deliveryHubLabel || ''}
+                        onChange={(e) => updateTopBar({ deliveryHubLabel: e.target.value })}
+                        placeholder="e.g. Delivering to:"
+                        className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-slate-800 text-xs focus:ring-1 focus:ring-sky-500 outline-none"
+                      />
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-[11px] text-slate-500 leading-relaxed">
+                      Allows customers on rajbiosis.com to select their active regional supply depot (Jodhpur, Jaipur, Udaipur, Kota, Bikaner, etc.).
+                    </div>
+                  </div>
+                </div>
+
+                {/* ITEM 5: 24X7 SUPPORT HELPLINE */}
+                <div className={`p-4 rounded-2xl border transition ${
+                  topBar.showSupportHelpline !== false ? 'bg-white border-slate-200 shadow-2xs' : 'bg-slate-50/80 border-slate-200/60 opacity-70'
+                }`}>
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                        <PhoneCall size={15} />
+                      </div>
+                      <span className="font-bold text-xs text-slate-900">5. 24x7 Support Helpline</span>
+                    </div>
+                    <label className="inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={topBar.showSupportHelpline !== false}
+                        onChange={(e) => updateTopBar({ showSupportHelpline: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600 relative"></div>
+                    </label>
+                  </div>
+
+                  <div className="mt-3 space-y-2.5 text-xs">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-500 mb-1">Support Label</label>
+                      <input
+                        type="text"
+                        value={topBar.supportLabel || ''}
+                        onChange={(e) => updateTopBar({ supportLabel: e.target.value })}
+                        placeholder="e.g. 24x7 Support:"
+                        className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-slate-800 text-xs focus:ring-1 focus:ring-sky-500 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-500 mb-1">Direct Phone Number</label>
+                      <input
+                        type="text"
+                        value={topBar.supportPhone || ''}
+                        onChange={(e) => updateTopBar({ supportPhone: e.target.value })}
+                        placeholder="e.g. 9983333469"
+                        className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-slate-800 font-mono text-xs focus:ring-1 focus:ring-sky-500 outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* SAVE CHANGES ACTION BAR */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 flex items-center justify-between gap-4">
+              <div className="text-xs text-slate-500 flex items-center gap-2">
+                <CheckCircle2 size={16} className="text-emerald-600" />
+                <span>Changes sync instantly across all active storefront tabs without reload.</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleSaveChanges}
+                disabled={isSaving}
+                className="px-5 py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <Save size={14} />
+                <span>{isSaving ? 'Saving Changes...' : 'Save Changes'}</span>
+              </button>
             </div>
 
             {/* Modern Table of Offers */}

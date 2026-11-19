@@ -1,7 +1,7 @@
 import { MongoClient } from 'mongodb';
 
-const DEFAULT_URI = 'mongodb://rajbiosis15_db_user:R7jmlgZ3RfeB0MEz@ac-xdnyrrg-shard-00-00.aneatej.mongodb.net:27017,ac-xdnyrrg-shard-00-01.aneatej.mongodb.net:27017,ac-xdnyrrg-shard-00-02.aneatej.mongodb.net:27017/Website_Management?ssl=true&replicaSet=atlas-c27e2k-shard-0&authSource=admin&retryWrites=true&w=majority';
-const DEFAULT_DB = 'Website_Management';
+const DEFAULT_URI = 'mongodb://rajbiosis15_db_user:Rbpl302021@ac-xdnyrrg-shard-00-00.aneatej.mongodb.net:27017,ac-xdnyrrg-shard-00-01.aneatej.mongodb.net:27017,ac-xdnyrrg-shard-00-02.aneatej.mongodb.net:27017/company_master_cms?ssl=true&replicaSet=atlas-c27e2k-shard-0&authSource=admin&retryWrites=true&w=majority';
+const DEFAULT_DB = 'company_master_cms';
 
 export function normalizeMongoUri(rawUri) {
   if (!rawUri) return DEFAULT_URI;

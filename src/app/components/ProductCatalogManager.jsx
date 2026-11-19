@@ -1,40 +1,40 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { 
-  Package, 
-  Search, 
-  Filter, 
-  Plus, 
-  Download, 
-  Upload, 
-  FolderUp, 
-  FileSpreadsheet, 
-  Check, 
-  X, 
-  Edit3, 
-  Trash2, 
-  Eye, 
-  EyeOff, 
-  ExternalLink, 
-  Sparkles, 
-  Globe, 
-  Building2, 
-  CheckCircle2, 
-  AlertCircle, 
-  Layers, 
-  FolderTree, 
-  RefreshCw, 
-  ChevronDown, 
-  FileText, 
-  Video, 
-  Tag, 
+import {
+  Package,
+  Boxes,
+  Search,
+  Filter,
+  Plus,
+  Download,
+  Upload,
+  FolderUp,
+  FileSpreadsheet,
+  Check,
+  X,
+  Edit3,
+  Trash2,
+  Eye,
+  EyeOff,
+  ExternalLink,
+  Sparkles,
+  Globe,
+  Building2,
+  CheckCircle2,
+  AlertCircle,
+  Layers,
+  FolderTree,
+  RefreshCw,
+  ChevronDown,
+  FileText,
+  Video,
+  Tag,
   SlidersHorizontal,
   HelpCircle,
   Scissors,
   Percent,
   Calendar,
-  Boxes,
   Copy,
   CheckSquare,
   Square,
@@ -45,11 +45,11 @@ import {
   Zap,
   Maximize2
 } from 'lucide-react';
-import { 
-  generateDemoExcelFile, 
-  exportProductsToExcelFile, 
-  parseExcelFilesList, 
-  EXCEL_COLUMNS 
+import {
+  generateDemoExcelFile,
+  exportProductsToExcelFile,
+  parseExcelFilesList,
+  EXCEL_COLUMNS
 } from '../../lib/excelHelper';
 
 const COMPANIES = [
@@ -79,15 +79,40 @@ const COMPANIES = [
   }
 ];
 
-export default function ProductCatalogManager({ initialSites = [] }) {
+export default function ProductCatalogManager({
+  initialSites = [],
+  selectedCompanyProp = 'rajbiosis',
+  onSelectCompanyProp,
+  initialManagerMode = 'products',
+  onSwitchViewMode
+}) {
+  // Mode: 'products' (Catalog only) vs 'inventory_commercials' (Inventory, Expiry & Taxes)
+  const [managerMode, setManagerMode] = useState(initialManagerMode || 'products');
+
+  useEffect(() => {
+    if (initialManagerMode) {
+      setManagerMode(initialManagerMode);
+    }
+  }, [initialManagerMode]);
+
   // Main Products State
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState(null);
   const [successToast, setSuccessToast] = useState(null);
 
-  // Filters
-  const [selectedCompany, setSelectedCompany] = useState('all'); // 'all' | 'rajbiosis' | 'human_bio' | 'global_bio'
+  // Filters (Controlled via sidebar company dropdown - strictly 3 companies: rajbiosis, human_bio, global_bio)
+  const [selectedCompany, setSelectedCompany] = useState(selectedCompanyProp || 'rajbiosis');
+
+  useEffect(() => {
+    if (selectedCompanyProp && selectedCompanyProp !== 'all') {
+      setSelectedCompany(selectedCompanyProp);
+    } else if (selectedCompanyProp === 'all') {
+      setSelectedCompany('rajbiosis');
+    }
+  }, [selectedCompanyProp]);
+
+  const selectedCompanyObj = COMPANIES.find(c => c.id === selectedCompany) || COMPANIES[0];
   const [selectedProductType, setSelectedProductType] = useState('all'); // 'all' | 'normal' | 'hierarchical'
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubCategory, setSelectedSubCategory] = useState('all');
@@ -101,6 +126,7 @@ export default function ProductCatalogManager({ initialSites = [] }) {
 
   // Product Selection for Bulk Changes
   const [selectedProductIds, setSelectedProductIds] = useState([]);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
 
   // Modals State
   const [isAddEditOpen, setIsAddEditOpen] = useState(false);
@@ -229,26 +255,26 @@ export default function ProductCatalogManager({ initialSites = [] }) {
     const diffDays = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
 
     if (diffDays < 0) {
-      return { 
-        text: `Expired (${Math.abs(diffDays)}d ago)`, 
-        badgeClass: 'bg-rose-50 text-rose-700 border-rose-200', 
+      return {
+        text: `Expired (${Math.abs(diffDays)}d ago)`,
+        badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
         isExpired: true,
-        days: diffDays 
+        days: diffDays
       };
     } else if (diffDays <= 90) {
-      return { 
-        text: `Expiring Soon (${diffDays}d left)`, 
-        badgeClass: 'bg-amber-50 text-amber-700 border-amber-200', 
+      return {
+        text: `Expiring Soon (${diffDays}d left)`,
+        badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
         isSoon: true,
-        days: diffDays 
+        days: diffDays
       };
     } else {
       const formatted = exp.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
-      return { 
-        text: `Exp: ${formatted}`, 
-        badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200/80', 
+      return {
+        text: `Exp: ${formatted}`,
+        badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
         isValid: true,
-        days: diffDays 
+        days: diffDays
       };
     }
   };
@@ -363,7 +389,7 @@ export default function ProductCatalogManager({ initialSites = [] }) {
         const sub = p['sub category'] || p.subCategory;
         if (sub !== selectedSubCategory) return false;
       }
-      
+
       // Stock & Expiry Filter
       if (selectedStockFilter !== 'all') {
         const qty = typeof p.quantity === 'number' ? p.quantity : (parseInt(p.quantity || p.stockCount || 0, 10));
@@ -566,7 +592,7 @@ export default function ProductCatalogManager({ initialSites = [] }) {
 
     try {
       await Promise.all(
-        filteredProducts.map(p => 
+        filteredProducts.map(p =>
           fetch('/api/products', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -651,8 +677,10 @@ export default function ProductCatalogManager({ initialSites = [] }) {
     setSelectedProductIds([]);
 
     try {
-      const res = await fetch(`/api/products?ids=${encodeURIComponent(idsToDelete.join(','))}`, {
-        method: 'DELETE'
+      const res = await fetch('/api/products', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: idsToDelete })
       });
       const data = await res.json();
       if (data.success) {
@@ -673,15 +701,15 @@ export default function ProductCatalogManager({ initialSites = [] }) {
     setAddEditTab('basic');
     setFormData({
       title: '',
-      sku: 'RAJ-MED-' + Math.floor(1000 + Math.random() * 9000),
+      sku: 'RB-' + Math.floor(10000 + Math.random() * 90000),
       price: '',
       mrp: '',
-      offer: '15',
+      offer: '0',
       gstRate: '18',
       hsnCode: '9018',
-      quantity: '25',
-      expiryDate: '2028-06-30',
-      batchNo: 'LOT-2026-A1',
+      quantity: '0',
+      expiryDate: '',
+      batchNo: '',
       desc: '',
       capacity: '',
       throughput: '',
@@ -690,10 +718,11 @@ export default function ProductCatalogManager({ initialSites = [] }) {
       usage: '',
       brand: selectedCompany === 'human_bio' ? 'Human Biomedicals' : selectedCompany === 'global_bio' ? 'Global Biomedical' : 'Raj Biosis OEM',
       parameters: '',
-      automation: 'Standard Clinical',
+      automation: '',
       availability: 'In Stock',
       size: '',
-      images: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80',
+      images: '',
+      productUrl: '',
       video: '',
       pdf: '',
       category: '',
@@ -1159,8 +1188,8 @@ export default function ProductCatalogManager({ initialSites = [] }) {
         <div className="fixed top-20 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs font-semibold animate-in fade-in slide-in-from-top-4 duration-200 border border-slate-700">
           <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
           <span>{successToast}</span>
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => setSuccessToast(null)}
             className="text-slate-400 hover:text-white ml-2 cursor-pointer"
           >
@@ -1169,196 +1198,127 @@ export default function ProductCatalogManager({ initialSites = [] }) {
         </div>
       )}
 
-      {/* TOP METRICS & STATS STRIP (HUMAN-DESIGNED EXECUTIVE OVERVIEW) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        
-        {/* Metric 1: Total Catalog Models */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Products</span>
-            <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
-              <Package size={16} />
-            </div>
-          </div>
-          <div className="text-2xl font-extrabold text-slate-800 mt-2 font-mono">
-            {products.length} <span className="text-xs font-normal text-slate-500 font-sans">Active Models</span>
-          </div>
-          <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5">
-            <span>Raj Biosis ({companyCounts.rajbiosis})</span> • 
-            <span>Human ({companyCounts.human_bio})</span> • 
-            <span>Global ({companyCounts.global_bio})</span>
-          </div>
-        </div>
+      {/* TOP COMMAND BAR: SEARCH, SCOPE & ACTIONS (STICKY HEADER) */}
+      <div className="bg-white/95 backdrop-blur-md rounded-3xl p-5 border border-slate-200/90 shadow-sm space-y-4 sticky top-16 z-20">
 
-        {/* Metric 2: Stock Units in Warehouse */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Inventory Stock</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-              <Boxes size={16} />
-            </div>
-          </div>
-          <div className="text-2xl font-extrabold text-emerald-600 mt-2 font-mono">
-            {inventoryStats.totalStockUnits} <span className="text-xs font-normal text-slate-500 font-sans">Total Units</span>
-          </div>
-          <div className="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
-            <span className={`w-2 h-2 rounded-full ${inventoryStats.lowStockCount > 0 ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
-            <span>{inventoryStats.lowStockCount} models low stock (&le;10)</span>
-          </div>
-        </div>
+        {/* Row 1: Active Company Scope Indicator, Mode Switcher & Action Buttons */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
 
-        {/* Metric 3: Commercials & Tax Status */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Commercials &amp; GST</span>
-            <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
-              <Percent size={16} />
+          {/* Left: Scope Badge & Mode Switcher Pill */}
+          <div className="flex items-center gap-3 flex-wrap shrink-0">
+            {/* Active Company Scope Indicator (Selected via Sidebar) */}
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Scope:</span>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-bold text-slate-800 shadow-2xs whitespace-nowrap">
+                <span
+                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                  style={{ backgroundColor: selectedCompanyObj?.color || '#0ea5e9' }}
+                ></span>
+                <span className="whitespace-nowrap">{selectedCompanyObj?.name || 'Raj Biosis Private Limited'}</span>
+                <span className="px-2 py-0.5 rounded-md bg-white text-slate-600 text-[10px] font-mono border border-slate-200/60 whitespace-nowrap">
+                  {filteredProducts.length} {filteredProducts.length === 1 ? 'model' : 'models'}
+                </span>
+              </div>
             </div>
-          </div>
-          <div className="text-2xl font-extrabold text-indigo-700 mt-2 font-mono">
-            18% <span className="text-xs font-normal text-slate-500 font-sans">Avg GST / HSN 9018</span>
-          </div>
-          <div className="text-[11px] text-slate-400 mt-1">
-            Bulk offers &amp; discount rates active
-          </div>
-        </div>
 
-        {/* Metric 4: Expiry & Shelf Life Alerts */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Expiry &amp; Batches</span>
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold ${
-              inventoryStats.expiringSoonCount > 0 ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'
-            }`}>
-              <Calendar size={16} />
-            </div>
-          </div>
-          <div className="text-2xl font-extrabold text-slate-800 mt-2 font-mono">
-            {inventoryStats.expiringSoonCount > 0 ? (
-              <span className="text-amber-600">{inventoryStats.expiringSoonCount} <span className="text-xs font-normal text-slate-500 font-sans">Expiring Soon</span></span>
+            {/* Desk Mode Indicator Badge (Selected Exclusively via Sidebar) */}
+            {managerMode === 'inventory_commercials' ? (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200/90 text-xs font-bold shadow-2xs whitespace-nowrap">
+                <Boxes size={14} className="text-emerald-600" />
+                <span>Inventory &amp; Tax Desk</span>
+              </div>
             ) : (
-              <span className="text-emerald-600">All Valid <span className="text-xs font-normal text-slate-500 font-sans">(100%)</span></span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 text-sky-800 border border-sky-200/90 text-xs font-bold shadow-2xs whitespace-nowrap">
+                <Package size={14} className="text-sky-600" />
+                <span>Products Catalog Desk</span>
+              </div>
             )}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">
-            {inventoryStats.expiredCount > 0 ? `${inventoryStats.expiredCount} expired items` : 'Zero expired stock in catalog'}
-          </div>
-        </div>
 
-      </div>
-
-      {/* TOP COMMAND BAR: COMPANY PILLS, SEARCH & ACTIONS */}
-      <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-4">
-        
-        {/* Row 1: Company Switcher & Action Buttons */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          
-          {/* Company Selection Tabs */}
-          <div className="flex items-center gap-1.5 p-1 bg-slate-100/80 rounded-2xl border border-slate-200/60 overflow-x-auto">
-            <button
-              type="button"
-              onClick={() => setSelectedCompany('all')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 shrink-0 ${
-                selectedCompany === 'all'
-                  ? 'bg-white text-slate-900 shadow-xs border border-slate-200/60'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Building2 size={14} className={selectedCompany === 'all' ? "text-sky-600" : "text-slate-400"} />
-              <span>All Companies</span>
-              <span className="px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-mono">
-                {companyCounts.all}
-              </span>
-            </button>
-
-            {COMPANIES.map(comp => {
-              const count = companyCounts[comp.id] || 0;
-              const isActive = selectedCompany === comp.id;
-              return (
-                <button
-                  key={comp.id}
-                  type="button"
-                  onClick={() => setSelectedCompany(comp.id)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 shrink-0 ${
-                    isActive
-                      ? 'bg-white text-slate-900 shadow-xs border border-slate-200/60'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: comp.color }}></span>
-                  <span>{comp.shortName}</span>
-                  <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono ${isActive ? comp.badgeClass : 'bg-slate-200/70 text-slate-600'}`}>
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Action Buttons Toolbar */}
+          {/* Action Buttons Toolbar (Context-Aware: All Management Actions in Inventory Mode) */}
           <div className="flex items-center gap-2 flex-wrap">
 
-            {/* Bulk Word Remover Button (Direct Access) */}
-            <button
-              type="button"
-              onClick={() => setIsBulkWordModalOpen(true)}
-              className="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/80 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
-              title="Search and remove / replace any word across product headings"
-            >
-              <Scissors size={14} className="text-amber-700" />
-              <span>Bulk Word Remover</span>
-            </button>
+            {managerMode === 'inventory_commercials' ? (
+              <>
+                {/* 1. Add Product Primary CTA */}
+                <button
+                  type="button"
+                  onClick={handleOpenAddModal}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold transition cursor-pointer flex items-center gap-2 shadow-sm shadow-emerald-600/25 whitespace-nowrap"
+                  title="Add a new medical product manually"
+                >
+                  <Plus size={16} />
+                  <span>Add Product</span>
+                </button>
 
-            {/* Bulk Commercials & Stock Editor */}
-            <button
-              type="button"
-              onClick={() => setIsBulkEditModalOpen(true)}
-              className="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
-              title="Bulk update Rate, Offer, GST, HSN, SKU & Stock Quantity"
-            >
-              <Zap size={14} className="text-indigo-600" />
-              <span>Bulk Rate &amp; GST</span>
-            </button>
+                {/* 2. Bulk Commercials & Stock Editor */}
+                <button
+                  type="button"
+                  onClick={() => setIsBulkEditModalOpen(true)}
+                  className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-2xs whitespace-nowrap"
+                  title="Bulk update Rate, Offer, GST, HSN, SKU & Stock Quantity"
+                >
+                  <Zap size={14} className="text-emerald-700" />
+                  <span>Bulk Rate &amp; GST</span>
+                </button>
 
-            {/* Import Button */}
-            <button
-              type="button"
-              onClick={() => {
-                setImportCompanyTarget(selectedCompany !== 'all' ? selectedCompany : 'rajbiosis');
-                setIsImportModalOpen(true);
-              }}
-              className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-slate-200"
-            >
-              <Upload size={14} className="text-slate-600" />
-              <span>Import Excel / Folder</span>
-            </button>
+                {/* 3. Bulk Word Remover Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsBulkWordModalOpen(true)}
+                  className="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/80 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-2xs whitespace-nowrap"
+                  title="Search and remove / replace any word across product headings"
+                >
+                  <Scissors size={14} className="text-amber-700" />
+                  <span>Bulk Word Remover</span>
+                </button>
 
-            {/* Export Button */}
-            <button
-              type="button"
-              onClick={handleExportToExcel}
-              className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-slate-200"
-            >
-              <Download size={14} className="text-slate-600" />
-              <span>Export ({selectedProductIds.length > 0 ? selectedProductIds.length : filteredProducts.length})</span>
-            </button>
+                {/* 4. Import Excel / Folder */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImportCompanyTarget(selectedCompany !== 'all' ? selectedCompany : 'rajbiosis');
+                    setIsImportModalOpen(true);
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-slate-200 whitespace-nowrap"
+                  title="Batch import products from 18-column Excel sheet"
+                >
+                  <Upload size={14} className="text-slate-600" />
+                  <span>Import Excel / Folder</span>
+                </button>
 
-            {/* Add Product (Primary CTA) */}
-            <button
-              type="button"
-              onClick={handleOpenAddModal}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold transition cursor-pointer flex items-center gap-2 shadow-sm shadow-sky-500/25"
-            >
-              <Plus size={16} />
-              <span>Add Product</span>
-            </button>
+                {/* 5. Export Button */}
+                <button
+                  type="button"
+                  onClick={handleExportToExcel}
+                  className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-slate-200 whitespace-nowrap"
+                  title="Export products to Excel"
+                >
+                  <Download size={14} className="text-slate-600" />
+                  <span>Export ({selectedProductIds.length > 0 ? selectedProductIds.length : filteredProducts.length})</span>
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Products Mode: Clean Browse/View Toolbar with Export */}
+                <button
+                  type="button"
+                  onClick={handleExportToExcel}
+                  className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-slate-200 whitespace-nowrap"
+                  title="Export catalog products to Excel"
+                >
+                  <Download size={14} className="text-slate-600" />
+                  <span>Export Catalog ({selectedProductIds.length > 0 ? selectedProductIds.length : filteredProducts.length})</span>
+                </button>
+              </>
+            )}
 
           </div>
         </div>
 
         {/* Row 2: Search Bar & Quick View Mode Switcher */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          
+
           {/* Main Search Input */}
           <div className="relative flex-1">
             <Search size={16} className="absolute left-3.5 top-3 text-slate-400" />
@@ -1385,11 +1345,10 @@ export default function ProductCatalogManager({ initialSites = [] }) {
             <button
               type="button"
               onClick={() => setViewMode('large')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
-                viewMode === 'large'
-                  ? 'bg-white text-slate-800 shadow-2xs font-bold'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${viewMode === 'large'
+                ? 'bg-white text-slate-800 shadow-2xs font-bold'
+                : 'text-slate-500 hover:text-slate-800'
+                }`}
               title="Large high-clarity product images"
             >
               <Maximize2 size={13} />
@@ -1398,11 +1357,10 @@ export default function ProductCatalogManager({ initialSites = [] }) {
             <button
               type="button"
               onClick={() => setViewMode('compact')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
-                viewMode === 'compact'
-                  ? 'bg-white text-slate-800 shadow-2xs font-bold'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${viewMode === 'compact'
+                ? 'bg-white text-slate-800 shadow-2xs font-bold'
+                : 'text-slate-500 hover:text-slate-800'
+                }`}
               title="Compact table row view"
             >
               <Layers size={13} />
@@ -1413,8 +1371,11 @@ export default function ProductCatalogManager({ initialSites = [] }) {
         </div>
 
         {/* Row 3: Multi-Filter Toolbar */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-2 border-t border-slate-100 text-xs">
-          
+        <div className={`grid gap-3 pt-2 border-t border-slate-100 text-xs ${managerMode === 'products'
+          ? 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-4'
+          : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'
+          }`}>
+
           {/* 1. Category Filter */}
           <div>
             <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
@@ -1453,24 +1414,26 @@ export default function ProductCatalogManager({ initialSites = [] }) {
             </select>
           </div>
 
-          {/* 3. Stock & Expiry Status Filter */}
-          <div>
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-              Stock &amp; Expiry Filter:
-            </label>
-            <select
-              value={selectedStockFilter}
-              onChange={(e) => setSelectedStockFilter(e.target.value)}
-              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold outline-none focus:bg-white focus:border-sky-400 truncate"
-            >
-              <option value="all">All Inventory Status</option>
-              <option value="in_stock">🟢 In Stock (&gt;0 units)</option>
-              <option value="low_stock">🟡 Low Stock (&le;10 units)</option>
-              <option value="out_of_stock">🔴 Out of Stock (0 units)</option>
-              <option value="expiring_soon">⏳ Expiring Soon (&lt;90 Days)</option>
-              <option value="expired">⚠️ Expired Products</option>
-            </select>
-          </div>
+          {/* 3. Stock & Expiry Status Filter (Dedicated to Inventory & Tax Mode) */}
+          {managerMode === 'inventory_commercials' && (
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                Stock &amp; Expiry Filter:
+              </label>
+              <select
+                value={selectedStockFilter}
+                onChange={(e) => setSelectedStockFilter(e.target.value)}
+                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold outline-none focus:bg-white focus:border-sky-400 truncate"
+              >
+                <option value="all">All Inventory Status</option>
+                <option value="in_stock">🟢 In Stock (&gt;0 units)</option>
+                <option value="low_stock">🟡 Low Stock (&le;10 units)</option>
+                <option value="out_of_stock">🔴 Out of Stock (0 units)</option>
+                <option value="expiring_soon">⏳ Expiring Soon (&lt;90 Days)</option>
+                <option value="expired">⚠️ Expired Products</option>
+              </select>
+            </div>
+          )}
 
           {/* 4. Target Website Filter */}
           <div>
@@ -1480,11 +1443,10 @@ export default function ProductCatalogManager({ initialSites = [] }) {
             <select
               value={selectedWebsite}
               onChange={(e) => setSelectedWebsite(e.target.value)}
-              className={`w-full px-2.5 py-1.5 border rounded-xl font-mono text-xs outline-none transition truncate ${
-                selectedWebsite !== 'all' 
-                  ? 'bg-sky-50 text-sky-800 border-sky-300 font-bold' 
-                  : 'bg-slate-50 border-slate-200 text-slate-700'
-              }`}
+              className={`w-full px-2.5 py-1.5 border rounded-xl font-mono text-xs outline-none transition truncate ${selectedWebsite !== 'all'
+                ? 'bg-sky-50 text-sky-800 border-sky-300 font-bold'
+                : 'bg-slate-50 border-slate-200 text-slate-700'
+                }`}
             >
               <option value="all">🌐 All Websites (Multi-Site)</option>
               {companyWebsites.map(w => (
@@ -1566,29 +1528,69 @@ export default function ProductCatalogManager({ initialSites = [] }) {
           PRODUCTS DATA TABLE (CLEAN, HUMAN-CRAFTED, SPACIOUS & RICH)
           ========================================================================= */}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
-        
+
         {/* Table Subheader with Counter & Selection Controls */}
         <div className="px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500 bg-slate-50/50">
-          <div className="flex items-center gap-3 flex-wrap">
-            <button
-              type="button"
-              onClick={handleToggleSelectAll}
-              className="flex items-center gap-2 font-semibold text-slate-700 hover:text-slate-900 cursor-pointer"
-            >
-              {allFilteredSelected ? (
-                <CheckSquare size={16} className="text-sky-600" />
-              ) : (
-                <Square size={16} className="text-slate-400" />
-              )}
-              <span>Select All Filtered ({filteredProducts.length})</span>
-            </button>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {!isSelectionMode ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setIsSelectionMode(true)}
+                  className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer hover:border-sky-300"
+                >
+                  <CheckSquare size={14} className="text-sky-600" />
+                  <span>Select Products</span>
+                </button>
 
-            {selectedProductIds.length > 0 && (
-              <span className="px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 font-bold font-mono text-[11px]">
-                {selectedProductIds.length} Selected
-              </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSelectionMode(true);
+                    setSelectedProductIds(filteredProducts.map(p => p.id || p._id));
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold transition cursor-pointer"
+                >
+                  Select All Filtered ({filteredProducts.length})
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleToggleSelectAll}
+                  className="px-3.5 py-1.5 rounded-xl bg-sky-50 text-sky-700 border border-sky-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                >
+                  {allFilteredSelected ? (
+                    <CheckSquare size={14} className="text-sky-600" />
+                  ) : (
+                    <Square size={14} className="text-sky-400" />
+                  )}
+                  <span>{allFilteredSelected ? 'Deselect All' : `Select All (${filteredProducts.length})`}</span>
+                </button>
+
+                {selectedProductIds.length > 0 && (
+                  <span className="px-2.5 py-1 rounded-full bg-sky-100 text-sky-800 font-bold font-mono text-[11px] border border-sky-200">
+                    {selectedProductIds.length} Selected
+                  </span>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSelectionMode(false);
+                    setSelectedProductIds([]);
+                  }}
+                  className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 text-xs font-semibold transition flex items-center gap-1 cursor-pointer border border-slate-200 hover:border-rose-200"
+                  title="Cancel selection mode"
+                >
+                  <X size={13} />
+                  <span>Cancel</span>
+                </button>
+              </>
             )}
 
+            <span className="text-slate-300 font-light">|</span>
             <span>Showing <strong className="text-slate-800 font-mono">{filteredProducts.length}</strong> of {products.length} models</span>
           </div>
 
@@ -1617,33 +1619,46 @@ export default function ProductCatalogManager({ initialSites = [] }) {
         <div className="w-full overflow-x-auto">
           <table className="w-full text-left text-xs min-w-[900px]">
             <thead>
-              <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wider text-[10px] bg-slate-50/70">
-                <th className="py-4 px-4 w-[4%] text-center">
-                  <input
-                    type="checkbox"
-                    checked={allFilteredSelected}
-                    onChange={handleToggleSelectAll}
-                    className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 cursor-pointer"
-                  />
-                </th>
-                <th className="py-4 px-4 w-[42%]">Product &amp; Model Specs</th>
-                <th className="py-4 px-4 w-[18%]">Inventory &amp; Expiry</th>
-                <th className="py-4 px-4 w-[18%]">Commercials &amp; Tax</th>
-                <th className="py-4 px-4 w-[10%]">Channels</th>
-                <th className="py-4 px-4 w-[8%] text-center">Actions</th>
+              <tr className={`border-b border-slate-200/90 text-slate-700 font-bold uppercase tracking-wider text-[11px] select-none ${managerMode === 'inventory_commercials' ? 'bg-emerald-100/50' : 'bg-slate-100/80'
+                }`}>
+                {isSelectionMode && (
+                  <th className="py-4 px-4 w-[4%] text-center animate-in fade-in duration-150">
+                    <input
+                      type="checkbox"
+                      checked={allFilteredSelected}
+                      onChange={handleToggleSelectAll}
+                      className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 cursor-pointer accent-sky-600"
+                    />
+                  </th>
+                )}
+                {managerMode === 'products' ? (
+                  <>
+                    <th className={`py-4 px-4 ${isSelectionMode ? 'w-[44%]' : 'w-[48%]'}`}>Product &amp; Model Specs</th>
+                    <th className="py-4 px-4 w-[24%]">Category &amp; Department</th>
+                    <th className="py-4 px-4 w-[16%]">Website Channels</th>
+                    <th className="py-4 px-4 w-[12%] text-center">Actions</th>
+                  </>
+                ) : (
+                  <>
+                    <th className={`py-4 px-4 ${isSelectionMode ? 'w-[36%]' : 'w-[40%]'}`}>Product &amp; SKU</th>
+                    <th className="py-4 px-4 w-[26%]">Inventory &amp; Expiry</th>
+                    <th className="py-4 px-4 w-[24%]">Commercials &amp; Tax</th>
+                    <th className="py-4 px-4 w-[10%] text-center">Actions</th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100/80 font-medium text-slate-600">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="py-20 text-center text-slate-400">
+                  <td colSpan={isSelectionMode ? 5 : 4} className="py-20 text-center text-slate-400">
                     <RefreshCw size={26} className="animate-spin mx-auto mb-2 text-sky-500" />
-                    <span className="font-semibold text-slate-600">Loading products from MongoDB Atlas cluster...</span>
+                    <span className="font-semibold text-slate-600">Loading products...</span>
                   </td>
                 </tr>
               ) : filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-20 text-center">
+                  <td colSpan={isSelectionMode ? 5 : 4} className="py-20 text-center">
                     <div className="max-w-md mx-auto space-y-3">
                       <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
                         <Package size={24} />
@@ -1677,10 +1692,11 @@ export default function ProductCatalogManager({ initialSites = [] }) {
                   </td>
                 </tr>
               ) : (
-                filteredProducts.map((p) => {
+                filteredProducts.map((p, idx) => {
                   const pId = p.id || p._id;
                   const isSelected = selectedProductIds.includes(pId);
                   const isLive = p.isVisible !== false;
+                  const isEven = idx % 2 === 0;
 
                   const rawImages = p.images || p.image || '';
                   const imagesArray = rawImages ? rawImages.split(',').map(s => s.trim()).filter(Boolean) : [];
@@ -1697,47 +1713,65 @@ export default function ProductCatalogManager({ initialSites = [] }) {
                   const compObj = COMPANIES.find(c => c.id === p.companyId) || COMPANIES[0];
 
                   return (
-                    <tr 
-                      key={pId} 
-                      className={`hover:bg-slate-50/80 transition border-b border-slate-100/70 ${
-                        isSelected ? 'bg-sky-50/40' : ''
-                      }`}
+                    <tr
+                      key={pId}
+                      onClick={() => setViewingSpecsProduct(p)}
+                      className={`cursor-pointer transition-colors duration-150 border-b border-slate-200/75 ${isSelected
+                        ? 'bg-sky-100/70 border-sky-300 ring-1 ring-inset ring-sky-300'
+                        : isEven
+                          ? 'bg-white hover:bg-sky-50/50'
+                          : 'bg-slate-50/90 hover:bg-sky-50/60'
+                        }`}
+                      title="Click row to view all product details & specs"
                     >
-                      {/* Checkbox Column */}
-                      <td className="py-4 px-4 text-center">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => handleToggleSelectProduct(pId)}
-                          className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 cursor-pointer"
-                        />
-                      </td>
+                      {/* Checkbox Column (Only visible in Multi-Select Mode) */}
+                      {isSelectionMode && (
+                        <td className="py-4 px-4 text-center animate-in fade-in duration-150" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleToggleSelectProduct(pId)}
+                            className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 cursor-pointer accent-sky-600"
+                          />
+                        </td>
+                      )}
 
                       {/* Product Thumbnail (LARGE SIZE) & Identity */}
                       <td className="py-4 px-4">
                         <div className="flex items-start gap-4">
-                          
+
                           {/* Image Box (Large & High Definition) */}
                           <div
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setPreviewImageProduct(p);
                               setPreviewActiveImgIdx(0);
                             }}
-                            className={`rounded-2xl bg-white border border-slate-200/90 p-1.5 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden hover:border-sky-400 hover:shadow-md transition cursor-pointer group relative ${
-                              viewMode === 'large' ? 'w-24 h-24 sm:w-28 sm:h-28' : 'w-16 h-16'
-                            }`}
+                            className={`rounded-2xl bg-white border border-slate-200/90 p-1.5 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden hover:border-sky-400 hover:shadow-md transition cursor-pointer group relative ${viewMode === 'large' ? 'w-24 h-24 sm:w-28 sm:h-28' : 'w-16 h-16'
+                              }`}
                             title="Click to view full image gallery"
                           >
                             {mainImage ? (
-                              <img 
-                                src={mainImage} 
-                                alt={p.title} 
+                              <img
+                                src={mainImage}
+                                alt={p.title}
+                                loading="lazy"
                                 className="w-full h-full object-contain group-hover:scale-105 transition duration-200"
-                                onError={(e) => { e.target.style.display = 'none'; }}
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  if (e.target.nextElementSibling) {
+                                    e.target.nextElementSibling.classList.remove('hidden');
+                                    e.target.nextElementSibling.classList.add('flex');
+                                  }
+                                }}
                               />
-                            ) : (
-                              <Package size={viewMode === 'large' ? 32 : 22} className="text-slate-300" />
-                            )}
+                            ) : null}
+                            <div className={`w-full h-full flex-col items-center justify-center text-slate-300 ${mainImage ? 'hidden' : 'flex'}`}>
+                              <Package size={viewMode === 'large' ? 32 : 22} className="stroke-[1.5] text-slate-300" />
+                              <span className="text-[9px] font-bold text-slate-400 mt-0.5 uppercase tracking-wider">
+                                {p.category ? p.category.slice(0, 3) : 'MED'}
+                              </span>
+                            </div>
 
                             {/* Multiple Images Badge */}
                             {extraImagesCount > 0 && (
@@ -1754,25 +1788,10 @@ export default function ProductCatalogManager({ initialSites = [] }) {
 
                           {/* Product Details */}
                           <div className="min-w-0 flex-1 pr-2">
-                            
-                            {/* Badges: Company & Brand */}
-                            <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                              <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${compObj.badgeClass}`}>
-                                {compObj.shortName}
-                              </span>
-                              <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
-                                {p.brand || compObj.shortName}
-                              </span>
-                              {p.category && (
-                                <span className="text-[10px] text-slate-500 font-medium">
-                                  {p.category} {p['sub category'] ? `› ${p['sub category']}` : ''}
-                                </span>
-                              )}
-                            </div>
 
-                            {/* Product Title (Interactive Click to preview) */}
-                            <h4 
-                              className="font-bold text-slate-900 text-sm leading-snug hover:text-sky-600 cursor-pointer transition"
+                            {/* Product Title */}
+                            <h4
+                              className="font-bold text-slate-900 text-sm leading-snug hover:text-sky-600 transition"
                               style={{
                                 display: '-webkit-box',
                                 WebkitLineClamp: 2,
@@ -1780,174 +1799,276 @@ export default function ProductCatalogManager({ initialSites = [] }) {
                                 overflow: 'hidden'
                               }}
                               title={p.title}
-                              onClick={() => {
-                                setPreviewImageProduct(p);
-                                setPreviewActiveImgIdx(0);
-                              }}
                             >
                               {p.title}
                             </h4>
 
-                            {/* SKU & Model */}
-                            <div className="text-[11px] text-slate-400 font-mono mt-1.5 flex items-center gap-2 flex-wrap">
+                            {/* SKU, Model, Pack Size & Direct Online Page Link (No HSN/GST in Products Mode) */}
+                            <div className="text-[11px] text-slate-400 font-mono mt-1.5 flex items-center gap-2.5 flex-wrap">
                               <span>SKU: <strong className="text-slate-700 font-semibold">{skuVal}</strong></span>
                               {p.model && p.model !== skuVal && (
-                                <span>Model: <strong className="text-slate-600">{p.model}</strong></span>
+                                <>
+                                  <span className="text-slate-200">•</span>
+                                  <span>Model: <strong className="text-slate-600">{p.model}</strong></span>
+                                </>
+                              )}
+                              {(p.packSize || p['pack size'] || p.pack) && (
+                                <>
+                                  <span className="text-slate-200">•</span>
+                                  <span className="text-slate-600 font-sans font-medium">📦 {p.packSize || p['pack size'] || p.pack}</span>
+                                </>
+                              )}
+                              {/* HSN Code: Only visible in Inventory & Tax Mode */}
+                              {managerMode === 'inventory_commercials' && hsnVal && hsnVal !== 'N/A' && (
+                                <>
+                                  <span className="text-slate-200">•</span>
+                                  <span className="text-slate-400">HSN: <strong className="text-slate-600 font-normal">{hsnVal}</strong></span>
+                                </>
+                              )}
+                              <span className="text-slate-200">•</span>
+                              {/* Direct Live Online Page Link */}
+                              <a
+                                href={`http://localhost:3000/product/${p.id || p.sku || p._id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1 text-[11px] font-semibold text-sky-600 hover:text-sky-800 hover:underline transition font-sans"
+                                title="Open product on live website"
+                              >
+                                <ExternalLink size={11} />
+                                <span>Online Page</span>
+                              </a>
+                            </div>
+
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* =========================================================================
+                          MODE A: PRODUCTS CATALOG (Category & Department + Website Channels)
+                          ========================================================================= */}
+                      {managerMode === 'products' ? (
+                        <>
+                          {/* Column 2: Category & Department */}
+                          <td className="py-4 px-4 align-top">
+                            <div className="space-y-1.5">
+                              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white text-slate-800 border border-slate-200 shadow-2xs text-xs font-bold">
+                                <Tag size={11} className="text-sky-600 shrink-0" />
+                                <span className="truncate max-w-[200px]" title={p.category}>{p.category || 'General Reagents'}</span>
+                              </div>
+                              {p['sub category'] ? (
+                                <div className="flex items-center gap-1 text-[11px] text-slate-500 font-medium pl-1">
+                                  <span className="text-slate-300">↳</span>
+                                  <span className="px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 border border-sky-100 text-[10.5px] font-semibold">
+                                    {p['sub category']}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="text-[10px] text-slate-400 pl-1 font-mono">
+                                  Primary Category
+                                </div>
                               )}
                             </div>
+                          </td>
 
-                          </div>
-                        </div>
-                      </td>
+                          {/* Column 3: Website Channels Distribution */}
+                          <td className="py-4 px-4 align-top">
+                            {(() => {
+                              const sites = getWebsitesForCompany(p.companyId);
+                              const liveCount = sites.filter(s => isVisibleOnSite(p, s)).length;
 
-                      {/* Inventory & Expiry Column */}
-                      <td className="py-4 px-4 align-top">
-                        <div className="space-y-2">
-                          
-                          {/* Stock Quantity Stepper */}
-                          <div className="flex items-center gap-2">
-                            <div className="flex items-center border border-slate-200 rounded-xl bg-white shadow-2xs overflow-hidden">
+                              return (
+                                <div className="space-y-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setQuickWebsiteProduct(p);
+                                    }}
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center gap-1.5 shadow-2xs ${liveCount > 0
+                                      ? 'bg-white hover:bg-emerald-50 text-emerald-800 border-emerald-200/90'
+                                      : 'bg-white hover:bg-slate-100 text-slate-600 border-slate-200'
+                                      }`}
+                                    title="Click to manage multi-website distribution"
+                                  >
+                                    <Globe size={12} className={liveCount > 0 ? "text-emerald-600" : "text-slate-400"} />
+                                    <span>{liveCount}/{sites.length} Active Channels</span>
+                                  </button>
+                                  <div className="flex items-center gap-1.5 text-[11px] font-semibold pl-1">
+                                    <span className={`w-2 h-2 rounded-full ${isLive ? 'bg-emerald-500 ring-2 ring-emerald-200 animate-pulse' : 'bg-slate-300'}`}></span>
+                                    <span className={isLive ? 'text-emerald-700' : 'text-slate-400'}>
+                                      {isLive ? 'Live on Storefront' : 'Hidden from Store'}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                          </td>
+
+                          {/* Column 4: Actions (Products Mode) */}
+                          <td className="py-4 px-4 align-top text-center" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-center gap-1.5">
+                              {/* Edit Product */}
                               <button
                                 type="button"
-                                onClick={() => handleAdjustQuantity(p, -1)}
-                                className="px-2 py-1 hover:bg-slate-100 text-slate-600 transition cursor-pointer"
-                                title="Decrease stock -1"
+                                onClick={() => handleOpenEditModal(p)}
+                                className="p-2 rounded-xl bg-white hover:bg-sky-600 text-sky-700 hover:text-white border border-sky-200 hover:border-sky-600 transition cursor-pointer shadow-2xs"
+                                title="Edit product details, images & specs"
                               >
-                                <Minus size={11} />
+                                <Edit3 size={14} />
                               </button>
-                              <span className="px-2.5 py-1 text-xs font-bold font-mono text-slate-800 min-w-[32px] text-center bg-slate-50/50">
-                                {qty}
-                              </span>
+
+                              {/* Toggle Live Visibility on Website (Eye Button) */}
                               <button
                                 type="button"
-                                onClick={() => handleAdjustQuantity(p, 1)}
-                                className="px-2 py-1 hover:bg-slate-100 text-slate-600 transition cursor-pointer"
-                                title="Increase stock +1"
+                                onClick={() => handleToggleVisibility(p)}
+                                className={`p-2 rounded-xl border transition cursor-pointer shadow-2xs ${isLive
+                                  ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200/90'
+                                  : 'bg-slate-100 hover:bg-slate-200 text-slate-400 border-slate-200'
+                                  }`}
+                                title={isLive ? 'Currently Live on Website (Click to Hide)' : 'Currently Hidden from Website (Click to Publish)'}
                               >
-                                <Plus size={11} />
+                                {isLive ? <Eye size={14} className="text-emerald-600" /> : <EyeOff size={14} className="text-slate-400" />}
+                              </button>
+
+                              {/* Delete Product */}
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteProduct(p)}
+                                className="p-2 rounded-xl bg-white hover:bg-rose-600 text-rose-700 hover:text-white border border-rose-200 hover:border-rose-600 transition cursor-pointer shadow-2xs"
+                                title="Permanently delete product"
+                              >
+                                <Trash2 size={14} />
                               </button>
                             </div>
-                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                              qty > 10 
-                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/70' 
-                                : qty > 0 
-                                ? 'bg-amber-50 text-amber-700 border border-amber-200/70' 
-                                : 'bg-rose-50 text-rose-700 border border-rose-200/70'
-                            }`}>
-                              {qty > 10 ? 'In Stock' : qty > 0 ? 'Low Stock' : 'Out of Stock'}
-                            </span>
-                          </div>
+                          </td>
+                        </>
+                      ) : (
+                        /* =========================================================================
+                            MODE B: INVENTORY, EXPIRY & COMMERCIAL TAXES
+                            ========================================================================= */
+                        <>
+                          {/* Column 2: Inventory & Expiry */}
+                          <td className="py-4 px-4 align-top">
+                            <div className="space-y-2">
+                              {/* Stock Quantity Stepper */}
+                              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex items-center border border-slate-200 rounded-xl bg-white shadow-2xs overflow-hidden">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleAdjustQuantity(p, -1)}
+                                    className="px-2 py-1 hover:bg-slate-100 text-slate-600 transition cursor-pointer"
+                                    title="Decrease stock -1"
+                                  >
+                                    <Minus size={11} />
+                                  </button>
+                                  <span className="px-2.5 py-1 text-xs font-bold font-mono text-slate-800 min-w-[32px] text-center bg-slate-50/50">
+                                    {qty}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleAdjustQuantity(p, 1)}
+                                    className="px-2 py-1 hover:bg-slate-100 text-slate-600 transition cursor-pointer"
+                                    title="Increase stock +1"
+                                  >
+                                    <Plus size={11} />
+                                  </button>
+                                </div>
+                                <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${qty > 10
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/70'
+                                  : qty > 0
+                                    ? 'bg-amber-50 text-amber-700 border border-amber-200/70'
+                                    : 'bg-rose-50 text-rose-700 border border-rose-200/70'
+                                  }`}>
+                                  {qty > 10 ? 'In Stock' : qty > 0 ? 'Low Stock' : 'Out of Stock'}
+                                </span>
+                              </div>
 
-                          {/* Expiry Date Badge */}
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border flex items-center gap-1 ${expStatus.badgeClass}`}>
-                              <Calendar size={10} />
-                              <span>{expStatus.text}</span>
-                            </span>
-                            {p.batchNo && (
-                              <span className="text-[10px] text-slate-400 font-mono">
-                                Lot: {p.batchNo}
-                              </span>
-                            )}
-                          </div>
-
-                        </div>
-                      </td>
-
-                      {/* Commercials, Pricing & Tax Column */}
-                      <td className="py-4 px-4 align-top font-mono">
-                        <div className="space-y-1">
-                          
-                          {/* Selling Price / Rate */}
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-extrabold text-slate-900">
-                              {p.price > 0 ? `₹${Number(p.price).toLocaleString('en-IN')}` : 'Contact for Quote'}
-                            </span>
-                            {offerVal > 0 && (
-                              <span className="px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-sans text-[10px] font-bold">
-                                {offerVal}% OFF
-                              </span>
-                            )}
-                          </div>
-
-                          {/* MRP */}
-                          {mrpVal > p.price && (
-                            <div className="text-[11px] text-slate-400">
-                              MRP: <span className="line-through">₹{Number(mrpVal).toLocaleString('en-IN')}</span>
-                            </div>
-                          )}
-
-                          {/* GST & HSN Code */}
-                          <div className="text-[10px] text-slate-500 font-sans flex items-center gap-2 pt-0.5">
-                            <span className="font-semibold text-slate-700 font-mono">+{gstVal}% GST</span>
-                            <span>•</span>
-                            <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">HSN: {hsnVal}</span>
-                          </div>
-
-                        </div>
-                      </td>
-
-                      {/* Channels / Websites Distribution */}
-                      <td className="py-4 px-4 align-top">
-                        {(() => {
-                          const sites = getWebsitesForCompany(p.companyId);
-                          const liveCount = sites.filter(s => isVisibleOnSite(p, s)).length;
-
-                          return (
-                            <div className="space-y-1.5">
-                              <button
-                                type="button"
-                                onClick={() => setQuickWebsiteProduct(p)}
-                                className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold border border-slate-200 transition cursor-pointer flex items-center gap-1.5"
-                                title="Click to manage website distribution"
-                              >
-                                <Globe size={12} className={liveCount > 0 ? "text-emerald-600" : "text-slate-400"} />
-                                <span>{liveCount}/{sites.length} Live</span>
-                              </button>
-                              <div className="text-[10px] text-slate-400">
-                                {isLive ? '🟢 Globally Active' : '⚪ Hidden Globally'}
+                              {/* Expiry Date Badge */}
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border flex items-center gap-1 ${expStatus.badgeClass}`}>
+                                  <Calendar size={10} />
+                                  <span>{expStatus.text}</span>
+                                </span>
+                                {p.batchNo && (
+                                  <span className="text-[10px] text-slate-400 font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200/60">
+                                    Lot: {p.batchNo}
+                                  </span>
+                                )}
                               </div>
                             </div>
-                          );
-                        })()}
-                      </td>
+                          </td>
 
-                      {/* Actions Column */}
-                      <td className="py-4 px-4 align-top text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          
-                          {/* 1. Edit Product */}
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEditModal(p)}
-                            className="p-2 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer shadow-2xs"
-                            title="Edit product details, price, inventory & specs"
-                          >
-                            <Edit3 size={14} />
-                          </button>
+                          {/* Column 3: Commercials, Pricing & Tax */}
+                          <td className="py-4 px-4 align-top font-mono">
+                            <div className="space-y-1">
+                              {/* Selling Price / Rate */}
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-extrabold text-slate-900">
+                                  {p.price > 0 ? `₹${Number(p.price).toLocaleString('en-IN')}` : 'Contact for Quote'}
+                                </span>
+                                {offerVal > 0 && (
+                                  <span className="px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-sans text-[10px] font-bold">
+                                    {offerVal}% OFF
+                                  </span>
+                                )}
+                              </div>
 
-                          {/* 2. View 18 Specs */}
-                          <button
-                            type="button"
-                            onClick={() => setViewingSpecsProduct(p)}
-                            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition cursor-pointer border border-slate-200/80 shadow-2xs"
-                            title="View all 18 clinical & technical specs"
-                          >
-                            <Eye size={14} />
-                          </button>
+                              {/* MRP */}
+                              {mrpVal > p.price && (
+                                <div className="text-[11px] text-slate-400">
+                                  MRP: <span className="line-through">₹{Number(mrpVal).toLocaleString('en-IN')}</span>
+                                </div>
+                              )}
 
-                          {/* 3. Delete Product */}
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteProduct(p)}
-                            className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition cursor-pointer shadow-2xs"
-                            title="Permanently delete product"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                              {/* GST & HSN Code */}
+                              <div className="text-[10px] text-slate-500 font-sans flex items-center gap-2 pt-0.5">
+                                <span className="font-semibold text-slate-700 font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200/60">+{gstVal}% GST</span>
+                                <span>•</span>
+                                <span className="font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200/60 text-slate-600">HSN: {hsnVal}</span>
+                              </div>
+                            </div>
+                          </td>
 
-                        </div>
-                      </td>
+                          {/* Column 4: Actions (Inventory Mode) */}
+                          <td className="py-4 px-4 align-top text-center" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-center gap-1.5">
+                              {/* Quick Edit Rate & Stock */}
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditModal(p)}
+                                className="p-2 rounded-xl bg-white hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 hover:border-emerald-600 transition cursor-pointer shadow-2xs"
+                                title="Update inventory stock, expiry, rate & GST"
+                              >
+                                <Edit3 size={14} />
+                              </button>
+
+                              {/* Toggle Live Visibility on Website (Eye Button) */}
+                              <button
+                                type="button"
+                                onClick={() => handleToggleVisibility(p)}
+                                className={`p-2 rounded-xl border transition cursor-pointer shadow-2xs ${isLive
+                                  ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200/90'
+                                  : 'bg-slate-100 hover:bg-slate-200 text-slate-400 border-slate-200'
+                                  }`}
+                                title={isLive ? 'Currently Live on Website (Click to Hide)' : 'Currently Hidden from Website (Click to Publish)'}
+                              >
+                                {isLive ? <Eye size={14} className="text-emerald-600" /> : <EyeOff size={14} className="text-slate-400" />}
+                              </button>
+
+                              {/* Delete Product */}
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteProduct(p)}
+                                className="p-2 rounded-xl bg-white hover:bg-rose-600 text-rose-700 hover:text-white border border-rose-200 hover:border-rose-600 transition cursor-pointer shadow-2xs"
+                                title="Permanently delete product"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </td>
+                        </>
+                      )}
 
                     </tr>
                   );
@@ -1960,67 +2081,81 @@ export default function ProductCatalogManager({ initialSites = [] }) {
       </div>
 
       {/* =========================================================================
-          FLOATING STICKY BULK ACTIONS BAR (ACTIVATES UPON SELECTION)
+          FLOATING STICKY BULK ACTIONS BAR (ACTIVATES UPON SELECTION - PREMIUM LIGHT THEME)
           ========================================================================= */}
       {selectedProductIds.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900/95 backdrop-blur-md text-white rounded-3xl p-3 px-6 shadow-2xl border border-slate-800 flex items-center gap-4 animate-in slide-in-from-bottom-5 duration-200 flex-wrap">
-          
-          {/* Selection Counter & Clear */}
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="text-xs font-bold font-mono">
-              {selectedProductIds.length} Products Selected
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-white/95 backdrop-blur-md text-slate-800 rounded-2xl sm:rounded-full p-2 sm:p-2.5 px-3 sm:px-5 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.18)] border border-slate-200/90 ring-1 ring-slate-900/5 flex items-center gap-2.5 sm:gap-3 animate-in slide-in-from-bottom-5 duration-200 flex-nowrap whitespace-nowrap max-w-[95vw] overflow-x-auto scrollbar-none">
+
+          {/* Selection Counter & Clear Badge */}
+          <div className="flex items-center gap-2 bg-slate-100/90 px-3 py-1.5 rounded-xl sm:rounded-full border border-slate-200/80 shrink-0">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-xs font-bold text-slate-900 font-mono">
+              {selectedProductIds.length} <span className="font-semibold text-slate-600">Selected</span>
             </span>
             <button
               type="button"
               onClick={handleClearSelection}
-              className="text-[11px] text-slate-400 hover:text-white underline cursor-pointer ml-1"
+              className="text-[11px] font-bold text-slate-400 hover:text-rose-600 hover:bg-slate-200/60 px-1.5 py-0.5 rounded transition cursor-pointer ml-0.5"
+              title="Deselect all products"
             >
               Clear
             </button>
           </div>
 
-          <div className="h-4 w-[1px] bg-slate-700 hidden sm:block"></div>
+          <div className="h-5 w-[1px] bg-slate-200 shrink-0 hidden sm:block"></div>
 
-          {/* Action 1: Bulk Word Remover from Headings (User Request) */}
-          <button
-            type="button"
-            onClick={() => setIsBulkWordModalOpen(true)}
-            className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-xs"
-          >
-            <Scissors size={14} />
-            <span>Remove / Replace Word in Headings</span>
-          </button>
+          {/* Action 1: Bulk Commercials & Stock Editor (Highlighted in Inventory & Tax Mode) */}
+          {managerMode === 'inventory_commercials' && (
+            <button
+              type="button"
+              onClick={() => setIsBulkEditModalOpen(true)}
+              className="px-3.5 py-2 rounded-xl sm:rounded-full bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-900 border border-emerald-200 font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs shrink-0"
+              title="Bulk update rates, discounts, GST, and inventory for selected items"
+            >
+              <Zap size={14} className="text-emerald-600 stroke-[2.2]" />
+              <span>Update Rates &amp; Stock</span>
+            </button>
+          )}
 
-          {/* Action 2: Bulk Commercials & Stock Editor (User Request) */}
-          <button
-            type="button"
-            onClick={() => setIsBulkEditModalOpen(true)}
-            className="px-3.5 py-1.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-xs"
-          >
-            <Zap size={14} />
-            <span>Update Rate, GST, HSN &amp; Stock</span>
-          </button>
+          {/* Action 2: Bulk Word Remover from Headings (Inventory & Tax Mode) */}
+          {managerMode === 'inventory_commercials' && (
+            <button
+              type="button"
+              onClick={() => setIsBulkWordModalOpen(true)}
+              className="px-3.5 py-2 rounded-xl sm:rounded-full bg-amber-50 hover:bg-amber-100 active:scale-95 text-amber-900 border border-amber-200 font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs shrink-0"
+              title="Search & replace words across selected product headings"
+            >
+              <Scissors size={14} className="text-amber-600 stroke-[2.2]" />
+              <span>Word Remover</span>
+            </button>
+          )}
 
           {/* Action 3: Bulk Export */}
           <button
             type="button"
             onClick={handleExportToExcel}
-            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 border border-slate-700"
+            className="px-3.5 py-2 rounded-xl sm:rounded-full bg-slate-50 hover:bg-slate-100 active:scale-95 text-slate-700 hover:text-slate-900 border border-slate-200 font-semibold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs shrink-0"
+            title="Download selected products as Excel sheet"
           >
-            <Download size={13} />
+            <Download size={13} className="text-slate-500" />
             <span>Export Selected</span>
           </button>
 
-          {/* Action 4: Bulk Delete */}
-          <button
-            type="button"
-            onClick={handleExecuteBulkDelete}
-            className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 hover:text-rose-200 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-rose-500/30"
-          >
-            <Trash2 size={13} />
-            <span>Delete Selected</span>
-          </button>
+          {/* Action 4: Bulk Delete (Inventory & Tax Mode) */}
+          {managerMode === 'inventory_commercials' && (
+            <button
+              type="button"
+              onClick={handleExecuteBulkDelete}
+              className="px-3.5 py-2 rounded-xl sm:rounded-full bg-rose-50 hover:bg-rose-100 active:scale-95 text-rose-700 hover:text-rose-800 border border-rose-200 font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs shrink-0"
+              title="Permanently remove selected products from database"
+            >
+              <Trash2 size={13} className="text-rose-600 stroke-[2.2]" />
+              <span>Delete Selected</span>
+            </button>
+          )}
 
         </div>
       )}
@@ -2031,7 +2166,7 @@ export default function ProductCatalogManager({ initialSites = [] }) {
       {isBulkWordModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
           <div className="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full p-6 sm:p-7 space-y-5 shadow-2xl my-auto text-xs">
-            
+
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-3">
@@ -2047,7 +2182,7 @@ export default function ProductCatalogManager({ initialSites = [] }) {
                   </p>
                 </div>
               </div>
-              <button 
+              <button
                 type="button"
                 onClick={() => setIsBulkWordModalOpen(false)}
                 className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-50 transition cursor-pointer"
@@ -2117,8 +2252,8 @@ export default function ProductCatalogManager({ initialSites = [] }) {
               <div className="max-h-56 overflow-y-auto space-y-2 pr-1 rounded-2xl border border-slate-200 p-2.5 bg-slate-50/50">
                 {wordRemovalPreviews.length === 0 ? (
                   <div className="p-6 text-center text-slate-400 text-xs">
-                    {wordToRemove.trim() 
-                      ? `No product titles contain the word "${wordToRemove}".` 
+                    {wordToRemove.trim()
+                      ? `No product titles contain the word "${wordToRemove}".`
                       : 'Type a word above to see live before/after changes.'}
                   </div>
                 ) : (
@@ -2176,7 +2311,7 @@ export default function ProductCatalogManager({ initialSites = [] }) {
       {isBulkEditModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
           <div className="bg-white border border-slate-200 rounded-3xl max-w-3xl w-full p-6 sm:p-7 space-y-5 shadow-2xl my-auto text-xs max-h-[92vh] overflow-y-auto">
-            
+
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-3">
@@ -2192,7 +2327,7 @@ export default function ProductCatalogManager({ initialSites = [] }) {
                   </p>
                 </div>
               </div>
-              <button 
+              <button
                 type="button"
                 onClick={() => setIsBulkEditModalOpen(false)}
                 className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-50 transition cursor-pointer"
@@ -2202,7 +2337,7 @@ export default function ProductCatalogManager({ initialSites = [] }) {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              
+
               {/* 1. SELLING PRICE / RATE */}
               <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-200/80 space-y-2">
                 <label className="text-slate-800 font-bold flex items-center justify-between">
@@ -2436,7 +2571,7 @@ export default function ProductCatalogManager({ initialSites = [] }) {
       {isAddEditOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
           <div className="bg-white border border-slate-200 rounded-3xl max-w-4xl w-full p-6 sm:p-8 space-y-6 max-h-[92vh] overflow-y-auto shadow-2xl my-auto text-xs">
-            
+
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-3">
@@ -2452,7 +2587,7 @@ export default function ProductCatalogManager({ initialSites = [] }) {
                   </p>
                 </div>
               </div>
-              <button 
+              <button
                 type="button"
                 onClick={() => setIsAddEditOpen(false)}
                 className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-50 transition cursor-pointer"
@@ -2461,25 +2596,29 @@ export default function ProductCatalogManager({ initialSites = [] }) {
               </button>
             </div>
 
-            {/* Form Section Tabs */}
+            {/* Form Section Tabs (Pricing, GST, HSN, Stock & Expiry only visible in Inventory & Tax Mode) */}
             <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-2xl border border-slate-200/70 overflow-x-auto">
-              {[
+              {(managerMode === 'inventory_commercials' ? [
                 { id: 'basic', label: '1. Identity & Brand' },
                 { id: 'pricing', label: '2. Pricing, GST & HSN' },
                 { id: 'inventory', label: '3. Stock & Expiry' },
                 { id: 'media', label: '4. Images & Media' },
                 { id: 'specs', label: '5. Technical Specs' },
                 { id: 'websites', label: '6. Website Publishing' },
-              ].map(tab => (
+              ] : [
+                { id: 'basic', label: '1. Identity & Brand' },
+                { id: 'media', label: '2. Images & Media' },
+                { id: 'specs', label: '3. Technical Specs' },
+                { id: 'websites', label: '4. Website Publishing' },
+              ]).map(tab => (
                 <button
                   key={tab.id}
                   type="button"
                   onClick={() => setAddEditTab(tab.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 ${
-                    addEditTab === tab.id
-                      ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/60'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 ${addEditTab === tab.id
+                    ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/60'
+                    : 'text-slate-600 hover:text-slate-900'
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -2986,32 +3125,22 @@ export default function ProductCatalogManager({ initialSites = [] }) {
         const companyObj = COMPANIES.find(c => c.id === previewImageProduct.companyId) || COMPANIES[0];
 
         return (
-          <div 
+          <div
             className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200"
             onClick={(e) => {
               if (e.target === e.currentTarget) setPreviewImageProduct(null);
             }}
           >
-            <div className="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full p-5 sm:p-6 space-y-4 shadow-2xl my-auto animate-in zoom-in-95 duration-200 text-xs">
-              
+            <div className="bg-white border border-slate-200 rounded-3xl max-w-4xl w-full p-5 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-200 text-xs my-auto">
+
               {/* Modal Header */}
-              <div className="flex items-start justify-between pb-3 border-b border-slate-100">
-                <div className="flex items-center gap-3 min-w-0 pr-4">
-                  <div className="w-10 h-10 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold shrink-0 shadow-2xs">
-                    <Eye size={20} />
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                <div className="flex items-center gap-2.5 min-w-0 pr-4">
+                  <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+                    <Package size={18} />
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${companyObj.badgeClass}`}>
-                        {companyObj.shortName}
-                      </span>
-                      {previewImageProduct.model && (
-                        <span className="text-[11px] font-mono text-slate-500 font-semibold">
-                          Model: {previewImageProduct.model}
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="text-base font-bold text-slate-800 truncate mt-0.5" title={previewImageProduct.title}>
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900 truncate" title={previewImageProduct.title}>
                       {previewImageProduct.title}
                     </h3>
                   </div>
@@ -3023,120 +3152,175 @@ export default function ProductCatalogManager({ initialSites = [] }) {
                       href={activeImageUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-xl transition cursor-pointer"
+                      className="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-xl transition cursor-pointer"
                       title="Open full resolution in new tab"
                     >
-                      <ExternalLink size={18} />
+                      <ExternalLink size={16} />
                     </a>
                   )}
                   <button
                     type="button"
                     onClick={() => setPreviewImageProduct(null)}
-                    className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition cursor-pointer"
-                    title="Close"
+                    className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                    title="Close preview"
                   >
-                    <X size={18} />
+                    <X size={16} />
                   </button>
                 </div>
               </div>
 
-              {/* Main Image Showcase */}
-              <div className="bg-slate-50/80 rounded-2xl border border-slate-200/80 p-4 flex items-center justify-center min-h-[320px] max-h-[460px] relative overflow-hidden group">
-                {activeImageUrl ? (
-                  <img
-                    src={activeImageUrl}
-                    alt={previewImageProduct.title}
-                    className="max-h-[420px] max-w-full object-contain rounded-xl shadow-xs transition duration-300 group-hover:scale-[1.02]"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center text-slate-400 p-8 text-center">
-                    <Package size={48} className="text-slate-300 mb-2 stroke-[1.5]" />
-                    <p className="text-sm font-semibold text-slate-600">No Image Available</p>
+              {/* Wide 2-Column Body Layout (No vertical scroll required) */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
+
+                {/* Left Side: Large Image Showcase & Carousel (7 cols) */}
+                <div className="md:col-span-7 flex flex-col justify-between space-y-2.5">
+                  <div className="bg-slate-50 rounded-2xl border border-slate-200/80 p-3 flex items-center justify-center h-[260px] sm:h-[300px] relative overflow-hidden group">
+                    {activeImageUrl ? (
+                      <img
+                        src={activeImageUrl}
+                        alt={previewImageProduct.title}
+                        className="max-h-[270px] max-w-full object-contain rounded-xl shadow-2xs transition duration-300 group-hover:scale-105"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-slate-400 p-6 text-center">
+                        <Package size={40} className="text-slate-300 mb-2 stroke-[1.5]" />
+                        <p className="text-xs font-semibold text-slate-500">No Image Available</p>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              {/* Multiple Images Carousel Thumbnails */}
-              {imageList.length > 1 && (
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-1">
-                    Images ({imageList.length}):
-                  </span>
-                  {imageList.map((imgUrl, idx) => (
+                  {/* Multiple Images Carousel Thumbnails */}
+                  {imageList.length > 1 && (
+                    <div className="flex items-center gap-2 overflow-x-auto py-1">
+                      {imageList.map((imgUrl, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setPreviewActiveImgIdx(idx)}
+                          className={`w-12 h-12 rounded-xl border-2 p-0.5 overflow-hidden shrink-0 transition cursor-pointer ${previewActiveImgIdx === idx
+                            ? 'border-sky-500 ring-2 ring-sky-200 shadow-xs'
+                            : 'border-slate-200 hover:border-slate-300 opacity-70 hover:opacity-100'
+                            }`}
+                        >
+                          <img src={imgUrl} alt="" className="w-full h-full object-contain" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Right Side: Product Details & Specs (5 cols) */}
+                <div className="md:col-span-5 flex flex-col justify-between space-y-3">
+                  <div className="space-y-3">
+
+                    {/* Metadata Badges */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${companyObj.badgeClass}`}>
+                          {companyObj.name || companyObj.shortName}
+                        </span>
+                        {previewImageProduct.category && (
+                          <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-200">
+                            {previewImageProduct.category}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="text-[11px] font-mono text-slate-600 space-y-1">
+                        <div>SKU: <strong className="text-slate-800">{previewImageProduct.sku || previewImageProduct.model || 'N/A'}</strong></div>
+                        {previewImageProduct.model && previewImageProduct.model !== previewImageProduct.sku && (
+                          <div>Model: <strong className="text-slate-700">{previewImageProduct.model}</strong></div>
+                        )}
+                        {(previewImageProduct.packSize || previewImageProduct['pack size']) && (
+                          <div className="font-sans font-medium text-amber-800">📦 Pack: {previewImageProduct.packSize || previewImageProduct['pack size']}</div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Commercial Info (Dedicated ONLY to Inventory & Tax Mode) */}
+                    {managerMode === 'inventory_commercials' ? (
+                      <div className="grid grid-cols-2 gap-2 p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 text-[11px]">
+                        <div>
+                          <span className="text-[9px] font-bold text-slate-400 uppercase block">Rate / Price</span>
+                          <span className="font-bold text-emerald-700 block font-mono">
+                            {previewImageProduct.price ? `₹${Number(previewImageProduct.price).toLocaleString('en-IN')}` : 'Quote'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] font-bold text-slate-400 uppercase block">In Stock</span>
+                          <span className="font-bold text-slate-800 block">
+                            {previewImageProduct.quantity || 0} Units
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] font-bold text-slate-400 uppercase block">GST &amp; HSN</span>
+                          <span className="font-semibold text-slate-700 block font-mono">
+                            +{previewImageProduct.gstRate || 18}% (HSN {previewImageProduct.hsnCode || '9018'})
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] font-bold text-slate-400 uppercase block">Expiry Date</span>
+                          <span className="font-semibold text-slate-700 block font-mono">
+                            {previewImageProduct.expiryDate || 'N/A'}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 text-[11px] space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-500 font-medium">Storefront Status:</span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${previewImageProduct.isVisible !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}`}>
+                            {previewImageProduct.isVisible !== false ? '🟢 Live on Storefront' : '⚪ Hidden from Web'}
+                          </span>
+                        </div>
+                        <a
+                          href={`http://localhost:3000/product/${previewImageProduct.id || previewImageProduct.sku || previewImageProduct._id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-600 hover:text-sky-800 hover:underline pt-0.5"
+                        >
+                          <ExternalLink size={11} />
+                          <span>View Live Storefront Page ↗</span>
+                        </a>
+                      </div>
+                    )}
+
+                  </div>
+
+                  {/* Action Buttons in Modal Footer */}
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
                     <button
-                      key={idx}
                       type="button"
-                      onClick={() => setPreviewActiveImgIdx(idx)}
-                      className={`w-14 h-14 rounded-xl border-2 p-0.5 overflow-hidden shrink-0 transition cursor-pointer ${
-                        previewActiveImgIdx === idx
-                          ? 'border-sky-500 ring-2 ring-sky-200 shadow-xs'
-                          : 'border-slate-200 hover:border-slate-300 opacity-70 hover:opacity-100'
-                      }`}
+                      onClick={() => {
+                        const prod = previewImageProduct;
+                        setPreviewImageProduct(null);
+                        setViewingSpecsProduct(prod);
+                      }}
+                      className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
                     >
-                      <img src={imgUrl} alt="" className="w-full h-full object-contain" />
+                      <Eye size={13} className="text-slate-600" />
+                      <span>18 Specs</span>
                     </button>
-                  ))}
-                </div>
-              )}
 
-              {/* Product Key Metadata Bar */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 bg-slate-50/70 rounded-2xl border border-slate-200/70 text-xs">
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Selling Price</span>
-                  <span className="font-bold text-emerald-600 block mt-0.5 font-mono">
-                    {previewImageProduct.price ? `₹${Number(previewImageProduct.price).toLocaleString('en-IN')}` : 'Quote'}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Stock Units</span>
-                  <span className="font-semibold text-slate-800 block mt-0.5">
-                    {previewImageProduct.quantity || 0} Units
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block">GST &amp; HSN</span>
-                  <span className="font-semibold text-slate-700 block mt-0.5 font-mono">
-                    +{previewImageProduct.gstRate || 18}% (HSN {previewImageProduct.hsnCode || '9018'})
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Expiry Date</span>
-                  <span className="font-semibold text-slate-700 block mt-0.5 font-mono">
-                    {previewImageProduct.expiryDate || 'N/A'}
-                  </span>
-                </div>
-              </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const prod = previewImageProduct;
+                        setPreviewImageProduct(null);
+                        handleOpenEditModal(prod);
+                      }}
+                      className="flex-1 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
+                    >
+                      <Edit3 size={13} />
+                      <span>Edit Details</span>
+                    </button>
+                  </div>
 
-              {/* Action Buttons in Modal Footer */}
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const prod = previewImageProduct;
-                    setPreviewImageProduct(null);
-                    setViewingSpecsProduct(prod);
-                  }}
-                  className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
-                >
-                  <Eye size={14} className="text-slate-600" />
-                  <span>View All 18 Specs</span>
-                </button>
+                </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    const prod = previewImageProduct;
-                    setPreviewImageProduct(null);
-                    handleOpenEditModal(prod);
-                  }}
-                  className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-xs flex items-center gap-1.5"
-                >
-                  <Edit3 size={14} />
-                  <span>Edit Product</span>
-                </button>
               </div>
 
             </div>
@@ -3150,13 +3334,13 @@ export default function ProductCatalogManager({ initialSites = [] }) {
       {viewingSpecsProduct && (
         <div className="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
           <div className="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto shadow-2xl my-auto text-xs">
-            
+
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 p-1 flex items-center justify-center shrink-0">
-                  <img 
-                    src={viewingSpecsProduct.images?.split(',')[0] || ''} 
-                    alt={viewingSpecsProduct.title} 
+                  <img
+                    src={viewingSpecsProduct.images?.split(',')[0] || ''}
+                    alt={viewingSpecsProduct.title}
                     className="w-full h-full object-contain"
                     onError={(e) => { e.target.style.display = 'none'; }}
                   />
@@ -3168,9 +3352,9 @@ export default function ProductCatalogManager({ initialSites = [] }) {
                   </div>
                 </div>
               </div>
-              <button 
+              <button
                 type="button"
-                onClick={() => setViewingSpecsProduct(null)} 
+                onClick={() => setViewingSpecsProduct(null)}
                 className="p-1 text-slate-400 hover:text-slate-700 cursor-pointer"
               >
                 <X size={18} />
@@ -3284,7 +3468,7 @@ export default function ProductCatalogManager({ initialSites = [] }) {
       {quickWebsiteProduct && (
         <div className="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl my-auto text-xs">
-            
+
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
@@ -3295,9 +3479,9 @@ export default function ProductCatalogManager({ initialSites = [] }) {
                   <p className="text-[11px] text-slate-400 truncate max-w-xs">{quickWebsiteProduct.title}</p>
                 </div>
               </div>
-              <button 
+              <button
                 type="button"
-                onClick={() => { setQuickWebsiteProduct(null); setWebsiteModalSearch(''); }} 
+                onClick={() => { setQuickWebsiteProduct(null); setWebsiteModalSearch(''); }}
                 className="p-1 text-slate-400 hover:text-slate-700 cursor-pointer rounded-lg hover:bg-slate-100 transition"
               >
                 <X size={16} />
@@ -3311,11 +3495,10 @@ export default function ProductCatalogManager({ initialSites = [] }) {
                 return (
                   <div
                     key={site}
-                    className={`flex items-center justify-between p-3 rounded-2xl border transition ${
-                      isLive 
-                        ? 'bg-emerald-50/40 border-emerald-200/80' 
-                        : 'bg-slate-50 border-slate-200 text-slate-400'
-                    }`}
+                    className={`flex items-center justify-between p-3 rounded-2xl border transition ${isLive
+                      ? 'bg-emerald-50/40 border-emerald-200/80'
+                      : 'bg-slate-50 border-slate-200 text-slate-400'
+                      }`}
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <span className={`w-2 h-2 rounded-full shrink-0 ${isLive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}></span>
@@ -3327,11 +3510,10 @@ export default function ProductCatalogManager({ initialSites = [] }) {
                     <button
                       type="button"
                       onClick={() => handleToggleWebsiteVisibility(quickWebsiteProduct, site)}
-                      className={`px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer border ${
-                        isLive
-                          ? 'bg-emerald-500 text-white border-emerald-600 shadow-2xs hover:bg-emerald-600'
-                          : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-800'
-                      }`}
+                      className={`px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer border ${isLive
+                        ? 'bg-emerald-500 text-white border-emerald-600 shadow-2xs hover:bg-emerald-600'
+                        : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-800'
+                        }`}
                     >
                       {isLive ? '🟢 Live on Web' : '⚪ Hidden'}
                     </button>
@@ -3360,7 +3542,7 @@ export default function ProductCatalogManager({ initialSites = [] }) {
       {isImportModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
           <div className="bg-white border border-slate-200 rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-6 max-h-[92vh] overflow-y-auto shadow-2xl my-auto text-xs">
-            
+
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold border border-indigo-100 shadow-2xs">
@@ -3375,7 +3557,7 @@ export default function ProductCatalogManager({ initialSites = [] }) {
                   </p>
                 </div>
               </div>
-              <button 
+              <button
                 type="button"
                 onClick={() => setIsImportModalOpen(false)}
                 className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-50 transition cursor-pointer"
@@ -3435,22 +3617,22 @@ export default function ProductCatalogManager({ initialSites = [] }) {
               </div>
 
               {/* Hidden file inputs */}
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                multiple 
-                accept=".xlsx, .xls, .csv" 
-                onChange={handleFilesSelected} 
-                className="hidden" 
+              <input
+                type="file"
+                ref={fileInputRef}
+                multiple
+                accept=".xlsx, .xls, .csv"
+                onChange={handleFilesSelected}
+                className="hidden"
               />
-              <input 
-                type="file" 
-                ref={folderInputRef} 
-                webkitdirectory="true" 
-                directory="true" 
-                multiple 
-                onChange={handleFilesSelected} 
-                className="hidden" 
+              <input
+                type="file"
+                ref={folderInputRef}
+                webkitdirectory="true"
+                directory="true"
+                multiple
+                onChange={handleFilesSelected}
+                className="hidden"
               />
 
               <div className="flex items-center justify-center gap-3 pt-1 flex-wrap">
@@ -3473,15 +3655,26 @@ export default function ProductCatalogManager({ initialSites = [] }) {
                 </button>
               </div>
 
-              <div className="text-[11px] text-slate-400 pt-1">
-                Don&apos;t have the format?{' '}
-                <button 
-                  type="button" 
-                  onClick={handleDownloadDemoTemplate}
-                  className="text-sky-600 font-bold hover:underline cursor-pointer"
+              <div className="text-[11px] text-slate-400 pt-1 flex items-center justify-center gap-3 flex-wrap">
+                <span>
+                  Don&apos;t have the format?{' '}
+                  <button
+                    type="button"
+                    onClick={handleDownloadDemoTemplate}
+                    className="text-sky-600 font-bold hover:underline cursor-pointer"
+                  >
+                    Download Sample Demo Excel (.xlsx)
+                  </button>
+                </span>
+                <span>•</span>
+                <a
+                  href="/Raj_Biosis_Products_With_Images.xlsx"
+                  download="Raj_Biosis_Products_With_Images.xlsx"
+                  className="text-emerald-600 font-bold hover:underline cursor-pointer flex items-center gap-1"
                 >
-                  Download Sample Demo Excel (.xlsx)
-                </button>
+                  <Download size={12} />
+                  Download 1,169 Products Excel with Real CDN Images (.xlsx)
+                </a>
               </div>
             </div>
 
@@ -3517,6 +3710,7 @@ export default function ProductCatalogManager({ initialSites = [] }) {
                   <table className="w-full text-left text-[11px]">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-200 text-slate-400 font-semibold uppercase">
+                        <th className="p-2 w-12 text-center">Image</th>
                         <th className="p-2">Title</th>
                         <th className="p-2">Rate (₹)</th>
                         <th className="p-2">Stock</th>
@@ -3527,9 +3721,22 @@ export default function ProductCatalogManager({ initialSites = [] }) {
                     <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                       {parsedImportResults.products.slice(0, 5).map((p, idx) => (
                         <tr key={idx} className="hover:bg-slate-50">
+                          <td className="p-2 text-center">
+                            {p.images ? (
+                              <img
+                                src={p.images.split(',')[0]}
+                                alt=""
+                                loading="lazy"
+                                className="w-8 h-8 object-contain rounded-md border border-slate-200 bg-white mx-auto shadow-2xs"
+                                onError={(e) => { e.target.style.display = 'none'; }}
+                              />
+                            ) : (
+                              <Package size={16} className="text-slate-300 mx-auto" />
+                            )}
+                          </td>
                           <td className="p-2 font-semibold text-slate-900 truncate max-w-[200px]">{p.title}</td>
                           <td className="p-2 font-mono">₹{p.price?.toLocaleString('en-IN')}</td>
-                          <td className="p-2 font-mono">{p.quantity || 25}</td>
+                          <td className="p-2 font-mono">{p.quantity !== undefined ? p.quantity : 0}</td>
                           <td className="p-2 truncate max-w-[120px]">{p.category}</td>
                           <td className="p-2 font-mono">{p.model || p.sku}</td>
                         </tr>
@@ -3549,7 +3756,7 @@ export default function ProductCatalogManager({ initialSites = [] }) {
               >
                 Cancel
               </button>
-              
+
               <button
                 type="button"
                 disabled={!parsedImportResults || parsedImportResults.products.length === 0 || isSavingImport}

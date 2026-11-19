@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import productImageMap from '../data/productImageMap.json';
 
 // The exact 18 columns required
 export const EXCEL_COLUMNS = [
@@ -287,12 +288,12 @@ export async function parseExcelFilesList(files) {
       for (let i = 0; i < rawRows.length; i++) {
         const row = rawRows[i];
 
-        // Flexible key matching for each of the 18 columns
+        // Flexible key matching for each column
         const getVal = (keyNames) => {
           for (const k of Object.keys(row)) {
-            const cleanK = k.trim().toLowerCase().replace(/[\s_-]+/g, '');
+            const cleanK = k.trim().toLowerCase().replace(/[\s_\-\.]+/g, '');
             for (const target of keyNames) {
-              if (cleanK === target.toLowerCase().replace(/[\s_-]+/g, '')) {
+              if (cleanK === target.toLowerCase().replace(/[\s_\-\.]+/g, '')) {
                 return String(row[k] || '').trim();
               }
             }
@@ -300,32 +301,68 @@ export async function parseExcelFilesList(files) {
           return '';
         };
 
-        const title = getVal(['title', 'name', 'productname', 'product']);
+        const title = getVal(['title', 'name', 'productname', 'product_name', 'itemname', 'item_name', 'item', 'product', 'producttitle', 'equipment', 'equipmentname', 'modelname']);
         if (!title) continue; // Skip completely empty rows
 
-        const priceRaw = getVal(['price', 'rate', 'cost', 'sellingprice']);
-        const numericPrice = parseFloat(priceRaw.replace(/[^0-9.]/g, '')) || 0;
+        const priceRaw = getVal(['listedprice', 'listprice', 'price', 'rate', 'cost', 'sellingprice', 'unitprice', 'mrp', 'offerprice', 'productprice', 'dealerprice']);
+        const cleanPrice = String(priceRaw || '').replace(/,/g, '').trim();
+        const matchPrice = cleanPrice.match(/[0-9]+(?:\.[0-9]+)?/);
+        const numericPrice = matchPrice ? parseFloat(matchPrice[0]) : 0;
 
-        const subCategory = getVal(['sub category', 'subcategory', 'sub_category', 'sub-cat']);
-        const category = getVal(['category', 'cat', 'department']);
+        const subCategory = getVal(['subcategory', 'sub category', 'sub_category', 'sub-cat', 'subcat', 'subdepartment']);
+        const category = getVal(['category', 'cat', 'department', 'group', 'productcategory', 'categoryname']);
 
-        const skuRaw = getVal(['sku', 'code', 'model', 'itemcode']);
-        const mrpRaw = getVal(['mrp', 'listprice', 'maxretailprice']);
-        const offerRaw = getVal(['offer', 'discount', 'discountpercentage', 'offer%']);
+        const skuRaw = getVal(['sku', 'code', 'model', 'itemcode', 'productcode', 'item_code', 'modelnumber', 'partnumber']);
+        const srNo = getVal(['srno', 'sr_no', 'sno', 'serialno', 'serial', 'index', 'id']);
+        const systematicSku = skuRaw || (srNo ? ('RB-' + String(srNo).padStart(5, '0')) : ('RB-' + String(i + 1).padStart(5, '0')));
+
+        const mrpRaw = getVal(['mrp', 'maxretailprice', 'regularprice', 'originalprice', 'baseprice']);
+        const mrpNumeric = mrpRaw ? (parseFloat(String(mrpRaw).replace(/,/g, '').replace(/[^0-9.]/g, '')) || numericPrice) : numericPrice;
+
+        const offerRaw = getVal(['offer', 'discount', 'discountpercentage', 'offer%', 'disc%']);
+        const offerNumeric = offerRaw ? parseFloat(offerRaw.replace(/[^0-9.]/g, '')) : (mrpNumeric > numericPrice && mrpNumeric > 0 ? Math.round(((mrpNumeric - numericPrice) / mrpNumeric) * 100) : 0);
+
         const gstRaw = getVal(['gstrate', 'gst', 'tax', 'taxrate', 'gst%']);
-        const hsnRaw = getVal(['hsncode', 'hsn', 'sac', 'hs_code']);
-        const qtyRaw = getVal(['quantity', 'qty', 'stock', 'stockcount', 'units']);
-        const expRaw = getVal(['expirydate', 'expiry', 'exp', 'shelflife', 'validuntil']);
-
-        const mrpNumeric = parseFloat(mrpRaw.replace(/[^0-9.]/g, '')) || (numericPrice ? Math.round(numericPrice * 1.25) : 0);
-        const offerNumeric = offerRaw ? parseFloat(offerRaw.replace(/[^0-9.]/g, '')) : (mrpNumeric > numericPrice ? Math.round(((mrpNumeric - numericPrice) / mrpNumeric) * 100) : 15);
         const gstNumeric = gstRaw ? parseFloat(gstRaw.replace(/[^0-9.]/g, '')) : 18;
-        const qtyNumeric = qtyRaw ? parseInt(qtyRaw.replace(/[^0-9]/g, ''), 10) : 25;
+
+        const hsnRaw = getVal(['hsncode', 'hsn', 'sac', 'hs_code']);
+        const qtyRaw = getVal(['quantity', 'qty', 'stock', 'stockcount', 'units', 'inventory']);
+        const qtyNumeric = qtyRaw ? parseInt(qtyRaw.replace(/[^0-9]/g, ''), 10) : 0;
+
+        const expRaw = getVal(['expirydate', 'expiry', 'exp', 'shelflife', 'validuntil', 'expiry_date']);
+        const batchRaw = getVal(['batchno', 'batch', 'lot', 'lotno', 'batch_no']);
+
+        const imagesRaw = getVal(['images', 'image', 'img', 'imgs', 'photo', 'photos', 'picture', 'pictures', 'imageurl', 'imageurls', 'image_url', 'productimage', 'productimages', 'imgurl', 'pic', 'picurl']);
+        let cleanImages = imagesRaw ? imagesRaw.replace(/[\r\n;|]+/g, ',') : '';
+
+        const productUrl = getVal(['producturl', 'product_url', 'url', 'productlink', 'link', 'weblink', 'pageurl', 'websiteurl']);
+
+        // Auto-resolve real CDN image link if image column is absent in the Excel file
+        if (!cleanImages && title && productImageMap) {
+          const normTitle = title.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const hash = (productUrl || '').split('#')[1] || '';
+          const normHash = hash.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+          let cdnImg = productImageMap[normTitle] || (normHash ? productImageMap[normHash] : '') || '';
+          if (!cdnImg) {
+            // Fuzzy search by substring
+            for (const [k, v] of Object.entries(productImageMap)) {
+              if (normTitle && (k.includes(normTitle) || normTitle.includes(k))) {
+                cdnImg = v;
+                break;
+              }
+            }
+          }
+          if (cdnImg) {
+            // Upgrade 250x250 to 500x500 high-definition CDN image
+            cleanImages = cdnImg.replace(/250x250\.jpg$/i, '500x500.jpg');
+          }
+        }
 
         allParsedProducts.push({
           sourceFile: file.name,
           title,
-          sku: skuRaw || ('SKU-' + Math.floor(1000 + Math.random() * 9000)),
+          sku: systematicSku,
           price: numericPrice,
           mrp: mrpNumeric,
           offer: offerNumeric,
@@ -334,21 +371,23 @@ export async function parseExcelFilesList(files) {
           hsnCode: hsnRaw || '9018',
           quantity: qtyNumeric,
           stockCount: qtyNumeric,
-          expiryDate: expRaw || '2028-06-30',
-          desc: getVal(['desc', 'description', 'shortdesc', 'details']),
+          expiryDate: expRaw || '',
+          batchNo: batchRaw || '',
+          desc: getVal(['desc', 'description', 'shortdesc', 'details', 'about', 'specification', 'specifications']),
           capacity: getVal(['capacity', 'volume']),
           throughput: getVal(['throughput', 'speed', 'performance']),
           instrument: getVal(['instrument', 'compatibleinstrument']),
-          model: getVal(['model', 'sku', 'productmodel', 'code']),
+          model: getVal(['model', 'sku', 'productmodel', 'code']) || systematicSku,
           usage: getVal(['usage', 'intendedusage', 'application']),
-          brand: getVal(['brand', 'manufacturer', 'company']),
+          brand: getVal(['brand', 'manufacturer', 'company', 'make']),
           parameters: getVal(['parameters', 'tests', 'measurements']),
           automation: getVal(['automation', 'automationtype', 'type']),
           availability: getVal(['availability', 'stock', 'stockstatus']) || (qtyNumeric > 0 ? 'In Stock' : 'Out of Stock'),
           size: getVal(['size', 'dimensions', 'weight']),
-          images: getVal(['images', 'image', 'img', 'photo', 'picture']),
-          video: getVal(['video', 'videourl', 'youtube']),
-          pdf: getVal(['pdf', 'brochure', 'datasheet', 'manual']),
+          images: cleanImages,
+          productUrl: productUrl,
+          video: getVal(['video', 'videourl', 'youtube', 'video_url', 'demovideo']),
+          pdf: getVal(['pdf', 'brochure', 'datasheet', 'manual', 'specsheet', 'catalog']),
           category: category || 'General Medical',
           'sub category': subCategory,
           subCategory: subCategory,

@@ -44,6 +44,7 @@ import {
   AlertCircle,
   AlertTriangle,
   MessageCircle,
+  MessageSquare,
   User,
   Phone,
   Mail,
@@ -739,6 +740,13 @@ const LeadInquiryCard = ({
   const leadProducts = getLeadProducts(lead);
   const isBulk = leadProducts.length > 2;
   const isMulti = leadProducts.length > 1 || lead.equipment?.toLowerCase().includes('bulk') || lead.rawLeadData?.isMultiItem;
+  const isContactPageEnquiry = Boolean(
+    lead.source?.toLowerCase().includes('contact') ||
+    lead.leadSource?.toLowerCase().includes('contact') ||
+    lead.sourcePage === '/contact' ||
+    Boolean(lead.message) ||
+    Boolean(lead.rawLeadData?.source?.toLowerCase().includes('contact'))
+  );
 
   const displayTotal = lead.quoteAmount
     ? (String(lead.quoteAmount).startsWith('₹') ? lead.quoteAmount : `₹${lead.quoteAmount}`)
@@ -750,13 +758,17 @@ const LeadInquiryCard = ({
       className="rounded-2xl transition-all duration-200 bg-white border border-slate-200/90 hover:border-amber-400 shadow-sm hover:shadow-md relative overflow-hidden flex flex-col group"
     >
       {/* Accent Strip */}
-      <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-amber-500 via-orange-500 to-rose-500" />
+      <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${
+        isContactPageEnquiry
+          ? 'bg-gradient-to-b from-purple-500 via-indigo-500 to-pink-500'
+          : 'bg-gradient-to-b from-amber-500 via-orange-500 to-rose-500'
+      }`} />
 
       {/* Top Header Row */}
       <div className="pl-5 pr-4 py-3 bg-gradient-to-r from-slate-50 via-amber-50/20 to-slate-50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
         <div className="flex items-center gap-2.5 flex-wrap">
           <div className="flex items-center gap-1.5 font-black text-slate-900 text-sm sm:text-base tracking-tight">
-            <Building2 size={16} className="text-amber-600 shrink-0" />
+            <Building2 size={16} className={isContactPageEnquiry ? "text-purple-600 shrink-0" : "text-amber-600 shrink-0"} />
             <span>{displayHospital}</span>
           </div>
 
@@ -776,7 +788,12 @@ const LeadInquiryCard = ({
         </div>
 
         <div className="flex items-center gap-2">
-          {leadProducts.length > 2 ? (
+          {isContactPageEnquiry ? (
+            <span className="px-3 py-1 rounded-full bg-gradient-to-r from-purple-100 via-indigo-50 to-purple-100 text-purple-900 border border-purple-300 text-xs font-black flex items-center gap-1.5 shadow-2xs animate-pulse">
+              <MessageSquare size={13} className="text-purple-600" />
+              <span>Contact Page Enquiry</span>
+            </span>
+          ) : leadProducts.length > 2 ? (
             <span className="px-3 py-1 rounded-full bg-gradient-to-r from-indigo-50 to-sky-50 text-indigo-700 border border-indigo-200 text-xs font-bold flex items-center gap-1.5 shadow-2xs">
               <Package size={13} className="text-indigo-600" />
               <span>Bulk Request ({leadProducts.length} Products)</span>
@@ -905,6 +922,26 @@ const LeadInquiryCard = ({
                   );
                 })}
               </div>
+
+              {/* Customer Contact Inquiry Message */}
+              {(lead.message || lead.department) && (
+                <div className="mt-2.5 p-3.5 rounded-2xl bg-gradient-to-r from-purple-50/90 via-indigo-50/40 to-purple-50/90 border border-purple-200/90 text-xs space-y-1.5 shadow-2xs">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="font-extrabold text-purple-900 flex items-center gap-1.5 text-xs">
+                      <MessageSquare size={13} className="text-purple-600 shrink-0" />
+                      <span>Contact Form Message {lead.department ? `• Department: ${lead.department}` : ''}</span>
+                    </span>
+                    <span className="text-[10px] font-mono font-bold bg-white px-2 py-0.5 rounded-md border border-purple-200 text-purple-700 shadow-2xs">
+                      {lead.sourcePage || 'rajbiosis.com/contact'}
+                    </span>
+                  </div>
+                  {lead.message && (
+                    <p className="text-slate-800 text-xs leading-relaxed font-medium bg-white/95 p-2.5 rounded-xl border border-purple-100 italic">
+                      &ldquo;{lead.message}&rdquo;
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -984,6 +1021,26 @@ const LeadInquiryCard = ({
               );
             })}
           </div>
+
+          {/* Customer Contact Inquiry Message (Compact View) */}
+          {(lead.message || lead.department) && (
+            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-purple-50/90 via-indigo-50/40 to-purple-50/90 border border-purple-200/90 text-xs space-y-1.5 shadow-2xs">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <span className="font-extrabold text-purple-900 flex items-center gap-1.5 text-xs">
+                  <MessageSquare size={13} className="text-purple-600 shrink-0" />
+                  <span>Contact Form Message {lead.department ? `• Department: ${lead.department}` : ''}</span>
+                </span>
+                <span className="text-[10px] font-mono font-bold bg-white px-2 py-0.5 rounded-md border border-purple-200 text-purple-700 shadow-2xs">
+                  {lead.sourcePage || 'rajbiosis.com/contact'}
+                </span>
+              </div>
+              {lead.message && (
+                <p className="text-slate-800 text-xs leading-relaxed font-medium bg-white/95 p-2.5 rounded-xl border border-purple-100 italic">
+                  &ldquo;{lead.message}&rdquo;
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -1142,6 +1199,7 @@ export default function WebQuotationManager({
   const [isTransitioningToSplit, setIsTransitioningToSplit] = useState(false);
   const [isLeadsListExpanded, setIsLeadsListExpanded] = useState(true);
   const [quotationSearch, setQuotationSearch] = useState('');
+  const [leadFilterType, setLeadFilterType] = useState('all'); // 'all' | 'contact' | 'rfq'
   const [viewingCustomerKey, setViewingCustomerKey] = useState(null);
   const [viewingQuotationAudit, setViewingQuotationAudit] = useState(null);
   const [hoveredTimelineStep, setHoveredTimelineStep] = useState(null);
@@ -2070,6 +2128,40 @@ export default function WebQuotationManager({
     }
     return result;
   }, [webLeads, processedLeadIds]);
+
+  const contactLeadsCount = useMemo(() => {
+    return pendingWebLeads.filter(l => 
+      l.source?.toLowerCase().includes('contact') || 
+      l.leadSource?.toLowerCase().includes('contact') || 
+      l.sourcePage === '/contact' || 
+      Boolean(l.message) ||
+      Boolean(l.rawLeadData?.source?.toLowerCase().includes('contact'))
+    ).length;
+  }, [pendingWebLeads]);
+
+  const rfqLeadsCount = pendingWebLeads.length - contactLeadsCount;
+
+  const filteredPendingLeads = useMemo(() => {
+    if (leadFilterType === 'contact') {
+      return pendingWebLeads.filter(l => 
+        l.source?.toLowerCase().includes('contact') || 
+        l.leadSource?.toLowerCase().includes('contact') || 
+        l.sourcePage === '/contact' || 
+        Boolean(l.message) ||
+        Boolean(l.rawLeadData?.source?.toLowerCase().includes('contact'))
+      );
+    }
+    if (leadFilterType === 'rfq') {
+      return pendingWebLeads.filter(l => 
+        !(l.source?.toLowerCase().includes('contact') || 
+          l.leadSource?.toLowerCase().includes('contact') || 
+          l.sourcePage === '/contact' || 
+          Boolean(l.message) ||
+          Boolean(l.rawLeadData?.source?.toLowerCase().includes('contact')))
+      );
+    }
+    return pendingWebLeads;
+  }, [pendingWebLeads, leadFilterType]);
 
   const getLeadProducts = (lead) => {
     const raw = lead?.rawLeadData || {};
@@ -4193,6 +4285,66 @@ Thank you for choosing Raj Biosis!`;
           ========================================================================= */}
       {activeMainTab === 'leads' && (
         <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden transition-all duration-300 animate-in fade-in">
+          {/* Top Filter Toolbar: All vs Contact Page Enquiries vs RFQ */}
+          <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200/90 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Filter Leads:</span>
+              <button
+                type="button"
+                onClick={() => setLeadFilterType('all')}
+                className={`px-3 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer flex items-center gap-1.5 ${
+                  leadFilterType === 'all'
+                    ? 'bg-white text-slate-900 shadow-2xs border border-slate-200 font-extrabold'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span>All Inquiries</span>
+                <span className="px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-600 font-mono text-[10px]">
+                  {pendingWebLeads.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLeadFilterType('contact')}
+                className={`px-3 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer flex items-center gap-1.5 ${
+                  leadFilterType === 'contact'
+                    ? 'bg-purple-50 text-purple-900 shadow-2xs border border-purple-300 font-extrabold'
+                    : 'text-slate-500 hover:text-purple-700'
+                }`}
+              >
+                <Mail size={12} className="text-purple-600" />
+                <span>Contact Page Form</span>
+                {contactLeadsCount > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-md bg-purple-200 text-purple-900 font-mono text-[10px] font-black">
+                    {contactLeadsCount}
+                  </span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLeadFilterType('rfq')}
+                className={`px-3 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer flex items-center gap-1.5 ${
+                  leadFilterType === 'rfq'
+                    ? 'bg-amber-50 text-amber-900 shadow-2xs border border-amber-300 font-extrabold'
+                    : 'text-slate-500 hover:text-amber-700'
+                }`}
+              >
+                <Package size={12} className="text-amber-600" />
+                <span>Product RFQ &amp; Cart</span>
+                <span className="px-1.5 py-0.2 rounded-md bg-amber-100 text-amber-900 font-mono text-[10px]">
+                  {rfqLeadsCount}
+                </span>
+              </button>
+            </div>
+
+            <div className="text-[11px] text-slate-500 font-mono flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Synced with MongoDB Atlas</span>
+            </div>
+          </div>
+
           {/* Lead Cards List */}
           <div className="p-4 sm:p-5 bg-slate-50/50 space-y-3.5 max-h-[650px] overflow-y-auto custom-scrollbar">
             {isLeadsLoading && pendingWebLeads.length === 0 ? (
@@ -4203,14 +4355,18 @@ Thank you for choosing Raj Biosis!`;
                   Syncing live customer hospital inquiries directly from MongoDB...
                 </p>
               </div>
-            ) : pendingWebLeads.length === 0 ? (
+            ) : filteredPendingLeads.length === 0 ? (
               <div className="py-16 text-center space-y-3 bg-white rounded-2xl border border-dashed border-slate-300 p-8 shadow-xs">
                 <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
                   <Sparkles size={28} />
                 </div>
-                <h4 className="text-sm font-bold text-slate-800">No Pending Web Leads</h4>
+                <h4 className="text-sm font-bold text-slate-800">
+                  {leadFilterType === 'contact' ? 'No Contact Page Enquiries' : 'No Pending Web Leads'}
+                </h4>
                 <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                  All website leads have been converted into quotations. New incoming website leads will appear here automatically.
+                  {leadFilterType === 'contact'
+                    ? 'No new enquiries submitted from the contact page yet. Enquiries from rajbiosis.com/contact will appear here automatically.'
+                    : 'All website leads have been converted into quotations. New incoming website leads will appear here automatically.'}
                 </p>
                 <button
                   type="button"
@@ -4225,7 +4381,7 @@ Thank you for choosing Raj Biosis!`;
                 </button>
               </div>
             ) : (
-              pendingWebLeads.map((lead, idx) => (
+              filteredPendingLeads.map((lead, idx) => (
                 <LeadInquiryCard
                   key={lead.id || lead._id || idx}
                   lead={lead}

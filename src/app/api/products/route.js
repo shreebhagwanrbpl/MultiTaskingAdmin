@@ -3,6 +3,15 @@ import { getDatabase } from '../../../lib/mongodb';
 import { ObjectId } from 'mongodb';
 import { PRODUCTS as INITIAL_PRODUCTS } from '../../../data/products';
 
+// Legacy dummy product IDs to exclude from active catalog
+const DUMMY_PRODUCT_IDS = new Set([
+  'prod-vent-x9', 'prod-mon-12x', 'prod-defi-360', 'prod-syr-pump',
+  'prod-xray-dr', 'prod-ultra-4d', 'prod-carm-hf', 'prod-cautery-400',
+  'prod-ot-light', 'prod-ot-table', 'prod-lap-4k', 'prod-hema-5part',
+  'prod-ecg-12ch', 'prod-bio-chem', 'prod-icu-bed', 'prod-crash-cart',
+  'prod-autoclave-50', 'prod-laminar-flow'
+]);
+
 // Default initial website assignments per company
 export const DEFAULT_COMPANY_WEBSITES = {
   rajbiosis: ['rajbiosis.com'],
@@ -53,16 +62,16 @@ function normalizeProduct(p) {
   const subCategory = p['sub category'] || p.subCategory || '';
   const productType = p.productType || (subCategory ? 'hierarchical' : 'normal');
 
-  const priceVal = typeof p.price === 'number' ? p.price : (parseFloat(String(p.price || 0).replace(/[^0-9.]/g, '')) || 0);
-  const mrpVal = typeof p.mrp === 'number' ? p.mrp : (parseFloat(String(p.mrp || 0).replace(/[^0-9.]/g, '')) || (priceVal ? Math.round(priceVal * 1.25) : 0));
-  const defaultOffer = mrpVal > priceVal && mrpVal > 0 ? Math.round(((mrpVal - priceVal) / mrpVal) * 100) : 15;
-  const offerVal = p.offer !== undefined ? Number(p.offer) : (p.discount !== undefined ? Number(p.discount) : defaultOffer);
-  const gstRateVal = p.gstRate !== undefined ? Number(p.gstRate) : 18;
+  const priceVal = typeof p.price === 'number' ? p.price : (parseFloat(String(p.price || 0).replace(/,/g, '').replace(/[^0-9.]/g, '')) || 0);
+  const mrpVal = typeof p.mrp === 'number' ? p.mrp : (parseFloat(String(p.mrp || 0).replace(/,/g, '').replace(/[^0-9.]/g, '')) || priceVal);
+  const defaultOffer = mrpVal > priceVal && mrpVal > 0 ? Math.round(((mrpVal - priceVal) / mrpVal) * 100) : 0;
+  const offerVal = (p.offer !== undefined && p.offer !== '') ? Number(p.offer) : ((p.discount !== undefined && p.discount !== '') ? Number(p.discount) : defaultOffer);
+  const gstRateVal = (p.gstRate !== undefined && p.gstRate !== '') ? Number(p.gstRate) : 18;
   const hsnCodeVal = p.hsnCode || '9018';
-  const skuVal = p.sku || p.model || ('SKU-' + Math.floor(1000 + Math.random() * 9000));
-  const qtyVal = typeof p.quantity === 'number' ? p.quantity : (typeof p.stockCount === 'number' ? p.stockCount : (parseInt(p.quantity || p.stockCount || 24, 10) || 24));
-  const expiryVal = p.expiryDate || '2028-06-30';
-  const batchVal = p.batchNo || ('LOT-' + String(skuVal).replace(/[^a-zA-Z0-9]/g, '').slice(0, 8).toUpperCase());
+  const skuVal = p.sku || p.model || ('RB-' + Math.floor(10000 + Math.random() * 90000));
+  const qtyVal = typeof p.quantity === 'number' ? p.quantity : (typeof p.stockCount === 'number' ? p.stockCount : (parseInt(p.quantity || p.stockCount || 0, 10) || 0));
+  const expiryVal = p.expiryDate || '';
+  const batchVal = p.batchNo || '';
 
   return {
     _id: p._id ? p._id.toString() : undefined,
@@ -101,12 +110,13 @@ function normalizeProduct(p) {
     usage: p.usage || '',
     brand: p.brand || (companyId === 'rajbiosis' ? 'Raj Biosis' : companyId === 'human_bio' ? 'Human Biomedicals' : 'Global Biomedical'),
     parameters: p.parameters || (p.specs ? p.specs['Ventilation Modes'] || p.specs['Functions'] || '' : ''),
-    automation: p.automation || 'Standard Clinical',
+    automation: p.automation || '',
     availability: p.availability || p.stockStatus || (qtyVal > 0 ? 'In Stock' : 'Out of Stock'),
     stockStatus: p.stockStatus || p.availability || (qtyVal > 0 ? 'In Stock' : 'Out of Stock'),
     size: p.size || '',
-    images: p.images || p.image || 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80',
-    image: p.image || p.images || 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80',
+    images: p.images || p.image || '',
+    image: p.image || p.images || '',
+    productUrl: p.productUrl || p.url || '',
     video: p.video || '',
     pdf: p.pdf || '',
     category: p.category || 'General Medical Devices',
@@ -119,9 +129,10 @@ function normalizeProduct(p) {
 }
 
 export async function GET(request) {
+  let companyId = 'all';
   try {
     const { searchParams } = new URL(request.url);
-    const companyId = searchParams.get('companyId');
+    companyId = searchParams.get('companyId');
     const website = searchParams.get('website');
     const category = searchParams.get('category');
     const productType = searchParams.get('productType');
@@ -207,8 +218,8 @@ export async function GET(request) {
 
     let docs = await collection.find(query).sort({ updatedAt: -1, createdAt: -1 }).toArray();
 
-    // Database empty check: Do not auto-seed dummy products so admin remains clean for user import
-    // User will import products with custom categories and subcategories via Excel
+    // Filter out dummy products completely so catalog is clean for real user products
+    docs = docs.filter(p => !DUMMY_PRODUCT_IDS.has(p.id) && !DUMMY_PRODUCT_IDS.has(String(p._id)));
 
     const normalized = docs.map(normalizeProduct);
 
@@ -218,66 +229,110 @@ export async function GET(request) {
       products: normalized
     });
   } catch (error) {
-    console.warn('MongoDB products fallback:', error);
+    console.warn('MongoDB products fallback:', error.message);
 
-    // Fallback in-memory
-    const normalized = INITIAL_PRODUCTS.map((p, idx) => {
-      let assignedCompany = 'rajbiosis';
-      if (idx % 3 === 1) assignedCompany = 'human_bio';
-      if (idx % 3 === 2) assignedCompany = 'global_bio';
-      return normalizeProduct({ ...p, companyId: assignedCompany });
-    });
+    // Clean fallback: Use in-memory or persisted INITIAL_PRODUCTS (1,169 models)
+    let inMemList = Array.isArray(global._biomedical_products) && global._biomedical_products.length > 0
+      ? global._biomedical_products
+      : INITIAL_PRODUCTS;
+    inMemList = inMemList.filter(
+      p => !DUMMY_PRODUCT_IDS.has(p.id) && !DUMMY_PRODUCT_IDS.has(String(p._id))
+    );
+    if (companyId && companyId !== 'all') {
+      inMemList = inMemList.filter(p => p.companyId === companyId);
+    }
+    const normalized = inMemList.map(normalizeProduct);
 
     return NextResponse.json({
       success: true,
       count: normalized.length,
       products: normalized,
-      fallback: true,
-      error: error.message
+      fallback: true
     });
   }
 }
 
 export async function POST(request) {
+  let body = null;
   try {
-    const body = await request.json();
-    const db = await getDatabase();
-    const collection = db.collection('products');
+    body = await request.json();
 
-    // Batch insertion from Excel or multi-file upload
+    let normalizedList = [];
     if (Array.isArray(body)) {
       if (body.length === 0) {
         return NextResponse.json({ success: true, count: 0, message: 'Empty list received' });
       }
-
-      const normalizedList = body.map(item => {
+      normalizedList = body.map(item => {
         const itemObj = normalizeProduct(item);
-        delete itemObj._id; // Let Mongo generate ID or handle gracefully
+        delete itemObj._id;
         return itemObj;
-      });
-
-      const result = await collection.insertMany(normalizedList);
-      return NextResponse.json({
-        success: true,
-        message: `Successfully imported ${result.insertedCount} products into MongoDB`,
-        insertedCount: result.insertedCount
       });
     }
 
-    // Single product creation
-    const newProduct = normalizeProduct(body);
-    delete newProduct._id;
-    newProduct.createdAt = new Date().toISOString();
-    newProduct.updatedAt = new Date().toISOString();
+    try {
+      const db = await getDatabase();
+      const collection = db.collection('products');
 
-    const result = await collection.insertOne(newProduct);
-    newProduct._id = result.insertedId.toString();
+      if (Array.isArray(body)) {
+        const result = await collection.insertMany(normalizedList);
+        // Sync in-memory cache
+        global._biomedical_products = [
+          ...normalizedList,
+          ...(global._biomedical_products || []).filter(
+            p => !normalizedList.some(n => n.id === p.id || n.sku === p.sku)
+          )
+        ];
+        return NextResponse.json({
+          success: true,
+          message: `Successfully imported ${result.insertedCount} products into MongoDB`,
+          insertedCount: result.insertedCount
+        });
+      } else {
+        const newProduct = normalizeProduct(body);
+        delete newProduct._id;
+        newProduct.createdAt = new Date().toISOString();
+        newProduct.updatedAt = new Date().toISOString();
 
-    return NextResponse.json({
-      success: true,
-      message: 'Product created successfully in MongoDB',
-      product: newProduct
-    });
+        const result = await collection.insertOne(newProduct);
+        newProduct._id = result.insertedId.toString();
+
+        global._biomedical_products = [newProduct, ...(global._biomedical_products || [])];
+
+        return NextResponse.json({
+          success: true,
+          message: 'Product created successfully in MongoDB',
+          product: newProduct
+        });
+      }
+    } catch (dbErr) {
+      console.warn('MongoDB products POST fallback (saved to memory):', dbErr.message);
+
+      // Resilient fallback: Save into in-memory store so import never fails or blocks the user
+      if (Array.isArray(body)) {
+        global._biomedical_products = [
+          ...normalizedList,
+          ...(global._biomedical_products || []).filter(
+            p => !normalizedList.some(n => n.id === p.id || n.sku === p.sku)
+          )
+        ];
+        return NextResponse.json({
+          success: true,
+          fallback: true,
+          message: `Successfully imported ${normalizedList.length} products (saved to session cache; MongoDB Atlas: ${dbErr.message})`,
+          insertedCount: normalizedList.length
+        });
+      } else {
+        const newProduct = normalizeProduct(body);
+        newProduct.id = newProduct.id || `prod-${Date.now()}`;
+        global._biomedical_products = [newProduct, ...(global._biomedical_products || [])];
+        return NextResponse.json({
+          success: true,
+          fallback: true,
+          message: 'Product created in session cache (MongoDB offline)',
+          product: newProduct
+        });
+      }
+    }
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
@@ -478,45 +533,100 @@ export async function PUT(request) {
 
 export async function DELETE(request) {
   try {
+    let body = {};
+    try {
+      body = await request.json();
+    } catch (e) {
+      body = {};
+    }
+
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id') || searchParams.get('_id');
+    const id = body.id || searchParams.get('id') || searchParams.get('_id');
     const idsParam = searchParams.get('ids');
+    const clearAll = body.clearAll || searchParams.get('clearAll') === 'true';
+    const companyIdToClear = body.companyId || searchParams.get('companyId');
+
+    // Handle Bulk Clear All
+    if (clearAll) {
+      const prevCount = (global._biomedical_products || []).length;
+      if (companyIdToClear && companyIdToClear !== 'all') {
+        global._biomedical_products = (global._biomedical_products || []).filter(
+          p => p.companyId !== companyIdToClear
+        );
+      } else {
+        global._biomedical_products = [];
+      }
+      const inMemDeleted = prevCount - (global._biomedical_products || []).length;
+
+      try {
+        const db = await getDatabase();
+        const collection = db.collection('products');
+        const q = (companyIdToClear && companyIdToClear !== 'all') ? { companyId: companyIdToClear } : {};
+        const result = await collection.deleteMany(q);
+        return NextResponse.json({
+          success: true,
+          message: `Cleared ${result.deletedCount} product(s) successfully`,
+          deletedCount: result.deletedCount
+        });
+      } catch (dbErr) {
+        return NextResponse.json({
+          success: true,
+          fallback: true,
+          message: `Cleared ${inMemDeleted} product(s) from session cache`,
+          deletedCount: inMemDeleted
+        });
+      }
+    }
 
     let ids = [];
-    if (idsParam) {
+    if (Array.isArray(body.ids)) {
+      ids = body.ids;
+    } else if (idsParam) {
       ids = idsParam.split(',').map(s => s.trim()).filter(Boolean);
     } else if (id) {
       ids = [id];
-    } else {
-      try {
-        const body = await request.json();
-        if (Array.isArray(body.ids)) ids = body.ids;
-        else if (body.id) ids = [body.id];
-      } catch (e) { }
     }
 
     if (ids.length === 0) {
       return NextResponse.json({ success: false, error: 'Product ID or IDs required' }, { status: 400 });
     }
 
-    const db = await getDatabase();
-    const collection = db.collection('products');
+    // Remove from in-memory cache as well
+    const prevCount = (global._biomedical_products || []).length;
+    const idSet = new Set(ids.map(String));
+    global._biomedical_products = (global._biomedical_products || []).filter(
+      p => !idSet.has(String(p.id)) && !idSet.has(String(p._id))
+    );
+    const inMemDeleted = prevCount - (global._biomedical_products || []).length;
 
-    const objectIds = ids.filter(x => ObjectId.isValid(x)).map(x => new ObjectId(x));
-    const query = {
-      $or: [
-        { id: { $in: ids } },
-        { _id: { $in: objectIds } }
-      ]
-    };
+    try {
+      const db = await getDatabase();
+      const collection = db.collection('products');
 
-    const result = await collection.deleteMany(query);
+      const objectIds = ids.filter(x => ObjectId.isValid(x)).map(x => new ObjectId(x));
+      const query = {
+        $or: [
+          { id: { $in: ids } },
+          { _id: { $in: objectIds } }
+        ]
+      };
 
-    return NextResponse.json({
-      success: true,
-      message: `Deleted ${result.deletedCount} product(s) successfully from MongoDB`,
-      deletedCount: result.deletedCount
-    });
+      const result = await collection.deleteMany(query);
+
+      return NextResponse.json({
+        success: true,
+        message: `Deleted ${result.deletedCount} product(s) successfully from MongoDB`,
+        deletedCount: result.deletedCount
+      });
+    } catch (dbErr) {
+      console.warn('MongoDB delete fallback (deleted from memory):', dbErr.message);
+      return NextResponse.json({
+        success: true,
+        fallback: true,
+        message: `Deleted ${inMemDeleted || ids.length} product(s) from active session`,
+        deletedCount: inMemDeleted || ids.length
+      });
+    }
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }

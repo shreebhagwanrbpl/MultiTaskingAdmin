@@ -185,14 +185,8 @@ export function AuthProvider({ children }) {
   const isAdmin = roleId === 'admin' || roleId === 'super_admin';
   const isSales = roleId === 'sales' || roleId === 'sales_executive' || roleId === 'district_manager';
 
-  // Switch state filter (Sales team territory is permanent and strictly locked)
+  // Switch state filter (Open for all team members as requested)
   const setStateFilter = (st) => {
-    if (!isAdmin) {
-      if (user?.state && user.state !== 'All India (HQ)' && user.state !== 'All India (National HQ)') {
-        setActiveStateFilter(user.state);
-      }
-      return;
-    }
     setActiveStateFilter(st);
   };
 
@@ -222,23 +216,8 @@ export function AuthProvider({ children }) {
   }, [user]);
 
   const canAccessTab = (tabName) => {
-    if (!user) return false;
-    if (isAdmin) return true;
-
-    switch (tabName) {
-      case 'leads':
-      case 'customers':
-      case 'quotation':
-      case 'products':
-        return true;
-      case 'website':
-      case 'vps':
-      case 'marketing':
-      case 'users':
-        return isAdmin;
-      default:
-        return true;
-    }
+    // Open for both Admin and Sales team as requested
+    return true;
   };
 
   return (

@@ -2,7 +2,33 @@ export const DEFAULT_HOMEPAGE_CONFIG = {
   domain: 'rajbiosis.com',
   updatedAt: new Date().toISOString(),
   
-  // 1. TOP OFFERS BAR
+  // 1. TOP ANNOUNCEMENT & UTILITY BAR (Header on rajbiosis.com)
+  topBarSettings: {
+    enabled: true, // Master Switch: Show / Hide Entire Top Announcement Bar
+    showBestDeals: true,
+    bestDealsText: 'Best Deals',
+    bestDealsBadge: 'Up to 35% Off',
+    bestDealsLink: '/deals?tab=best-deals',
+
+    showSpecialOffers: true,
+    specialOffersText: 'Special Offers',
+    specialOffersBadge: 'HOT',
+    specialOffersLink: '/deals?tab=special-offers',
+
+    showNewArrivals: true,
+    newArrivalsText: 'New Arrivals',
+    newArrivalsBadge: '2026',
+    newArrivalsLink: '/deals?tab=new-arrivals',
+
+    showDeliveryHub: true,
+    deliveryHubLabel: 'Delivering to:',
+
+    showSupportHelpline: true,
+    supportLabel: '24x7 Support:',
+    supportPhone: '9983333469'
+  },
+
+  // PROMOTIONAL PILLS & OFFERS
   offers: [
     {
       id: 'off-1',
